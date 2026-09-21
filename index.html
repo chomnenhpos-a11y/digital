@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/images/chomnenh.png" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <title>Chomnenh Digital</title>
+    <meta name="description" content="Full-featured e-commerce storefront and store management admin dashboard with product catalog, cart, QR payment, order tracking, and receipt generation." />
+    <meta property="og:title" content="Chomnenh Digital" />
+    <meta property="og:description" content="Full-featured e-commerce storefront and store management admin dashboard with product catalog, cart, QR payment, order tracking, and receipt generation." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Battambang:wght@100;300;400;700;900&family=Kantumruy+Pro:wght@100;200;300;400;500;600;700&family=Siemreap&family=Suwannaphum:wght@100;300;400;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Script សម្រាប់ Dynamic PWA Manifest & iOS Logo -->
+    <script>
+      (function() {
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        const shopCode = pathSegments[0];
+        const head = document.head;
+
+        if (shopCode && shopCode !== 'admin') {
+
+          const manifestLink = document.createElement('link');
+          manifestLink.rel = 'manifest';
+          manifestLink.href = `/api/manifest?shop_code=${shopCode}`;
+          head.appendChild(manifestLink);
+
+          const appleIcon = document.createElement('link');
+          appleIcon.rel = 'apple-touch-icon';
+          appleIcon.href = `/images/shops/${shopCode}/logo.png`; 
+          head.appendChild(appleIcon);
+
+          const appleTitle = document.createElement('meta');
+          appleTitle.name = 'apple-mobile-web-app-title';
+          appleTitle.content = shopCode;
+          head.appendChild(appleTitle);
+
+        } else {
+          const fallbackManifest = document.createElement('link');
+          fallbackManifest.rel = 'manifest';
+          fallbackManifest.href = '/manifest.json';
+          head.appendChild(fallbackManifest);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
