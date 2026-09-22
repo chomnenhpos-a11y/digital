@@ -162,6 +162,7 @@ const GeneralSettings = () => {
 
         Swal.fire({
           icon: "success",
+          title: t("common.success", "Success! ✅"),
           text: t("settings.telegramVerifySuccess", "Telegram group verified successfully!"),
           timer: 1800,
           showConfirmButton: false,

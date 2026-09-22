@@ -488,7 +488,7 @@ export const useGeneralSetting = () => {
         ),
         text: t(
           "settings.updateSuccess",
-          "Settings.updated successfully."
+          "Settings updated successfully."
         ),
         timer: 1800,
         showConfirmButton: false,
