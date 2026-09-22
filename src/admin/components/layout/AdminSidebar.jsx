@@ -248,7 +248,7 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
           )}
         </button>
 
-        <div className="p-6 h-[76px] font-bold text-lg text-white border-b border-[#870d4c]/30 flex items-center overflow-hidden shrink-0">
+        <Link to="/admin/settings" className="p-6 h-[76px] font-bold text-lg text-white border-b border-[#870d4c]/30 flex items-center overflow-hidden shrink-0">
           <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden flex items-center justify-center border border-[#870d4c]/50 bg-white/5 shadow-inner">
             {logoUrl && !imgError ? (
               <img
@@ -309,7 +309,7 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
               </div>
             </div>
           </div>
-        </div>
+        </Link>
 
         <nav className="flex-1 p-4 space-y-6 overflow-y-auto overflow-x-hidden scroll-smooth overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(135,13,76,0.5)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#870d4c]/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-[#870d4c]">
           {menuSections.map((section) => (

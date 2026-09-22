@@ -51,7 +51,6 @@ export default function ProductCard({ product = {}, index = 0 }) {
       : null;
 
   const discountPricePercent =
-    discountPrice ||
     (originalPrice
       ? Math.round(
           ((originalPrice - displayPrice) / originalPrice) * 100

@@ -50,7 +50,6 @@ export default function AdminSettings() {
         <div className="flex-1 w-full min-w-0">
           {activeTab === 'general' && <GeneralSettings />}
           {activeTab === 'profile' && <ProfileSettings />}
-          {/* {activeTab === 'permissions' && <PermissionSettings />} */}
         </div>
       </div>
     </div>

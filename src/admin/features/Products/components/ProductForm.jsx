@@ -275,7 +275,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
           />
 
           {errors.name && (
-            <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+            <p className="text-xs text-red-500 mt-1">{t(errors.name.message)}</p>
           )}
         </div>
         <div>
@@ -295,7 +295,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
 
           {errors.categoryId && (
             <p className="text-xs text-red-500 mt-1">
-              {errors.categoryId.message}
+              {t(errors.categoryId.message)}
             </p>
           )}
         </div>
@@ -317,7 +317,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
 
           {errors.stockQuantity && (
             <p className="text-xs text-red-500 mt-1">
-              {errors.stockQuantity.message}
+              {t(errors.stockQuantity.message)}
             </p>
           )}
         </div>
@@ -336,7 +336,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
           />
 
           {errors.price && (
-            <p className="text-xs text-red-500 mt-1">{errors.price.message}</p>
+            <p className="text-xs text-red-500 mt-1">{t(errors.price.message)}</p>
           )}
         </div>
       </div>
@@ -364,7 +364,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
 
           {errors.discountPrice && (
             <p className="text-xs text-red-500 mt-1">
-              {errors.discountPrice.message}
+              {t(errors.discountPrice.message)}
             </p>
           )}
         </div>
@@ -396,7 +396,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
         />
 
         {errors.description && (
-          <p className="text-xs text-red-500 ">{errors.description.message}</p>
+          <p className="text-xs text-red-500 ">{t(errors.description.message)}</p>
         )}
       </div>
 

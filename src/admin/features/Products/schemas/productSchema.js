@@ -5,47 +5,47 @@ export const productSchema = z.object({
     .string()
     .trim()
     .min(1, {
-      message: "Product name is required.",
+      message: "validation.product.nameRequired",
     }),
 
   categoryId: z
     .string()
     .min(1, {
-      message: "Category is required.",
+      message: "validation.product.categoryRequired",
     }),
 
   stockQuantity: z.coerce
     .number()
     .int({
-      message: "Stock quantity must be a whole number.",
+      message: "validation.product.stockInt",
     })
     .min(0, {
-      message: "Stock quantity must be 0 or greater.",
+      message: "validation.product.stockMin",
     }),
 
   price: z.coerce
     .number()
     .min(0, {
-      message: "Price must be 0 or greater.",
+      message: "validation.product.priceMin",
     }),
 
   discountPrice: z.coerce
     .number()
     .min(0, {
-      message: "Discount price must be 0 or greater.",
+      message: "validation.product.discountPriceMin",
     }),
 
   salePrice: z.coerce
     .number()
     .min(0, {
-      message: "Sale price must be 0 or greater.",
+      message: "validation.product.salePriceMin",
     }),
 
   description: z
     .string()
     .trim()
     .min(1, {
-      message: "Product description is required.",
+      message: "validation.product.descriptionRequired",
     }),
 
   images: z
@@ -58,4 +58,10 @@ export const productSchema = z.object({
       })
     )
     .optional(),
-});
+}).refine(
+  (data) => data.discountPrice <= data.price,
+  {
+    message: "validation.product.discountExceedsPrice",
+    path: ["discountPrice"],
+  }
+);

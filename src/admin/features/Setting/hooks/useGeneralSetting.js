@@ -89,15 +89,7 @@ export const useGeneralSetting = () => {
   const [supportFileName, setSupportFileName] =
     useState("");
 
-  const {
-    register,
-    control,
-    reset,
-    setValue,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm({
+  const methods = useForm({
     resolver: zodResolver(settingSchema),
     defaultValues: {
       shop_name: "",
@@ -112,6 +104,17 @@ export const useGeneralSetting = () => {
       address: "",
     },
   });
+
+  const {
+    register,
+    control,
+    reset,
+    setValue,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = methods;
+
 
   const {
     fields,
@@ -622,5 +625,6 @@ export const useGeneralSetting = () => {
     isSubmitting:
       updateSettingMutation.isPending,
     setValue,
+    methods,
   };
 };
