@@ -575,7 +575,7 @@ export default function AdminStickerPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full max-w-2xl pt-1">
         <button
           onClick={handlePrint}
-          className="w-full flex items-center justify-center gap-2 py-1 bg-[#9d1159] text-white rounded-lg hover:bg-[#9d1159] transition-colors font-medium shadow-sm cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 py-1 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-sm cursor-pointer"
         >
           <Printer size={14} />
           {t("order.printSticker")}
@@ -598,7 +598,7 @@ export default function AdminStickerPage() {
         <button
           onClick={handleSendTelegram}
           disabled={loading === "telegram"}
-          className="col-span-2 md:col-span-1 justify-self-center w-3/4 sm:w-2/3 md:w-full flex items-center justify-center gap-2 py-1 bg-sky-600 text-white rounded-lg hover:bg-sky-500 transition-all font-medium shadow-sm disabled:opacity-60 cursor-pointer"
+          className="col-span-2 md:col-span-1 justify-self-center w-3/4 sm:w-2/3 md:w-full flex items-center justify-center gap-2 py-1 bg-pink-900 text-white rounded-lg hover:bg-pink-700 transition-all font-medium shadow-sm disabled:opacity-60 cursor-pointer"
         >
           {loading === "telegram" ? (
             <Loader2 size={14} className="animate-spin" />

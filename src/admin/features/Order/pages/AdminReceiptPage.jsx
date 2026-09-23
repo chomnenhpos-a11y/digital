@@ -262,7 +262,7 @@ export default function AdminReceiptPage() {
         <button
           onClick={handleSendTelegram}
           disabled={loading === "telegram"}
-          className="w-full sm:w-auto md:flex-1 min-w-[160px] flex items-center justify-center gap-1.5 bg-sky-600 text-white px-4 py-1.5 rounded-md md:rounded-lg hover:bg-sky-500 active:scale-[0.98] transition-all text-xs font-semibold shadow-xs disabled:opacity-60 cursor-pointer group"
+          className="w-full sm:w-auto md:flex-1 min-w-[160px] flex items-center justify-center gap-1.5 bg-pink-900 text-white px-4 py-1.5 rounded-md md:rounded-lg hover:bg-pink-700 active:scale-[0.98] transition-all text-xs font-semibold shadow-xs disabled:opacity-60 cursor-pointer group"
         >
           {loading === "telegram" ? (
             <Loader2 size={14} className="animate-spin" />
