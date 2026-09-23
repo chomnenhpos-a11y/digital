@@ -134,7 +134,7 @@ export function useCreateOrderMutation() {
 
 export function useUpdateOrderMutation() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ orderId, formData }) => {
       const response = await orderService.updateOrder(orderId, formData);
@@ -154,7 +154,7 @@ export function useUpdateOrderStatusMutation() {
     mutationFn: async ({ orderId, newStatus }) => {
       const previousOrders = queryClient.getQueryData(orderKeys.list({}));
       const orderToUpdate = previousOrders?.find(o => o.id === orderId) || {};
-      
+
       const response = await orderService.updateOrder(orderId, { ...orderToUpdate, status: newStatus });
       return response;
     },
@@ -165,7 +165,7 @@ export function useUpdateOrderStatusMutation() {
       if (previousOrders) {
         queryClient.setQueryData(
           orderKeys.list({}),
-          previousOrders.map(order => 
+          previousOrders.map(order =>
             order.id === orderId ? { ...order, status: newStatus } : order
           )
         );
@@ -206,7 +206,7 @@ export function useUpdateOrderPaymentStatusMutation() {
     mutationFn: async ({ orderId, newPaymentStatus }) => {
       const previousOrders = queryClient.getQueryData(orderKeys.list({}));
       const orderToUpdate = previousOrders?.find(o => o.id === orderId) || {};
-      
+
       const response = await orderService.updateOrder(orderId, { ...orderToUpdate, paymentStatus: newPaymentStatus });
       return { response, newPaymentStatus };
     },
@@ -217,7 +217,7 @@ export function useUpdateOrderPaymentStatusMutation() {
       if (previousOrders) {
         queryClient.setQueryData(
           orderKeys.list({}),
-          previousOrders.map(order => 
+          previousOrders.map(order =>
             order.id === orderId ? { ...order, paymentStatus: newPaymentStatus } : order
           )
         );

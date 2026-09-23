@@ -58,7 +58,7 @@ export default function OrderFormFields({
 
         {errors.phone && (
           <p className="text-red-500 text-xs mt-1">
-            {errors.phone.message}
+            {t(errors.phone.message)}
           </p>
         )}
       </div>
@@ -80,7 +80,7 @@ export default function OrderFormFields({
 
         {errors.address && (
           <p className="text-red-500 text-xs mt-1">
-            {errors.address.message}
+            {t(errors.address.message)}
           </p>
         )}
       </div>
@@ -142,14 +142,14 @@ export default function OrderFormFields({
                     }
                   );
                 }}
-                className={`relative flex flex-col items-center justify-center rounded-xl border-[2px] cursor-pointer transition-all text-center p-2 min-h-[90px] ${
+                className={`relative flex flex-col items-center justify-center rounded-xl border-[2px] cursor-pointer transition-all text-center p-1.5 min-h-[90px] ${
                   isSelected
                     ? "border-red-600 bg-red-50 ring-1 ring-red-600 shadow-sm"
                     : "border-slate-200 bg-white hover:border-red-300 hover:bg-slate-50 hover:shadow-xs"
                 }`}
               >
                 {isSelected && (
-                  <div className="absolute top-1.5 right-1.5 bg-red-600 text-white p-0.5 rounded-full shadow-sm">
+                  <div className="absolute top-1.5 right-1.5 bg-red-600 text-white  rounded-full shadow-sm">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-3 w-3"
@@ -195,7 +195,7 @@ export default function OrderFormFields({
 
         {errors.deliveryProviderId && (
           <p className="text-red-500 text-xs mt-1">
-            {errors.deliveryProviderId.message}
+            {t(errors.deliveryProviderId.message)}
           </p>
         )}
       </div>

@@ -205,7 +205,7 @@ export default function DeliveryForm({
                         handleDeliveryChange(option);
                       }
                     }}
-                    className={`flex flex-col items-center justify-center p-2 rounded-2xl border text-xs transition-all duration-200 ${
+                    className={`flex flex-col items-center justify-center p-1 rounded-2xl border text-xs transition-all duration-200 ${
                       isSelected
                         ? "border-red-600 bg-red-50/80 text-red-950 font-semibold shadow-sm"
                         : errors.deliveryMethod
@@ -217,7 +217,7 @@ export default function DeliveryForm({
                       <img
                         src={option.logo}
                         alt={option.name}
-                        className="h-12 w-12 object-cover rounded-md mb-1"
+                        className="h-10 w-10 object-cover rounded-md mb-0.5"
                       />
                     )}
 
@@ -225,7 +225,7 @@ export default function DeliveryForm({
                       {option.name}
                     </span>
 
-                    <span className="text-[10px] text-slate-500 mt-0.5">
+                    <span className="text-[10px] text-slate-500 ">
                       $
                       {option.fee.toFixed(
                         2

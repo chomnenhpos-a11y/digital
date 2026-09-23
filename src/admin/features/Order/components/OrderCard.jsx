@@ -10,14 +10,15 @@ import {
   FileText,
   FileEdit
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'
 import { useUpdateOrderStatusMutation, useUpdateOrderPaymentStatusMutation } from '../../../../queries/orders/useOrderQueries'
 
 export default function OrderCard({ order, onEdit }) {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const updateOrderStatusMutation = useUpdateOrderStatusMutation()
+  const navigate = useNavigate();
+  const { shop_code: routeShopCode } = useParams();
+  const updateOrderStatusMutation = useUpdateOrderStatusMutation();
   const updatePaymentStatusMutation = useUpdateOrderPaymentStatusMutation()
 
   const updateOrderStatus = (orderId, newStatus) => {
@@ -249,18 +250,22 @@ export default function OrderCard({ order, onEdit }) {
         </button>
 
         <button
-          onClick={() => navigate(`/admin/print-receipt/${order?.orderNo}`)}
+           onClick={() => {
+            navigate(`/admin/print-receipt/${order?.orderNo}`);
+          }}
           className="flex min-w-0 items-center justify-center gap-0.5 border-x border-slate-200 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-rose-50 hover:text-rose-600 sm:gap-1 sm:py-1.5 sm:text-[9px]"
         >
-          <FileText size={16} className="shrink-0" />
+          <Printer size={16} className="shrink-0" />
           <span className="truncate">{t('order.receipt')}</span>
         </button>
 
         <button
-          onClick={() => navigate(`/admin/print-sticker/${order?.orderNo}`)}
+          onClick={() => {
+            navigate(`/admin/print-sticker/${order?.orderNo}`);
+          }}
           className="flex min-w-0 items-center justify-center gap-0.5 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-violet-50 hover:text-violet-600 sm:gap-1 sm:py-1.5 sm:text-[9px]"
         >
-          <Printer size={16} className="shrink-0" />
+          <FileText size={16} className="shrink-0" />
           <span className="truncate">{t('order.sticker')}</span>
         </button>
 

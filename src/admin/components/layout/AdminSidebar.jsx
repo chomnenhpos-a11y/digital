@@ -128,11 +128,9 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
   const isFull = sidebarState === 2;
   const isHidden = sidebarState === 0;
 
-  // Keep every animated child on the same timing curve as the sidebar.
-  // This prevents the labels from resizing at a different speed than the shell.
   const contentVisibility = isFull
-    ? "opacity-100 translate-x-0 delay-75"
-    : "opacity-0 -translate-x-2 pointer-events-none";
+    ? "opacity-100 translate-x-0 delay-75 w-auto ml-3"
+    : "opacity-0 -translate-x-2 pointer-events-none w-0 overflow-hidden ml-0";
 
   const menuSections = useMemo(
     () => [
@@ -208,11 +206,10 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
   return (
     <>
       <div
-        className={`md:hidden fixed inset-0 bg-[#44092e]/10 z-40 backdrop-blur-sm transition-opacity duration-300 ${
-          !isHidden
+        className={`md:hidden fixed inset-0 bg-[#44092e]/10 z-40 backdrop-blur-sm transition-opacity duration-300 ${!isHidden
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
-        }`}
+          }`}
         onClick={() => setSidebarState(0)}
       />
 
@@ -223,10 +220,9 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
           transition-[width,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
           select-none shadow-2xl md:shadow-none
           will-change-[width,transform]
-          ${
-            isHidden
-              ? "-translate-x-full md:translate-x-0 w-[80px]"
-              : "translate-x-0"
+          ${isHidden
+            ? "-translate-x-full md:translate-x-0 w-[80px]"
+            : "translate-x-0"
           }
           ${sidebarState === 1 ? "w-[80px]" : ""}
           ${sidebarState === 2 ? "w-64" : ""}
@@ -315,11 +311,10 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
           {menuSections.map((section) => (
             <div key={section.title} className="space-y-1">
               <div
-                className={`h-5 overflow-hidden transition-[height,opacity,transform,margin] duration-200 ease-out ${
-                  isFull
+                className={`h-5 overflow-hidden transition-[height,opacity,transform,margin] duration-200 ease-out ${isFull
                     ? "opacity-100 translate-x-0 mb-2"
                     : "h-0 opacity-0 -translate-x-2 mb-0"
-                }`}
+                  }`}
               >
                 <div>
                   <h2 className="px-4 text-[11px] font-bold text-white/50 tracking-widest whitespace-nowrap uppercase">
@@ -336,24 +331,22 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center px-4 py-3 rounded-xl text-sm transition-colors duration-150 relative group overflow-hidden ${
-                      isActive
+                    className={`flex items-center ${isFull ? "px-4" : "justify-center"} py-3 rounded-xl text-sm transition-all duration-150 relative group overflow-hidden ${isActive
                         ? "bg-[#870d4c] text-white font-semibold shadow-md"
                         : "hover:bg-[#870d4c]/40 hover:text-white text-white/70"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center min-w-0">
                       <Icon
                         size={18}
-                        className={`shrink-0 transition-transform duration-150 ease-out ${
-                          isActive
+                        className={`shrink-0 transition-transform duration-150 ease-out ${isActive
                             ? ""
                             : "group-hover:scale-110"
-                        }`}
+                          }`}
                       />
 
                       <div
-                        className={`ml-3 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out ${contentVisibility}`}
+                        className={`whitespace-nowrap transition-all duration-200 ease-out ${contentVisibility}`}
                       >
                         <span className="leading-normal">
                           {item.label}
@@ -376,9 +369,10 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
         <div className="p-4 border-t border-[#870d4c]/30 shrink-0">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-4 py-3 rounded-xl text-sm transition-colors duration-150 relative group overflow-hidden hover:bg-red-500/20 hover:text-red-400 text-white/70"
+            className={`w-full flex items-center ${isFull ? "px-4" : "justify-center"} py-3 rounded-xl text-sm transition-all duration-150 relative group overflow-hidden hover:bg-red-500/20 hover:text-red-400 text-white/70`}
             title={t("common.logout")}
             type="button"
+            style={{ paddingLeft: isFull ? '' : '0', paddingRight: isFull ? '' : '0' }}
           >
             <div className="flex items-center min-w-0">
               <LogOut
@@ -387,7 +381,7 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
               />
 
               <div
-                className={`ml-3 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out ${contentVisibility}`}
+                className={`whitespace-nowrap transition-all duration-200 ease-out ${contentVisibility}`}
               >
                 <span className="leading-normal">
                   {t("common.logout")}

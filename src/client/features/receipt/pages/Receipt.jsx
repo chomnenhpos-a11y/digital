@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
-import { useLocation, useParams, Link } from "react-router-dom";
+import { useLocation, useParams, Link, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { toPng } from "html-to-image";
 import { useReactToPrint } from "react-to-print";
@@ -15,7 +15,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { usePublicSettingsQuery } from "../../../../queries/settings/useSettingQueries";
-import { useOrderQuery } from "../../../../queries/orders/useOrderQueries";
+import { useOrderQuery, useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
 
 import ReceiptCard from "../components/ReceiptCard";
 
@@ -23,6 +23,9 @@ export default function Receipt() {
   const { t } = useTranslation();
   const { orderId: orderNo } = useParams();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const urlShopCode = searchParams.get("shop_code");
+
   const receiptRef = useRef(null);
   const [loading, setLoading] = useState(null);
 
@@ -34,10 +37,23 @@ export default function Receipt() {
     initialOrder,
   );
 
+  const { data: orders = [], isLoading: ordersLoading } = useOrdersQuery(
+    urlShopCode ? { shop_code: urlShopCode } : {}
+  );
+
   const order = useMemo(() => {
     if (initialOrder) return initialOrder;
-    return orderResponse?.data ?? orderResponse ?? null;
-  }, [initialOrder, orderResponse]);
+    if (orderResponse?.data) return orderResponse.data;
+    if (orderResponse) return orderResponse;
+    const foundOrder = orders.find(
+      (o) =>
+        String(o.orderNo) === String(orderNo) ||
+        String(o.orderNumber) === String(orderNo)
+    );
+    return foundOrder || null;
+  }, [initialOrder, orderResponse, orders, orderNo]);
+
+  const isLoading = orderLoading || (ordersLoading && !order);
 
   // Safe fallback chain — order is typically a flat object, but we handle all shapes
   const orderShopCode =
@@ -182,30 +198,7 @@ export default function Receipt() {
     }
   };
 
-  if (!orderId && !initialOrder) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
-          <Package size={28} />
-        </div>
-        <p className="text-base font-semibold text-slate-700 mb-1">
-          {t("order.receiptNotFound") || "Receipt not found"}
-        </p>
-        <p className="text-xs text-slate-400 mb-4">
-          {t("order.receiptId") || "Receipt ID"} #{orderNo}
-        </p>
-        <button
-          onClick={() => window.history.back()}
-          className="flex items-center gap-2 text-slate-700 hover:text-slate-900 bg-white px-3 py-1 rounded-xl shadow-xs border border-slate-200 text-sm font-medium transition-colors"
-        >
-          <ArrowLeft size={16} />
-          <span>{t("order.goBack") || "Go Back"}</span>
-        </button>
-      </div>
-    );
-  }
-
-  if (!initialOrder && orderLoading) {
+  if (!initialOrder && isLoading) {
     return (
       <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center">
         <Loader2 size={32} className="animate-spin text-slate-400 mb-4" />
@@ -241,21 +234,6 @@ export default function Receipt() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center py-8 px-4 font-sans text-slate-800">
-      <div className="w-full max-w-md flex items-center justify-between mb-5">
-        <button
-          onClick={() => window.history.back()}
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 bg-white px-3 py-1 rounded-lg shadow-xs border border-slate-200 text-sm font-medium transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={14} />
-          <span>{t("order.goBack") || "Go Back"}</span>
-        </button>
-        
-        <span className="text-xs flex items-center gap-1 font-bold text-slate-900 bg-slate-200/70 px-2.5 py-1 rounded">
-          <ReceiptText size={14} />
-          <span>{t("order.receiptSize") || "80mm"} (Receipt)</span>
-        </span>
-      </div>
-
       <div className="bg-white mb-6 border border-slate-200 flex items-center justify-center">
         <div ref={receiptRef} className="bg-white inline-block">
           <ReceiptCard
@@ -266,52 +244,52 @@ export default function Receipt() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-w-lg w-full pt-1">
+      {/* Action Buttons */}
+      <div className="flex items-center justify-center gap-3 max-w-lg w-full pb-6">
         <button
           onClick={handlePrint}
-          className="w-full flex items-center justify-center gap-1.5 bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 active:scale-[0.98] transition-all text-xs font-semibold shadow-xs cursor-pointer group"
+          title={t("order.printReceipt") || "Print"}
+          className="w-[104px] px-3 py-2 flex items-center justify-center bg-[#0f1525] text-white rounded-lg hover:bg-slate-800 active:scale-95 transition-all cursor-pointer group shadow-sm"
         >
           <Printer
-            size={14}
-            className="transition-transform group-hover:-translate-y-0.5"
+            size={18}
+            strokeWidth={1.5}
+            className="transition-transform group-hover:scale-110"
           />
-          <span>{t("order.printReceipt") || "Print"}</span>
         </button>
 
         <button
           onClick={handleSaveImage}
           disabled={loading === "img"}
-          className="w-full flex items-center justify-center gap-1.5 bg-white text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 active:scale-[0.98] transition-all text-xs font-semibold shadow-2xs disabled:opacity-60 cursor-pointer group"
+          title={t("order.downloadReceipt") || "Download"}
+          className="w-[104px] px-3 py-2 flex items-center justify-center bg-white text-slate-500 border border-slate-180/80 rounded-lg hover:bg-slate-50 active:scale-95 transition-all cursor-pointer group shadow-sm disabled:opacity-60"
         >
           {loading === "img" ? (
-            <Loader2 size={14} className="animate-spin text-slate-900" />
+            <Loader2 size={18} className="animate-spin" />
           ) : (
             <FileDown
-              size={14}
-              className="transition-transform group-hover:translate-y-0.5 text-slate-500 group-hover:text-slate-900"
+              size={18}
+              strokeWidth={1.5}
+              className="transition-transform group-hover:scale-110"
             />
           )}
-          <span>
-            {loading === "img"
-              ? t("order.saving") || "Saving..."
-              : t("order.downloadReceipt") || "Save Image"}
-          </span>
         </button>
 
         <button
           onClick={handleShare}
           disabled={loading === "share"}
-          className="col-span-2 md:col-span-1 justify-self-center w-3/4 sm:w-2/3 md:w-full flex items-center justify-center gap-1.5 bg-sky-600 text-white px-3 py-1.5 rounded-lg hover:bg-sky-500 active:scale-[0.98] transition-all text-xs font-semibold shadow-xs disabled:opacity-60 cursor-pointer group"
+          title={t("order.shareReceipt") || "Share"}
+          className="w-[104px] px-3 py-2 flex items-center justify-center bg-[#831843] text-white rounded-lg hover:bg-[#6c1236] active:scale-95 transition-all cursor-pointer group shadow-sm disabled:opacity-60"
         >
           {loading === "share" ? (
-            <Loader2 size={14} className="animate-spin" />
+            <Loader2 size={18} className="animate-spin" />
           ) : (
             <Share2
-              size={14}
-              className="transition-transform group-hover:translate-x-0.5"
+              size={18}
+              strokeWidth={1.5}
+              className="transition-transform group-hover:scale-110"
             />
           )}
-          <span>{loading === "share" ? "Sharing..." : "Share"}</span>
         </button>
       </div>
     </div>

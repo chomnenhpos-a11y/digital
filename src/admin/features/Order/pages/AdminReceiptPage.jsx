@@ -4,7 +4,7 @@ import { useParams, Link, useLocation } from "react-router-dom";
 import {
   Printer,
   FileDown,
-  Send,
+  Share2,
   ArrowLeft,
   Loader2,
   Package,
@@ -13,14 +13,17 @@ import {
 import { useReactToPrint } from "react-to-print";
 import { toPng } from "html-to-image";
 import { useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
-import { sendOrderToTelegram } from "../../../../services/telegramService";
-import { useSettingByIdQuery } from "../../../../queries/settings/useSettingQueries";
+
+import { useSettingsQuery } from "../../../../queries/settings/useSettingQueries";
 import { useTranslation } from "react-i18next";
 
 import ReceiptCard from "../../../../client/features/receipt/components/ReceiptCard";
+import { useAuth } from "../../../../hooks/useAuth";
 
 export default function AdminReceiptPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+
   const { No: paramNo } = useParams();
   const location = useLocation();
   const stateOrder = location.state?.orderData;
@@ -32,8 +35,12 @@ export default function AdminReceiptPage() {
   );
   const order = foundOrder || stateOrder;
 
-  const { data: settingsResponse, isLoading: settingsLoading } = useSettingByIdQuery(order?.settingId);
-  const settings = settingsResponse?.data ?? settingsResponse;
+  const shopCode = user?.shop?.code ;
+console.log("jellp", shopCode);
+
+  const { data: settingData, isLoading: settingsLoading } = useSettingsQuery(shopCode);
+  
+  const settings = Array.isArray(settingData) ? settingData[0] || {} : settingData?.data ?? settingData ?? {};
   const printRef = useRef(null);
   const [loading, setLoading] = useState(null);
 
@@ -174,33 +181,68 @@ export default function AdminReceiptPage() {
     }
   };
 
-  const handleSendTelegram = async () => {
-    setLoading("telegram");
+  const handleShare = async () => {
+    if (!printRef.current) {
+      return;
+    }
+
+    setLoading("share");
 
     try {
-      await sendOrderToTelegram({
-        ...order,
-        chat_id: settings?.chat_id || order?.chat_id,
-        shopCode: order?.shopCode || order?.shop_code || order?.shop?.code || settings?.shop_code
+      const image = await toPng(printRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
       });
 
-      Swal.fire({
-        icon: "success",
-        title: t("common.success"),
-        text: t("order.receiptSentToTelegram"),
-        confirmButtonColor: "#0284c7",
-        timer: 3000,
-        timerProgressBar: true,
-      });
+      const blob = await fetch(image).then((res) => res.blob());
+
+      const file = new File(
+        [blob],
+        `receipt-${order?.orderNo || order?.orderNumber || order?.id || "order"}.png`,
+        {
+          type: "image/png",
+        },
+      );
+
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({
+          files: [file],
+        })
+      ) {
+        await navigator.share({
+          title: `Receipt ${order?.orderNo || order?.orderNumber || order?.id || "order"}`,
+          text: "Order Receipt",
+          files: [file],
+        });
+      } else {
+        const link = document.createElement("a");
+        link.href = image;
+        link.download = `receipt-${order?.orderNo || order?.orderNumber || order?.id || "order"}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        await Swal.fire({
+          icon: "success",
+          title: t('order.successTitle') || t("common.success"),
+          text: t('order.receiptDownloaded') || "Receipt downloaded",
+          confirmButtonColor: "#0f172a",
+        });
+      }
     } catch (error) {
-      console.error("Telegram error:", error);
+      console.error("Share receipt error:", error);
 
-      Swal.fire({
-        icon: "error",
-        title: t("common.failed"),
-        text: error.message || t("order.telegramSendError"),
-        confirmButtonColor: "#0f172a",
-      });
+      if (error?.name !== "AbortError") {
+        await Swal.fire({
+          icon: "error",
+          title: t('order.errorTitle') || t("common.failed"),
+          text: t('order.cannotShareReceipt') || "Cannot share receipt",
+          confirmButtonColor: "#0f172a",
+        });
+      }
     } finally {
       setLoading(null);
     }
@@ -208,20 +250,6 @@ export default function AdminReceiptPage() {
 
   return (
     <div className="min-h-screen bg-[#fcfafb] flex flex-col items-center py-8 px-4 font-sans text-slate-800">
-      <div className="w-full max-w-md flex items-center justify-between mb-5">
-        <Link
-          to="/admin/orders"
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 bg-white px-3 py-0.5 rounded-lg shadow-xs border border-slate-200 text-sm font-medium transition-colors"
-        >
-          <ArrowLeft size={14} />
-          <span>{t("order.goBack")}</span>
-        </Link>
-        <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 bg-slate-200/70 px-2.5 py-1 rounded">
-          <ReceiptText size={14} />
-          <span>{t("order.receiptSize")} (Receipt)</span>
-        </span>
-      </div>
-
       <div className="bg-white mb-6 border border-slate-200 flex items-center justify-center">
         <div ref={printRef} className="bg-white inline-block">
           <ReceiptCard order={order} settings={settings} settingsLoading={settingsLoading} />
@@ -229,54 +257,51 @@ export default function AdminReceiptPage() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap items-center justify-center gap-2 max-w-lg w-full pt-1">
+      <div className="flex items-center justify-center gap-3 max-w-lg w-full pb-6">
         <button
           onClick={handlePrint}
-          className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 bg-slate-900 text-white px-3 py-1.5 rounded-md md:rounded-lg hover:bg-slate-800 active:scale-[0.98] transition-all text-xs font-semibold shadow-xs cursor-pointer group"
+          title={t("order.printReceipt") || "Print"}
+          className="w-[104px] px-3 py-2 flex items-center justify-center bg-[#0f1525] text-white rounded-lg hover:bg-slate-800 active:scale-95 transition-all cursor-pointer group shadow-sm"
         >
           <Printer
-            size={14}
-            className="transition-transform group-hover:-translate-y-0.5"
+            size={18}
+            strokeWidth={1.5}
+            className="transition-transform group-hover:scale-110"
           />
-          <span>{t("order.printReceipt")}</span>
         </button>
 
         <button
           onClick={handleSaveImage}
           disabled={loading === "img"}
-          className="flex-1 min-w-[130px] flex items-center justify-center gap-1.5 bg-white text-slate-700 border border-slate-200 px-3 py-1.5 rounded-md md:rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 active:scale-[0.98] transition-all text-xs font-semibold shadow-2xs disabled:opacity-60 cursor-pointer group"
+          title={t("order.downloadReceipt") || "Download"}
+          className="w-[104px] px-3 py-2 flex items-center justify-center bg-white text-slate-500 border border-slate-180/80 rounded-lg hover:bg-slate-50 active:scale-95 transition-all cursor-pointer group shadow-sm disabled:opacity-60"
         >
           {loading === "img" ? (
-            <Loader2 size={14} className="animate-spin text-slate-900" />
+            <Loader2 size={18} className="animate-spin" />
           ) : (
             <FileDown
-              size={14}
-              className="transition-transform group-hover:translate-y-0.5 text-slate-500 group-hover:text-slate-900"
+              size={18}
+              strokeWidth={1.5}
+              className="transition-transform group-hover:scale-110"
             />
           )}
-          <span>
-            {loading === "img" ? t("order.saving") : t("order.downloadReceipt")}
-          </span>
         </button>
 
         <button
-          onClick={handleSendTelegram}
-          disabled={loading === "telegram"}
-          className="w-full sm:w-auto md:flex-1 min-w-[160px] flex items-center justify-center gap-1.5 bg-pink-900 text-white px-4 py-1.5 rounded-md md:rounded-lg hover:bg-pink-700 active:scale-[0.98] transition-all text-xs font-semibold shadow-xs disabled:opacity-60 cursor-pointer group"
+          onClick={handleShare}
+          disabled={loading === "share"}
+          title={t("order.shareReceipt") || "Share"}
+          className="w-[104px] px-3 py-2 flex items-center justify-center bg-[#831843] text-white rounded-lg hover:bg-[#6c1236] active:scale-95 transition-all cursor-pointer group shadow-sm disabled:opacity-60"
         >
-          {loading === "telegram" ? (
-            <Loader2 size={14} className="animate-spin" />
+          {loading === "share" ? (
+            <Loader2 size={18} className="animate-spin" />
           ) : (
-            <Send
-              size={14}
-              className="transition-transform group-hover:translate-x-0.5"
+            <Share2
+              size={18}
+              strokeWidth={1.5}
+              className="transition-transform group-hover:scale-110"
             />
           )}
-          <span>
-            {loading === "telegram"
-              ? t("order.sending")
-              : t("order.sendToTelegram")}
-          </span>
         </button>
       </div>
     </div>

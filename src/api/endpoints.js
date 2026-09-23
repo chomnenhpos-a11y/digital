@@ -29,7 +29,7 @@ export const API_ENDPOINTS = {
         CREATE: 'api/promotions',
         UPDATE: (id) => `api/promotions?id=${id}`,
     },
-    SETTINGS:{
+    SETTINGS: {
         GET_ALL: 'api/settings',
         CREATE: 'api/settings/register',
         UPDATE: (id) => `api/settings?id=${id}`,

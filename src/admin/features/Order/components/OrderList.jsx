@@ -194,14 +194,15 @@ export default function OrderList({ orders, onEdit }) {
             className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
             title={t('order.receipt')}
           >
-            <ReceiptText size={16} className="text-red-500" />
+            <Printer size={16} className="text-violet-500" />
           </Link>
           <Link
             to={`/admin/print-sticker/${order?.orderNo}`}
             className="p-1.5 text-slate-500 hover:text-violet-600 hover:bg-violet-50 rounded transition-colors"
             title={t('order.sticker')}
           >
-            <Printer size={16} className="text-violet-500" />
+            {/* <Printer size={16} className="text-violet-500" /> */}
+            <ReceiptText size={16} className="text-red-500" />
           </Link>
         </div>
       ),

@@ -49,7 +49,6 @@ export default function AppRouter() {
       {/* Existing Digital E-Commerce (Moved to /:shop_code) */}
       <Route path="/:shop_code" element={<Home />} />
       <Route path="/:shop_code/products/:id" element={<ProductDetail />} />
-      
       <Route path="/print-receipt/:orderId" element={<Receipt />} />
       <Route path="/admin/print-receipt/:No" element={<AdminReceiptPage />} />
       <Route path="/admin/print-sticker/:id" element={<AdminStickerPage />} />
