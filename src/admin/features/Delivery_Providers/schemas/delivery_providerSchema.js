@@ -9,9 +9,9 @@ export const deliveryProviderSchema = z.object({
     .string()
     .trim()
     .min(1, { message: "delivery.phoneRequired" }),
-  shipping_fee: z
-    .any()
-    .refine((val) => val !== "" && val !== null && val !== undefined, { message: "delivery.feeRequired" }),
+  shipping_fee: z.any().optional(),
   is_active: z.union([z.boolean(), z.number(), z.string()]).optional(),
-  logo: z.any().optional(),
+  logo: z
+    .any()
+    .refine((val) => val !== "" && val !== null && val !== undefined, { message: "delivery.logoRequired" }),
 });

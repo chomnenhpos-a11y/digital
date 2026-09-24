@@ -10,7 +10,7 @@ export default function useClientOrder() {
   const [address, setAddress] = useState("")
   const [note, setNote] = useState("")
   const [deliveryMethod, setDeliveryMethod] = useState("")
-  const [deliveryFee, setDeliveryFee] = useState(2.0)
+  const [deliveryFee, setDeliveryFee] = useState(0)
   const [errors, setErrors] = useState({})
 
   const validateOrderForm = () => {
@@ -53,7 +53,7 @@ export default function useClientOrder() {
     setAddress("")
     setNote("")
     setDeliveryMethod("")
-    setDeliveryFee(2.0)
+    setDeliveryFee(0)
     setErrors({})
   }
 

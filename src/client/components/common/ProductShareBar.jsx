@@ -2,8 +2,10 @@ import React from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 import { useProductShareContext } from '../../../context/ProductShareContext';
 import { Share, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function ProductShareBar() {
+  const { t } = useTranslation();
   const { selectedCount, clearSelection, handleShare, isSharing } = useProductShareContext();
   const location = useLocation();
 
@@ -20,14 +22,14 @@ export default function ProductShareBar() {
         
         <div className="flex flex-col">
           <span className="text-sm font-bold text-gray-800">
-            Selected: {selectedCount} product{selectedCount !== 1 ? 's' : ''}
+            {selectedCount !== 1 ? t('product.selectedCountPlural', { count: selectedCount }) : t('product.selectedCount', { count: selectedCount })}
           </span>
           <button 
             onClick={clearSelection}
             disabled={isSharing}
             className="text-xs text-red-400 hover:text-red-600 font-medium text-left mt-0.5 disabled:opacity-50 transition-colors"
           >
-            Clear selection
+            {t('product.clearSelection')}
           </button>
         </div>
 
@@ -39,12 +41,12 @@ export default function ProductShareBar() {
           {isSharing ? (
             <>
               <Loader2 size={18} className="animate-spin" />
-              Preparing...
+              {t('product.preparingShare')}
             </>
           ) : (
             <>
               <Share size={18} />
-              Send {selectedCount} Images
+              {selectedCount !== 1 ? t('product.sendImagesPlural', { count: selectedCount }) : t('product.sendImages', { count: selectedCount })}
             </>
           )}
         </button>

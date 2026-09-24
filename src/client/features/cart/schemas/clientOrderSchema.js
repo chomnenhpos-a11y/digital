@@ -18,7 +18,7 @@ export const clientOrderSchema = (t) =>
       .trim()
       .min(2, t("validation.requiredAddress")),
 
-    deliveryMethod: z.union([z.string().min(1), z.number()], {
+    deliveryMethod: z.union([z.string().min(1, t("validation.requiredDelivery")), z.number()], {
       errorMap: () => ({
         message: t("validation.requiredDelivery"),
       }),

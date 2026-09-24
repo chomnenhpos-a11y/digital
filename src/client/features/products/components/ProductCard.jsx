@@ -4,12 +4,16 @@ import {
   Image as ImageIcon,
   Eye,
   ShieldCheck,
+  ShoppingCart,
+  Share2,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom"; // 1. Import useNavigate
+import Swal from "sweetalert2";
 
 import Badge from "../../../components/common/Badge";
 import ProductPrice from "./ProductPrice";
 import { useProductShareContext } from "../../../../context/ProductShareContext";
+import { useCart } from "../../../../context/CartContext";
 import { useTranslation } from "react-i18next";
 
 export default function ProductCard({ product = {}, index = 0 }) {
@@ -36,6 +40,7 @@ export default function ProductCard({ product = {}, index = 0 }) {
 
   const { isSelected: checkIsSelected, toggleProduct } = useProductShareContext();
   const isSelected = checkIsSelected ? checkIsSelected(id) : false;
+  const { addToCart } = useCart();
 
   const availableStock = stockQuantity ?? stock ?? 0;
 
@@ -86,6 +91,45 @@ export default function ProductCard({ product = {}, index = 0 }) {
     return () => clearInterval(interval);
   }, [isHovering, gallery.length]);
 
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (availableStock <= 0) {
+      Swal.fire({
+        icon: "warning",
+        title: t('product.outOfStock'),
+        text: t('product.outOfStockMsg') || t('product.outOfStock'),
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    const result = addToCart(product, 1);
+
+    if (!result?.success) {
+      Swal.fire({
+        icon: "warning",
+        title: t('product.cannotAdd'),
+        text: result?.message || t('product.itemOutOfStock'),
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    Swal.fire({
+      toast: true,
+      position: "top-end",
+      icon: "success",
+      title: t('product.addedToCart', { quantity: result.addedQuantity }),
+      showConfirmButton: false,
+      timer: 1200,
+      timerProgressBar: true,
+    });
+  };
+
   return (
     <div
       data-aos="fade-up"
@@ -130,7 +174,7 @@ export default function ProductCard({ product = {}, index = 0 }) {
           </div>
         )}
 
-        {/* Selection Checkbox (Stop propagation so it doesn't trigger card navigation) */}
+        {/* Share/Selection Button (Stop propagation so it doesn't trigger card navigation) */}
         <div 
           className="absolute top-3 right-3 z-30"
           onClick={(e) => {
@@ -140,11 +184,10 @@ export default function ProductCard({ product = {}, index = 0 }) {
               toggleProduct(product);
             }
           }}
+          title={isSelected ? t('product.unshare') || "Unselect" : t('product.share') || "Share Product"}
         >
-          <div className={`w-6 h-6 rounded-md flex items-center justify-center cursor-pointer transition-colors border shadow-sm backdrop-blur-md ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white/70 border-gray-300 hover:bg-white text-transparent'}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all border shadow-sm backdrop-blur-md ${isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-blue-500/30' : 'bg-white/90 border-gray-200 text-gray-600 hover:bg-white hover:text-blue-600 hover:border-blue-200'}`}>
+            <Share2 size={16} strokeWidth={isSelected ? 2.5 : 2} />
           </div>
         </div>
 
@@ -199,27 +242,39 @@ export default function ProductCard({ product = {}, index = 0 }) {
           {name}
         </h3>
 
-        <div className="mt-auto pt-1 border-t border-gray-100 flex flex-col min-h-[64px] justify-end">
-          <ProductPrice
-            price={displayPrice}
-            oldPrice={originalPrice}
-          />
+        <div className="mt-auto pt-1 border-t border-gray-100 flex items-end justify-between gap-2 min-h-[64px]">
+          <div className="flex flex-col justify-end">
+            <ProductPrice
+              price={displayPrice}
+              oldPrice={originalPrice}
+            />
 
-          {savingsAmount > 0 ? (
-            <div className="inline-flex items-center gap-1.5 bg-emerald-50/80 w-fit px-2 py-1 rounded-md border border-emerald-100">
-              <Gift size={12} className="text-emerald-600" />
-              <span className="text-[11px] text-emerald-700 font-medium">
-                {t('product.save', { amount: Number(savingsAmount).toFixed(2) })}
-              </span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center gap-1.5 bg-gray-50 w-fit px-2 py-1 rounded-md border border-gray-200">
-              <ShieldCheck size={12} className="text-blue-500" />
-              <span className="text-[11px] text-gray-600 font-medium tracking-wide">
-                {t('product.authenticGuarantee')}
-              </span>
-            </div>
-          )}
+            {savingsAmount > 0 ? (
+              <div className="inline-flex items-center gap-1.5 bg-emerald-50/80 w-fit px-2 py-1 rounded-md border border-emerald-100 mt-1">
+                <Gift size={12} className="text-emerald-600" />
+                <span className="text-[11px] text-emerald-700 font-medium">
+                  {t('product.save', { amount: Number(savingsAmount).toFixed(2) })}
+                </span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1.5 bg-gray-50 w-fit px-2 py-1 rounded-md border border-gray-200 mt-1">
+                <ShieldCheck size={12} className="text-blue-500" />
+                <span className="text-[11px] text-gray-600 font-medium tracking-wide">
+                  {t('product.authenticGuarantee')}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            disabled={availableStock <= 0}
+            className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-red-50 disabled:hover:text-red-600 shrink-0 mb-0.5"
+            aria-label={t('product.addToCart')}
+            title={t('product.addToCart')}
+          >
+            <ShoppingCart size={16} />
+          </button>
         </div>
       </div>
     </div>

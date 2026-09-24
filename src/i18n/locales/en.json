@@ -460,6 +460,7 @@
     "nameRequired": "Provider name is required.",
     "phoneRequired": "Phone is required.",
     "feeRequired": "Shipping fee is required.",
+    "logoRequired": "Logo is required.",
     "updateSuccess": "Update successful!",
     "addSuccess": "Added successfully!",
     "providerName": "Provider Name",
@@ -838,6 +839,14 @@
     "save": "Save ${{amount}}",
     "relatedProducts": "Related Products",
     "itemsCount": "{{count}} items",
-    "noItemsInSection": "No items in this section"
+    "noItemsInSection": "No items in this section",
+    "selectedCount": "Selected: {{count}} product",
+    "selectedCountPlural": "Selected: {{count}} products",
+    "clearSelection": "Clear selection",
+    "preparingShare": "Preparing...",
+    "sendImages": "Send {{count}} Image",
+    "sendImagesPlural": "Send {{count}} Images",
+    "share": "Share Product",
+    "unshare": "Unselect"
   }
 }

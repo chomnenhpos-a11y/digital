@@ -98,7 +98,7 @@ export default function DeliveryProviderForm({ onSubmit, initialData }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
-            {t('delivery.shippingFee')} *
+            {t('delivery.shippingFee')}
             {errors.shipping_fee && <span className="text-rose-500 text-xs font-medium">{t(errors.shipping_fee.message)}</span>}
           </label>
           <input
@@ -132,8 +132,8 @@ export default function DeliveryProviderForm({ onSubmit, initialData }) {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
-          {t('delivery.logo')}
+        <label className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+          {t('delivery.logo')} <span className="text-red-500">*</span>
         </label>
         <div className="flex items-center gap-3">
           <label className="flex-1 flex items-center gap-2 px-3 py-2 text-sm bg-[#fcfafb] rounded-lg border border-dashed border-gray-300 cursor-pointer hover:bg-gray-100 transition">

@@ -135,9 +135,9 @@
     "requiredProduct": "សូមជ្រើសរើសទំនិញ",
     "quantityMin": "ចំនួនត្រូវយ៉ាងហោចណាស់ 1",
     "requiredAtLeastOneProduct": "សូមបន្ថែមទំនិញយ៉ាងហោចណាស់ 1 មុខ",
-    "requiredProviderName": "ឈ្មោះអ្នកដឹកជញ្ជូនមិនអាចទទេបានទេ (Provider name is required).",
-    "requiredPhone2": "លេខទូរស័ព្ទមិនអាចទទេបានទេ (Phone is required).",
-    "requiredShippingFee": "តម្លៃសេវាមិនអាចទទេបានទេ (Shipping fee is required).",
+    "requiredProviderName": "ឈ្មោះអ្នកដឹកជញ្ជូនមិនអាចទទេបានទេ",
+    "requiredPhone2": "លេខទូរស័ព្ទមិនអាចទទេបានទេ ",
+    "requiredShippingFee": "តម្លៃសេវាមិនអាចទទេបានទេ ",
     "product": {
       "nameRequired": "សូមបញ្ចូលឈ្មោះផលិតផល។",
       "categoryRequired": "សូមជ្រើសរើសប្រភេទ។",
@@ -457,9 +457,10 @@
     "updateSuccess": "កែប្រែប្រភេទបានជោគជ័យ"
   },
   "delivery": {
-    "nameRequired": "ឈ្មោះអ្នកដឹកជញ្ជូនមិនអាចទទេបានទេ (Provider name is required).",
-    "phoneRequired": "លេខទូរស័ព្ទមិនអាចទទេបានទេ (Phone is required).",
-    "feeRequired": "តម្លៃសេវាមិនអាចទទេបានទេ (Shipping fee is required).",
+    "nameRequired": "ឈ្មោះអ្នកដឹកជញ្ជូនមិនអាចទទេបានទេ",
+    "phoneRequired": "លេខទូរស័ព្ទមិនអាចទទេបានទេ",
+    "feeRequired": "តម្លៃសេវាមិនអាចទទេបានទេ",
+    "logoRequired": "រូបភាព Logo មិនអាចទទេបានទេ",
     "updateSuccess": "ធ្វើបច្ចុប្បន្នភាពបានជោគជ័យ!",
     "addSuccess": "បន្ថែមបានជោគជ័យ!",
     "providerName": "ឈ្មោះអ្នកដឹកជញ្ជូន",
@@ -838,6 +839,14 @@
     "save": "ចំណេញ ${{amount}}",
     "relatedProducts": "ផលិតផលស្រដៀងគ្នា (Related Products)",
     "itemsCount": "{{count}} មុខ",
-    "noItemsInSection": "គ្មានទំនិញក្នុងផ្នែកនេះទេ"
+    "noItemsInSection": "គ្មានទំនិញក្នុងផ្នែកនេះទេ",
+    "selectedCount": "បានជ្រើសរើស: {{count}} ផលិតផល",
+    "selectedCountPlural": "បានជ្រើសរើស: {{count}} ផលិតផល",
+    "clearSelection": "សម្អាតការជ្រើសរើស",
+    "preparingShare": "កំពុងរៀបចំ...",
+    "sendImages": "ផ្ញើ {{count}} រូបភាព",
+    "sendImagesPlural": "ផ្ញើ {{count}} រូបភាព",
+    "share": "ចែករំលែកផលិតផល",
+    "unshare": "ដកការជ្រើសរើស"
   }
 }
