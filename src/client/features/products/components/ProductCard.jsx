@@ -7,7 +7,7 @@ import {
   ShoppingCart,
   Share2,
 } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom"; // 1. Import useNavigate
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 
 import Badge from "../../../components/common/Badge";
@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 
 export default function ProductCard({ product = {}, index = 0 }) {
   const { t } = useTranslation();
-  const navigate = useNavigate(); // 2. Initialize navigate
+  const navigate = useNavigate();
   const { shop_code } = useParams();
 
   const {
@@ -47,20 +47,14 @@ export default function ProductCard({ product = {}, index = 0 }) {
   const numSalePrice = Number(salePrice || 0);
   const numPrice = Number(price || 0);
 
-  const displayPrice =
-    numSalePrice > 0 ? numSalePrice : numPrice;
+  const displayPrice = numSalePrice > 0 ? numSalePrice : numPrice;
 
   const originalPrice =
-    numSalePrice > 0 && numPrice > numSalePrice
-      ? numPrice
-      : null;
+    numSalePrice > 0 && numPrice > numSalePrice ? numPrice : null;
 
-  const discountPricePercent =
-    (originalPrice
-      ? Math.round(
-          ((originalPrice - displayPrice) / originalPrice) * 100
-        )
-      : null);
+  const discountPricePercent = originalPrice
+    ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
+    : null;
 
   const savingsAmount = originalPrice
     ? originalPrice - displayPrice
@@ -78,14 +72,11 @@ export default function ProductCard({ product = {}, index = 0 }) {
       ? [image]
       : [];
 
-  // Image hover gallery
   useEffect(() => {
     if (!isHovering || gallery.length <= 1) return;
 
     const interval = setInterval(() => {
-      setHoverIndex(
-        (prev) => (prev + 1) % gallery.length
-      );
+      setHoverIndex((prev) => (prev + 1) % gallery.length);
     }, 1200);
 
     return () => clearInterval(interval);
@@ -134,8 +125,8 @@ export default function ProductCard({ product = {}, index = 0 }) {
     <div
       data-aos="fade-up"
       data-aos-delay={Math.min(index % 4, 3) * 100}
-      onClick={() => navigate(`/${shop_code}/products/${id}`)} // 3. Add onClick handler to the main card container
-      className="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer" // 4. Added cursor-pointer
+      onClick={() => navigate(`/${shop_code}/products/${id}`)}
+      className="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer"
     >
       <div
         className="group/image relative overflow-hidden bg-gray-50 aspect-[4/4] w-full flex items-center justify-center"
@@ -155,26 +146,21 @@ export default function ProductCard({ product = {}, index = 0 }) {
                 alt={name}
                 loading="lazy"
                 className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/image:scale-110 ${
-                  idx === hoverIndex
-                    ? "opacity-100 z-10"
-                    : "opacity-0 z-0"
+                  idx === hoverIndex ? "opacity-100 z-10" : "opacity-0 z-0"
                 }`}
               />
             ))}
           </>
         ) : (
           <div className="flex flex-col items-center justify-center text-gray-300">
-            <ImageIcon
-              size={40}
-              strokeWidth={1.5}
-            />
+            <ImageIcon size={40} strokeWidth={1.5} />
             <span className="text-[11px] mt-2 font-medium text-gray-400">
               {t('product.noImage')}
             </span>
           </div>
         )}
 
-        {/* Share/Selection Button (Stop propagation so it doesn't trigger card navigation) */}
+        {/* Share/Selection Button */}
         <div 
           className="absolute top-3 right-3 z-30"
           onClick={(e) => {
@@ -210,7 +196,6 @@ export default function ProductCard({ product = {}, index = 0 }) {
         {/* Hover details overlay button */}
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-center justify-center z-20 pointer-events-none group-hover/image:pointer-events-auto">
           <div className="flex flex-col items-center">
-            {/* You can keep this as a Link or change to a span since the whole card now routes */}
             <Link
               to={`/${shop_code}/products/${id}`}
               className="translate-y-4 group-hover/image:translate-y-0 transition-all duration-300 flex items-center gap-2 px-5 py-2.5 bg-white/90 backdrop-blur-sm text-gray-900 font-semibold text-sm rounded-full shadow-xl hover:bg-red-600 hover:text-white pointer-events-auto"
@@ -222,44 +207,47 @@ export default function ProductCard({ product = {}, index = 0 }) {
         </div>
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
+      {/* កែប្រែ Padding p-3 សម្រាប់ Mobile នឹង p-4 សម្រាប់ Desktop */}
+      <div className="p-3 sm:p-4 flex flex-col flex-1 min-w-0">
         {/* Category + Stock */}
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] sm:text-xs text-gray-400 font-medium uppercase tracking-wider truncate">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] sm:text-[11px] text-gray-400 font-medium uppercase tracking-wider truncate flex-1">
             {categoryName || t('product.general')}
           </span>
 
           <Badge
             variant="stock"
-            className="scale-90 origin-right bg-gray-100 text-gray-600"
+            className="scale-75 sm:scale-90 origin-right bg-gray-100 text-gray-600 shrink-0"
           >
             {t('product.stock', { count: availableStock })}
           </Badge>
         </div>
 
-        {/* Product Name (Since card handles click, you can keep or remove Link wrapper here) */}
-        <h3 className="font-semibold text-gray-800 text-sm sm:text-base leading-snug line-clamp-2 hover:text-red-600 transition-colors mt-1">
+        <h3 className="font-semibold text-gray-800 text-xs sm:text-sm leading-snug line-clamp-2 hover:text-red-600 transition-colors mt-1">
           {name}
         </h3>
 
-        <div className="mt-auto pt-1 border-t border-gray-100 flex items-end justify-between gap-2 min-h-[64px]">
-          <div className="flex flex-col justify-end">
-            <ProductPrice
-              price={displayPrice}
-              oldPrice={originalPrice}
-            />
+        {/* កែប្រែ Bottom Section បន្ថែម flex-1 នឹង min-w-0 */}
+        <div className="mt-auto pt-2 border-t border-gray-100 flex items-end justify-between gap-2 w-full">
+          <div className="flex flex-col justify-end flex-1 min-w-0 pb-0.5">
+            <div className="w-full flex flex-wrap items-baseline gap-x-1">
+              <ProductPrice
+                price={displayPrice}
+                oldPrice={originalPrice}
+              />
+            </div>
 
             {savingsAmount > 0 ? (
-              <div className="inline-flex items-center gap-1.5 bg-emerald-50/80 w-fit px-2 py-1 rounded-md border border-emerald-100 mt-1">
-                <Gift size={12} className="text-emerald-600" />
-                <span className="text-[11px] text-emerald-700 font-medium">
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-emerald-50/80 w-fit max-w-full px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md border border-emerald-100 mt-1">
+                <Gift size={12} className="text-emerald-600 shrink-0" />
+                <span className="text-[9px] sm:text-[11px] text-emerald-700 font-medium truncate">
                   {t('product.save', { amount: Number(savingsAmount).toFixed(2) })}
                 </span>
               </div>
             ) : (
-              <div className="inline-flex items-center gap-1.5 bg-gray-50 w-fit px-2 py-1 rounded-md border border-gray-200 mt-1">
-                <ShieldCheck size={12} className="text-blue-500" />
-                <span className="text-[11px] text-gray-600 font-medium tracking-wide">
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-gray-50 w-fit max-w-full px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md border border-gray-200 mt-1">
+                <ShieldCheck size={12} className="text-blue-500 shrink-0" />
+                <span className="text-[9px] sm:text-[11px] text-gray-600 font-medium tracking-wide truncate">
                   {t('product.authenticGuarantee')}
                 </span>
               </div>
@@ -269,11 +257,11 @@ export default function ProductCard({ product = {}, index = 0 }) {
           <button
             onClick={handleAddToCart}
             disabled={availableStock <= 0}
-            className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-red-50 disabled:hover:text-red-600 shrink-0 mb-0.5"
+            className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 disabled:hover:bg-red-50 disabled:hover:text-red-600 shrink-0 mb-1"
             aria-label={t('product.addToCart')}
             title={t('product.addToCart')}
           >
-            <ShoppingCart size={16} />
+            <ShoppingCart size={16} className="sm:w-4 sm:h-4" />
           </button>
         </div>
       </div>

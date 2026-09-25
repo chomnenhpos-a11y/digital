@@ -395,7 +395,7 @@
     "enterAddress": "បញ្ចូលអាសយដ្ឋាន",
     "deliveryProviderLabel": "អ្នកដឹកជញ្ជូន",
     "selectDeliveryProvider": "ជ្រើសរើសអ្នកដឹកជញ្ជូន",
-    "noLabel": "លេខ",
+    "noLabel": "#លេខកូដ",
     "deliveryStatus": "ស្ថានភាពការដឹកជញ្ជូន",
     "grandTotal": "សរុបទាំងអស់",
     "confirmOrder": "បញ្ជាក់ការបញ្ជាទិញ",

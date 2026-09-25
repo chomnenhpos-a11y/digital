@@ -4,6 +4,7 @@ import Container from "../../../components/layout/Container";
 import PromoBanner from "../components/PromoBanner";
 import ProductSection from "../components/ProductSection";
 import CartDrawer from "../../../features/cart/components/CartDrawer";
+import FloatingCartBanner from "../../../features/cart/components/FloatingCartBanner";
 import { useSearch } from "../../../../context/SearchContext";
 import ScrollToTopButton from "../../../components/common/ScrollToTopButton";
 import { useRef } from "react";
@@ -28,10 +29,11 @@ export default function Home() {
     // Replaced standard div with a relative wrapper and padding-top
     <div className="relative">
       <Header />
-      <Container className="py-5 md:space-y-6">
+      <Container className="pt-4 md:space-y-6">
         {!isFiltering && <PromoBanner onShopClick={scrollToAllProducts} />}
         <ProductSection allProductsRef={allProductsRef} />
       </Container>
+      <FloatingCartBanner />
       <CartDrawer />
       <ScrollToTopButton />
       <Footer />

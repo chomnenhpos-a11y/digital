@@ -52,7 +52,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
       role="dialog"
       aria-modal="true"
       className={`
-        fixed inset-0 z-[9999]
+        fixed inset-0 z-[10]
         flex items-center justify-center
         p-4 overflow-y-auto
         bg-slate-900/60 backdrop-blur-md

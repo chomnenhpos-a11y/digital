@@ -12,6 +12,7 @@ export default function OrderFormFields({
 }) {
   const { t } = useTranslation();
   const { data: providers = [] } = useDeliveryProvidersQuery();
+  console.log("providers",providers);
   const activeProviders = providers.filter((p) => p.is_active == 1);
   const selectedProviderId = watch
     ? watch("deliveryProviderId")
@@ -96,7 +97,7 @@ export default function OrderFormFields({
           {...register("deliveryProviderId")}
         />
 
-        <div className="flex sm:grid-cols-3 gap-1">
+        <div className="grid grid-cols-5 gap-1">
           {activeProviders.map((p) => {
             const isSelected =
               selectedProviderId != null &&
@@ -142,7 +143,7 @@ export default function OrderFormFields({
                     }
                   );
                 }}
-                className={`relative flex flex-col items-center justify-center rounded-xl border-[2px] cursor-pointer transition-all text-center p-1.5 min-h-[90px] ${
+                className={`relative min-w-0 flex flex-col items-center justify-center rounded-xl border-[2px] cursor-pointer transition-all text-center p-1.5 min-h-[90px] ${
                   isSelected
                     ? "border-red-600 bg-red-50 ring-1 ring-red-600 shadow-sm"
                     : "border-slate-200 bg-white hover:border-red-300 hover:bg-slate-50 hover:shadow-xs"
@@ -186,7 +187,7 @@ export default function OrderFormFields({
                       : "text-slate-500"
                   }`}
                 >
-                  ${parseFloat(p.shipping_fee).toFixed(2)}
+                  ${p.name?.slice(0, 6)}
                 </span>
               </div>
             );

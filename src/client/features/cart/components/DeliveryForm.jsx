@@ -35,22 +35,15 @@ export default function DeliveryForm({
     .map((p) => ({
       id: Number(p.id),
       name: p.name,
-      fee:
-        parseFloat(
-          p.shipping_fee ?? p.shippingFee
-        ) || 0,
+      fee: parseFloat(p.shipping_fee ?? p.shippingFee) || 0,
       logo: p.logo,
-      setting_id:
-        p.setting_id ?? p.settingId,
-      chat_id:
-        p.chat_id ?? p.setting?.chat_id ?? null,
+      setting_id: p.setting_id ?? p.settingId,
+      chat_id: p.chat_id ?? p.setting?.chat_id ?? null,
     }));
 
   const handleDeliveryChange = (option) => {
     const providerId = Number(option.id);
-    const selectedSettingId = Number(
-      option.setting_id
-    );
+    const selectedSettingId = Number(option.setting_id);
     setDeliveryMethod(providerId);
 
     if (setDeliveryProviderId) {
@@ -58,11 +51,7 @@ export default function DeliveryForm({
     }
 
     if (setSettingId) {
-      setSettingId(
-        Number.isNaN(selectedSettingId)
-          ? null
-          : selectedSettingId
-      );
+      setSettingId(Number.isNaN(selectedSettingId) ? null : selectedSettingId);
     }
 
     if (setChatId) {
@@ -87,16 +76,12 @@ export default function DeliveryForm({
 
         <div
           className={`flex items-center w-full bg-slate-50 border rounded-lg overflow-hidden focus-within:bg-white focus-within:ring-2 focus-within:ring-red-100 focus-within:border-red-400 transition ${
-            errors.phone
-              ? "border-red-500"
-              : "border-slate-200"
+            errors.phone ? "border-red-500" : "border-slate-200"
           }`}
         >
           <div className="pl-3 pr-2 py-2 text-slate-600 text-sm font-semibold select-none flex items-center bg-slate-100 border-r border-slate-200 h-full">
             +855
-            <span className="text-slate-300 ml-1.5 text-xs">
-              |
-            </span>
+            <span className="text-slate-300 ml-1.5 text-xs">|</span>
           </div>
 
           <input
@@ -104,8 +89,7 @@ export default function DeliveryForm({
             name="phone"
             value={phone}
             onChange={(e) => {
-              const digitsOnly =
-                e.target.value.replace(/\D/g, "");
+              const digitsOnly = e.target.value.replace(/\D/g, "");
 
               if (digitsOnly.length <= 10) {
                 setPhone(digitsOnly);
@@ -118,9 +102,7 @@ export default function DeliveryForm({
         </div>
 
         {errors.phone && (
-          <p className="text-red-500 text-xs mt-1">
-            {t(errors.phone)}
-          </p>
+          <p className="text-red-500 text-xs mt-1">{t(errors.phone)}</p>
         )}
       </div>
 
@@ -132,109 +114,96 @@ export default function DeliveryForm({
         <textarea
           name="address"
           value={address}
-          onChange={(e) =>
-            setAddress(e.target.value)
-          }
-          placeholder={t(
-            "cart.addressPlaceholder"
-          )}
+          onChange={(e) => setAddress(e.target.value)}
+          placeholder={t("cart.addressPlaceholder")}
           rows={2}
           className={`w-full bg-slate-50 border rounded-lg px-3 py-2 text-sm outline-none resize-none focus:bg-white focus:ring-2 focus:ring-red-100 focus:border-red-400 transition ${
-            errors.address
-              ? "border-red-500"
-              : "border-slate-200"
+            errors.address ? "border-red-500" : "border-slate-200"
           }`}
         />
 
         {errors.address && (
-          <p className="text-red-500 text-xs mt-1">
-            {t(errors.address)}
-          </p>
+          <p className="text-red-500 text-xs mt-1">{t(errors.address)}</p>
         )}
       </div>
 
       <div>
-        <div className="flex justify-between items-center mb-1.5">
-          <label className="block text-xs font-medium text-slate-600">
+        <div className="mb-2 flex items-center justify-between">
+          <label className="text-xs font-medium text-slate-600">
             {t("cart.deliveryMethod")}
           </label>
 
           {errors.deliveryMethod && (
-            <span className="text-red-500 text-[10px]">
+            <span className="text-[10px] text-red-500">
               {t(errors.deliveryMethod)}
             </span>
           )}
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-5 gap-2">
-            {[1, 2, 3, 4, 5].map(
-              (item) => (
-                <div
-                  key={item}
-                  className="h-24 rounded-2xl border border-slate-200 bg-slate-100 animate-pulse"
-                />
-              )
-            )}
+          <div className="grid grid-cols-5">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <div
+                key={item}
+                className="h-[76px] animate-pulse rounded-xl border border-slate-200 bg-slate-100"
+              />
+            ))}
           </div>
         ) : isError ? (
-          <p className="text-red-500 text-xs">
-            {t('cart.cannotFetchDeliveryProvider')}
+          <p className="text-xs text-red-500">
+            {t("cart.cannotFetchDeliveryProvider")}
           </p>
         ) : deliveryOptions.length === 0 ? (
-          <p className="text-slate-500 text-xs">
-            {t('cart.noDeliveryProvider')}
+          <p className="text-xs text-slate-500">
+            {t("cart.noDeliveryProvider")}
           </p>
         ) : (
-          <div className="grid grid-cols-5 gap-2">
-            {deliveryOptions.map(
-              (option) => {
-                const isSelected =
-                  Number(deliveryMethod) ===
-                  option.id;
+          <div className="grid gap-1 grid-cols-5">
+            {deliveryOptions.map((option) => {
+              const isSelected = Number(deliveryMethod) === Number(option.id);
 
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => {
-                      if (isSelected) {
-                        // Unselect: reset all delivery state
-                        if (onDeliveryClear) onDeliveryClear();
-                      } else {
-                        handleDeliveryChange(option);
-                      }
-                    }}
-                    className={`flex flex-col items-center justify-center p-1 rounded-2xl border text-xs transition-all duration-200 ${
-                      isSelected
-                        ? "border-red-600 bg-red-50/80 text-red-950 font-semibold shadow-sm"
-                        : errors.deliveryMethod
-                          ? "border-red-300 bg-red-50/30 text-slate-600 hover:border-red-400"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                    }`}
-                  >
-                    {option.logo && (
-                      <img
-                        src={option.logo}
-                        alt={option.name}
-                        className="h-10 w-10 object-cover rounded-md mb-0.5"
-                      />
-                    )}
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => {
+                    if (isSelected) {
+                      onDeliveryClear?.();
+                    } else {
+                      handleDeliveryChange(option);
+                    }
+                  }}
+                  className={`relative flex  min-w-0 flex-col items-center justify-center
+              rounded-xl border px-1.5 py-2 text-center transition-colors
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${
+                isSelected
+                  ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                  : errors.deliveryMethod
+                    ? "border-red-300 bg-white text-slate-700 hover:bg-red-50"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-red-300 hover:bg-slate-50"
+              }`}
+                >
+                  {isSelected && (
+                    <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-600" />
+                  )}
 
-                    <span className="truncate w-full text-center text-xs font-medium">
-                      {option.name}
-                    </span>
+                  {option.logo && (
+                    <img
+                      src={option.logo}
+                      alt=""
+                      className="mb-1 h-8 w-8 rounded-md object-contain"
+                    />
+                  )}
 
-                    <span className="text-[10px] text-slate-500 ">
-                      $
-                      {option.fee.toFixed(
-                        2
-                      )}
-                    </span>
-                  </button>
-                );
-              }
-            )}
+                  <span 
+                  title={option.name}
+                  className="w-full truncate text-[11px] font-medium leading-tight">
+                    {option.name?.slice(0, 6)}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

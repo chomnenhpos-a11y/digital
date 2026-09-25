@@ -53,12 +53,7 @@ export default function OrderList({ orders, onEdit }) {
       header: t('order.noLabel'),
       accessor: "id",
       render: (order) => (
-        <div>
-          <div className="font-bold text-[#870d4c]">#{order.id}</div>
-          <div className="text-xs text-slate-400">
-            {order.orderNo || `ORD-${order.orderNumber}`}
-          </div>
-        </div>
+        <div className="font-bold text-[#870d4c]"># {order.orderNo || `ORD-${order.orderNumber}`}</div>
       ),
     },
     {

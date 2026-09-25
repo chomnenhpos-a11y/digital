@@ -67,15 +67,6 @@ export default function AdminUsers() {
       ),
     },
     {
-      header: t('users.id'),
-      accessor: 'id',
-      render: (row) => (
-        <span className="font-mono text-xs text-slate-500 bg-[#fcfafb] px-2 py-1 rounded">
-          {row.id}
-        </span>
-      ),
-    },
-    {
       header: t('users.name'),
       accessor: 'name',
     },

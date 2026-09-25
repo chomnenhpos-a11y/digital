@@ -231,7 +231,7 @@ export default function AdminSaleForm() {
           className={`
             fixed inset-0 z-50 bg-[#fcfafb] flex flex-col p-4 pb-6 overflow-y-auto transition-transform duration-300
             ${isCartOpen ? "translate-y-0" : "translate-y-full"}
-            lg:static lg:translate-y-0 lg:z-auto lg:p-0 lg:pb-0 lg:bg-transparent lg:col-span-5 lg:flex lg:flex-col lg:gap-4 lg:overflow-y-auto lg:will-change-scroll lg:overscroll-contain transform-gpu
+            lg:static lg:translate-y-0 lg:z-auto lg:p-0 lg:pb-0 lg:bg-transparent lg:col-span-5 lg:flex lg:flex-col lg:gap-4 gap-2 lg:overflow-y-auto lg:will-change-scroll lg:overscroll-contain transform-gpu
           `}
         >
           <div className="lg:hidden flex items-center justify-between mb-4 bg-white p-3 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-10 flex-shrink-0">
@@ -277,9 +277,9 @@ export default function AdminSaleForm() {
         <button
           type="button"
           onClick={() => setIsCartOpen(true)}
-          className="w-full bg-[#9d1159] hover:bg-[#9d1159] active:bg-[#44092e] text-white rounded-3xl py-3 px-4 font-bold flex items-center justify-between transition-colors shadow-md"
+          className="w-full bg-[#9d1159] hover:bg-[#9d1159] active:bg-[#44092e] text-white rounded-2xl py-2 px-4 font-bold flex items-center justify-between transition-colors shadow-md"
         >
-          <span className="bg-white/25 text-white px-2.5 py-0.5 rounded-lg text-sm">
+          <span className="bg-white/25 text-white px-2.5 py-0.5 rounded-md text-sm">
             {cart.length} {t("sales.items")}
           </span>
 
@@ -287,7 +287,7 @@ export default function AdminSaleForm() {
             {t("sales.reviewOrder")}
           </span>
 
-          <span className="text-lg">${subtotal.toFixed(2)}</span>
+          <span className=" bg-white/25 px-2.5 rounded-md">${subtotal.toFixed(2)}</span>
         </button>
       </div>
 

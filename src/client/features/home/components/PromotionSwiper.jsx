@@ -35,7 +35,7 @@ export default function PromotionSwiper({ slides = [], onShopClick }) {
           <SwiperSlide key={slide.id}>
             <div
               style={{ background: backgroundColor }}
-              className="relative overflow-hidden text-white rounded-2xl p-2 md:p-8"
+              className="relative overflow-hidden text-white rounded-2xl p-4 md:p-8"
             >
               <div className="absolute -right-16 -top-16 w-64 h-64 bg-white/10 rounded-full" />
 

@@ -1,12 +1,14 @@
 import React from 'react';
 import { useLocation, matchPath } from 'react-router-dom';
 import { useProductShareContext } from '../../../context/ProductShareContext';
+import { useCart } from '../../../context/CartContext';
 import { Share, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function ProductShareBar() {
   const { t } = useTranslation();
   const { selectedCount, clearSelection, handleShare, isSharing } = useProductShareContext();
+  const { cartCount, isCartOpen } = useCart();
   const location = useLocation();
 
   const isHome = matchPath('/:shop_code', location.pathname);
@@ -16,8 +18,10 @@ export default function ProductShareBar() {
 
   if (selectedCount === 0) return null;
 
+  const hasCartData = cartCount > 0 && !isCartOpen;
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-4 sm:pb-6 pointer-events-none flex justify-center animate-in slide-in-from-bottom-5 fade-in duration-300">
+    <div className={`fixed left-0 right-0 z-[5] px-4 pointer-events-none flex justify-center animate-in slide-in-from-bottom-5 fade-in duration-300 ${hasCartData ? 'bottom-14 md:bottom-10 pb-4 sm:pb-6' : 'bottom-0 pb-4 sm:pb-6'}`}>
       <div className="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-200 pointer-events-auto p-3 flex items-center justify-between gap-6 max-w-md w-full">
         
         <div className="flex flex-col">

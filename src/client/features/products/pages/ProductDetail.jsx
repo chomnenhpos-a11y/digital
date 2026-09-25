@@ -21,6 +21,7 @@ import Header from "../../../components/layout/Header";
 import Footer from "../../../components/layout/Footer";
 import Container from "../../../components/layout/Container";
 import CartDrawer from "../../cart/components/CartDrawer";
+import FloatingCartBanner from "../../cart/components/FloatingCartBanner";
 import Badge from "../../../components/common/Badge";
 import { useCart } from "../../../../context/CartContext";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
@@ -541,7 +542,7 @@ export default function ProductDetail() {
       </Container>
 
       <Footer />
-
+      <FloatingCartBanner />
       <CartDrawer />
     </div>
   );
