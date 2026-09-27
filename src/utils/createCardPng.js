@@ -3,102 +3,86 @@ import { toPng } from "html-to-image";
 function blobToDataUrl(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-
     reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error("Cannot read image file"));
-
+    reader.onerror = () => reject(new Error("Cannot read image"));
     reader.readAsDataURL(blob);
   });
 }
 
-async function fetchImageAsDataUrl(src) {
+async function imageToDataUrl(src) {
   if (src.startsWith("data:")) return src;
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const url = new URL(src, window.location.href).href;
+  const response = await fetch(url, { mode: "cors" });
 
-  try {
-    const url = new URL(src, window.location.href).href;
-
-    const response = await fetch(url, {
-      mode: "cors",
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Image request failed (${response.status}): ${url}`);
-    }
-
-    const blob = await response.blob();
-
-    if (!blob.type.startsWith("image/")) {
-      throw new Error(`URL did not return an image: ${url}`);
-    }
-
-    return await blobToDataUrl(blob);
-  } finally {
-    clearTimeout(timeoutId);
+  if (!response.ok) {
+    throw new Error(`Cannot load image (${response.status}): ${url}`);
   }
-}
 
-async function inlineImages(element) {
-  const images = [...element.querySelectorAll("img")];
+  const blob = await response.blob();
+  if (!blob.type.startsWith("image/")) {
+    throw new Error(`URL is not an image: ${url}`);
+  }
 
-  await Promise.all(
-    images.map(async (img) => {
-      const src = img.currentSrc || img.src;
-      if (!src) return;
-
-      const dataUrl = await fetchImageAsDataUrl(src);
-      img.removeAttribute("srcset");
-      img.removeAttribute("sizes");
-      img.src = dataUrl;
-
-      if (typeof img.decode === "function") {
-        await img.decode();
-      }
-
-      if (img.naturalWidth === 0) {
-        throw new Error(`Image could not be decoded: ${src}`);
-      }
-    })
-  );
+  return blobToDataUrl(blob);
 }
 
 export async function createCardPng(element, pixelRatio = 2) {
-  if (!element) {
-    throw new Error("Receipt or sticker element was not found");
-  }
+  if (!element) throw new Error("Card element not found");
 
   await document.fonts.ready;
 
-  // កែរូបលើ clone ដើម្បីកុំឱ្យប៉ះ card ដែល React កំពុងបង្ហាញ
-  const clone = element.cloneNode(true);
-  const width = element.offsetWidth;
-  const height = element.offsetHeight;
+  const images = [...element.querySelectorAll("img")];
 
-  Object.assign(clone.style, {
-    position: "fixed",
-    left: "-10000px",
-    top: "0",
-    width: `${width}px`,
-    backgroundColor: "#ffffff",
-    transform: "none",
-  });
+  // ទាញរូបទាំងអស់ឱ្យរួចសិន មុនកែ DOM
+  const dataUrls = await Promise.all(
+    images.map((img) =>
+      img.currentSrc || img.src
+        ? imageToDataUrl(img.currentSrc || img.src)
+        : Promise.resolve(null)
+    )
+  );
 
-  document.body.appendChild(clone);
+  const originals = images.map((img) => ({
+    src: img.getAttribute("src"),
+    srcset: img.getAttribute("srcset"),
+    sizes: img.getAttribute("sizes"),
+  }));
 
   try {
-    await inlineImages(clone);
+    images.forEach((img, index) => {
+      if (!dataUrls[index]) return;
 
-    return await toPng(clone, {
-      width,
-      height,
-      pixelRatio: Math.min(pixelRatio, 2),
+      img.removeAttribute("srcset");
+      img.removeAttribute("sizes");
+      img.src = dataUrls[index];
+    });
+
+    await Promise.all(
+      images.map(async (img, index) => {
+        if (!dataUrls[index]) return;
+        await img.decode();
+      })
+    );
+
+    // iPhone: ចាប់ផ្ដើមពី 1 ដើម្បីជៀសវាង canvas ធំពេក
+    return await toPng(element, {
+      pixelRatio: Math.min(pixelRatio, 1),
       backgroundColor: "#ffffff",
       cacheBust: false,
     });
   } finally {
-    clone.remove();
+    images.forEach((img, index) => {
+      const original = originals[index];
+
+      if (original.src === null) img.removeAttribute("src");
+      else img.setAttribute("src", original.src);
+
+      if (original.srcset === null) img.removeAttribute("srcset");
+      else img.setAttribute("srcset", original.srcset);
+
+      if (original.sizes === null) img.removeAttribute("sizes");
+      else img.setAttribute("sizes", original.sizes);
+    });
   }
 }
