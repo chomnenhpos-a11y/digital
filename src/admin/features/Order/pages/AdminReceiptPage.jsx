@@ -8,10 +8,9 @@ import {
   ArrowLeft,
   Loader2,
   Package,
-  ReceiptText,
 } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
-import { toPng } from "html-to-image";
+import { createCardPng } from "../../../../utils/createCardPng";
 import { useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
 
 import { useSettingsQuery } from "../../../../queries/settings/useSettingQueries";
@@ -156,14 +155,7 @@ console.log("jellp", shopCode);
     if (!printRef.current) return;
     setLoading("img");
     try {
-      await document.fonts.ready;
-
-      const dataUrl = await toPng(printRef.current, {
-        cacheBust: true,
-        pixelRatio: 4,
-        backgroundColor: "#ffffff",
-      });
-
+      const dataUrl = await createCardPng(printRef.current, 4);
       const link = document.createElement("a");
       link.download = `Receipt-${order.orderNo || order.orderNumber || order.id}.png`;
       link.href = dataUrl;
@@ -189,12 +181,7 @@ console.log("jellp", shopCode);
     setLoading("share");
 
     try {
-      const image = await toPng(printRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-      });
-
+      const image = await createCardPng(printRef.current, 2);
       const blob = await fetch(image).then((res) => res.blob());
 
       const file = new File(

@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { useLocation, useParams, Link, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import { toPng } from "html-to-image";
+import { createCardPng } from "../../../../utils/createCardPng";
 import { useReactToPrint } from "react-to-print";
 import {
   Printer,
@@ -64,7 +64,6 @@ export default function Receipt() {
 
   const { data: settingsData, isLoading: settingsLoading } =
     usePublicSettingsQuery(orderShopCode);
-
   const settings = useMemo(() => {
     if (Array.isArray(settingsData)) {
       return settingsData[0] || {};
@@ -106,13 +105,7 @@ export default function Receipt() {
     if (!receiptRef.current) return;
     setLoading("img");
     try {
-      await document.fonts.ready;
-
-      const dataUrl = await toPng(receiptRef.current, {
-        cacheBust: true,
-        pixelRatio: 4,
-        backgroundColor: "#ffffff",
-      });
+      const dataUrl = await createCardPng(receiptRef.current, 4);
 
       const link = document.createElement("a");
       link.download = `Receipt-${order?.orderNo || orderNo || "Order"}.png`;
@@ -139,14 +132,8 @@ export default function Receipt() {
     setLoading("share");
 
     try {
-      const image = await toPng(receiptRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-      });
-
+      const image = await createCardPng(receiptRef.current, 2);
       const blob = await fetch(image).then((res) => res.blob());
-
       const file = new File(
         [blob],
         `receipt-${order?.orderNo || orderNo || "order"}.png`,

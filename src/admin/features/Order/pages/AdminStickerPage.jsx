@@ -7,7 +7,6 @@ import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom"
 import {
   Printer,
   Download,
-  Send,
   ShoppingBag,
   Phone,
   User,
@@ -17,7 +16,6 @@ import {
   Receipt,
   ArrowLeft,
   Loader2,
-  Package,
   FileWarning,
   Globe,
   Share2,
@@ -36,14 +34,43 @@ import {
 } from "react-icons/fa";
 
 import { useReactToPrint } from "react-to-print";
-import { toPng } from "html-to-image";
+import { createCardPng } from "../../../../utils/createCardPng";
 import { useTranslation } from "react-i18next";
 
 import { useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
 import { useDeliveryProvidersQuery } from "../../../../queries/deliveryProviders/useDeliveryProviderQueries";
 import { useSettingsQuery } from "../../../../queries/settings/useSettingQueries";
 import { useAuth } from "@/hooks/useAuth";
+async function waitForStickerAssets(element) {
+  await document.fonts.ready;
 
+  await Promise.all(
+    [...element.querySelectorAll("img")].map(async (img) => {
+      if (!img.complete) {
+        await new Promise((resolve, reject) => {
+          img.addEventListener("load", resolve, { once: true });
+          img.addEventListener("error", reject, { once: true });
+        });
+      }
+
+      if (img.naturalWidth === 0) {
+        throw new Error(`Image failed to load: ${img.src}`);
+      }
+
+      await img.decode();
+    })
+  );
+}
+
+async function createStickerPng(element) {
+  await waitForStickerAssets(element);
+
+  return toPng(element, {
+    cacheBust: true,
+    pixelRatio: 2,
+    backgroundColor: "#ffffff",
+  });
+}
 const DEFAULT_DESIGN = {
   accent: "#0f172a",
   showLogo: true,
@@ -558,12 +585,7 @@ export default function AdminStickerPage() {
     try {
       await document.fonts.ready;
 
-      const dataUrl = await toPng(printRef.current, {
-        cacheBust: true,
-        pixelRatio: 4,
-        backgroundColor: "#ffffff",
-      });
-
+      const dataUrl = await createCardPng(printRef.current, 2);
       const link = document.createElement("a");
 
       link.download = `Sticker-${order.orderNo || order.orderNumber || order.id
@@ -594,11 +616,7 @@ export default function AdminStickerPage() {
     try {
       await document.fonts.ready;
 
-      const dataUrl = await toPng(printRef.current, {
-        cacheBust: true,
-        pixelRatio: 4,
-        backgroundColor: "#ffffff",
-      });
+      const dataUrl = await createCardPng(printRef.current, 2);
 
       const res = await fetch(dataUrl);
       const blob = await res.blob();
