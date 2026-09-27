@@ -208,7 +208,7 @@ const SocialMediaSection = ({ fields, append, remove }) => {
                         type="text"
                         placeholder={t(
                           "settings.socialMediaNamePlaceholder",
-                          "Facebook"
+                          "Chomnenh Degital"
                         )}
                         aria-invalid={!!errors.social_media?.[index]?.title}
                         className={`${inputClass} font-medium pl-9`}
