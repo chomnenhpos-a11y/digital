@@ -65,12 +65,18 @@ export async function createCardPng(element, pixelRatio = 2) {
       })
     );
 
-    // iPhone: ចាប់ផ្ដើមពី 1 ដើម្បីជៀសវាង canvas ធំពេក
-    return await toPng(element, {
-      pixelRatio: Math.min(pixelRatio, 1),
+    const options = {
+      pixelRatio: pixelRatio || 2,
       backgroundColor: "#ffffff",
-      cacheBust: false,
-    });
+      cacheBust: true,
+    };
+
+    // Workaround for iOS/Safari bug where images are missing on first render
+    // We call toPng multiple times to ensure images are fully rendered inside the <foreignObject>
+    await toPng(element, options);
+    await toPng(element, options);
+
+    return await toPng(element, options);
   } finally {
     images.forEach((img, index) => {
       const original = originals[index];
