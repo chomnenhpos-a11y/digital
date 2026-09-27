@@ -591,7 +591,12 @@
     "logoUploadHint": "PNG, JPG, WEBP · Max 1MB",
     "qrUploadHint": "PNG, JPG, WEBP · Max 1MB",
     "shopLogoDesc": "Upload your shop logo (PNG, JPG, WEBP, max 1MB).",
-    "paymentDocumentsDesc": "Upload your KHQR payment image and support documents."
+    "paymentDocumentsDesc": "Upload your KHQR payment image and support documents.",
+    "unsavedChangesTitle": "You have unsaved changes",
+    "unsavedChangesText": "Are you sure you want to leave?",
+    "leaveWithoutSaving": "Leave without saving",
+    "continueEditing": "Continue editing",
+    "verifySuccessMsg": "Verified successfully. Please click 'Save All Changes' to finish."
   },
   "promotions": {
     "bgColor": "Background Color",

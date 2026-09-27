@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { useCart } from "../../../../context/CartContext";
 import { useCreateOrderMutation } from "../../../../queries/orders/useOrderQueries";
-import { sendOrderToTelegram } from "../../../../services/telegramService";
 
 import CartHeader from "./CartHeader";
 import CartItemList from "./CartItemList";
@@ -139,10 +138,6 @@ export default function CartDrawer() {
       const enrichedOrder = { ...orderData, setting_id: settingId, chat_id: chatId, shop_code: orderData?.shop_code || shop_code };
 
       resetCheckoutForm();
-
-      sendOrderToTelegram(enrichedOrder).catch((error) => {
-        console.error("Failed to send order to Telegram:", error);
-      });
 
       await Swal.fire({
         icon: "success",

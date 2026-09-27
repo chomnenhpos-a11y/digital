@@ -6,7 +6,6 @@ import { useCreateOrderMutation } from "../../../../queries/orders/useOrderQueri
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
 
-import { sendOrderToTelegram } from "../../../../services/telegramService";
 import { useAuth } from "../../../../hooks/useAuth";
 
 const INITIAL_CUSTOMER = {
@@ -20,14 +19,6 @@ export default function useSalesForm() {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  /**
-   * Support different Auth response structures:
-   *
-   * user.shop.code
-   * user.shop.shop_code
-   * user.shop_code
-   * user.shopCode
-   */
   const shopCode =
     user?.shop?.code ||
     user?.shop?.shop_code ||
@@ -369,15 +360,6 @@ export default function useSalesForm() {
       });
 
       return null;
-    }
-
-    try {
-      await sendOrderToTelegram(newOrder);
-    } catch (error) {
-      console.error(
-        "Failed to send order to Telegram:",
-        error
-      );
     }
 
     setCart([]);

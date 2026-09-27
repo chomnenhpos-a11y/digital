@@ -591,7 +591,13 @@
     "logoUploadHint": "PNG, JPG, WEBP · អតិបរមា 1MB",
     "qrUploadHint": "PNG, JPG, WEBP · អតិបរមា 1MB",
     "shopLogoDesc": "ផ្ទុករូបតំណាងហាង (PNG, JPG, WEBP, អតិបរមា 1MB)។",
-    "paymentDocumentsDesc": "ផ្ទុករូបភាព KHQR និងឯកសារគាំទ្ររបស់អ្នក។"
+    "paymentDocumentsDesc": "ផ្ទុករូបភាព KHQR និងឯកសារគាំទ្ររបស់អ្នក។",
+    "unsavedChangesTitle": "មានការផ្លាស់ប្តូរដែលមិនទាន់រក្សាទុក",
+    "unsavedChangesText": "តើអ្នកពិតជាចង់ចាកចេញមែនទេ?",
+    "leaveWithoutSaving": "ចាកចេញដោយមិនរក្សាទុក",
+    "continueEditing": "បន្តកែប្រែ",
+    "verifySuccessMsg": "ផ្ទៀងផ្ទាត់បានជោគជ័យ។ សូមចុច 'រក្សាទុកការផ្លាស់ប្តូរ' ដើម្បីបញ្ចប់។"
+
   },
   "promotions": {
     "bgColor": "ពណ៌ (Background)",

@@ -20,6 +20,7 @@ const TelegramConnectionSection = ({ settingData }) => {
     loading: false,
     info: null,
     error: null,
+    successMsg: null,
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,9 +33,6 @@ const TelegramConnectionSection = ({ settingData }) => {
     ? `https://t.me/${BOT_USERNAME}?startchannel&admin=post_messages`
     : "#";
 
-  // =========================
-  // AUTO FETCH EXISTING CHAT
-  // =========================
   useEffect(() => {
     let isMounted = true;
 
@@ -49,6 +47,7 @@ const TelegramConnectionSection = ({ settingData }) => {
             setVerifyStatus((prev) => ({
               ...prev,
               info: result.data,
+              successMsg: null,
             }));
           }
         } catch (err) {
@@ -89,6 +88,7 @@ const TelegramConnectionSection = ({ settingData }) => {
           loading: false,
           info: result.data,
           error: null,
+          successMsg: t("settings.verifySuccessMsg", "ផ្ទៀងផ្ទាត់បានជោគជ័យ។ សូមចុច ‘រក្សាទុកការផ្លាស់ប្តូរ’ ដើម្បីបញ្ចប់។"),
         });
 
         setValue("chat_id", result.data.chat_id, {
@@ -96,14 +96,8 @@ const TelegramConnectionSection = ({ settingData }) => {
           shouldDirty: true,
         });
 
-        Swal.fire({
-          icon: "success",
-          text: t(
-            "settings.telegramVerifySuccess",
-            "Telegram group or channel verified successfully!"
-          ),
-          timer: 1800,
-          showConfirmButton: false,
+        setValue("_force_dirty", Date.now().toString(), {
+          shouldDirty: true,
         });
       }
     } catch (err) {
@@ -301,6 +295,17 @@ const TelegramConnectionSection = ({ settingData }) => {
           type="hidden"
           {...register("chat_id")}
         />
+
+        {/* =========================
+            SUCCESS MESSAGE
+        ========================= */}
+        {verifyStatus.successMsg && (
+          <div className="max-w-xl p-3 bg-green-50 border border-green-200 rounded-xl">
+            <p className="text-xs text-green-700 font-medium">
+              {verifyStatus.successMsg}
+            </p>
+          </div>
+        )}
 
         {/* =========================
             CONNECTED STATUS

@@ -187,7 +187,7 @@ export default function OrderFormFields({
                       : "text-slate-500"
                   }`}
                 >
-                  ${p.name?.slice(0, 6)}
+                  {p.name?.slice(0, 6)}
                 </span>
               </div>
             );

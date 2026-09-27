@@ -1,15 +1,16 @@
 import React from "react";
+import { createBrowserRouter, RouterProvider, Outlet, Route, createRoutesFromElements } from "react-router-dom";
 
 import { SearchProvider } from "./context/SearchContext";
 import { CartProvider } from "./context/CartContext";
 import { ProductShareProvider } from "./context/ProductShareContext";
 
 import { AdminAuthProvider } from "./context/AdminAuthContext";
-import AppRouter from "./routes/AppRouter";
+import { appRoutes } from "./routes/AppRouter";
 import ScrollToTop from "./client/components/common/ScrollToTop";
 import ProductShareBar from "./client/components/common/ProductShareBar";
 
-export default function App() {
+const RootLayout = () => {
   return (
     <div className="w-full">
       <ProductShareProvider>
@@ -17,7 +18,7 @@ export default function App() {
           <CartProvider>
             <ScrollToTop />
             <AdminAuthProvider>
-              <AppRouter />
+              <Outlet />
             </AdminAuthProvider>
             <ProductShareBar />
           </CartProvider>
@@ -25,4 +26,16 @@ export default function App() {
       </ProductShareProvider>
     </div>
   );
+};
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />}>
+      {appRoutes}
+    </Route>
+  )
+);
+
+export default function App() {
+  return <RouterProvider router={router} />;
 }

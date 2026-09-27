@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route, Routes, Navigate } from 'react-router-dom'
+import { Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import RoleRoute from './RoleRoute'
 import ErrorBoundary from '../components/ErrorBoundary'
@@ -34,9 +34,8 @@ function Safe({ name, children }) {
   return <ErrorBoundary key={name}>{children}</ErrorBoundary>
 }
 
-export default function AppRouter() {
-  return (
-    <Routes>
+export const appRoutes = (
+  <>
       {/* Global Entry Point */}
       <Route path="/" element={<GlobalPage />} />
       <Route path="/login" element={<GlobalLogin />} />
@@ -78,6 +77,5 @@ export default function AppRouter() {
 
       {/* Global 404 — full screen */}
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
-  )
-}
+  </>
+);

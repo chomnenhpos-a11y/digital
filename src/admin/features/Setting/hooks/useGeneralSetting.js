@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   useForm,
   useFieldArray,
@@ -102,6 +102,7 @@ export const useGeneralSetting = () => {
       qr_upload: "",
       social_media: [],
       address: "",
+      _force_dirty: "",
     },
   });
 
@@ -125,10 +126,13 @@ export const useGeneralSetting = () => {
     name: "social_media",
   });
 
+  const isInitialized = useRef(false);
+
   useEffect(() => {
-    if (!settingData) {
+    if (!settingData || isInitialized.current) {
       return;
     }
+    isInitialized.current = true;
 
     reset({
       shop_name:
@@ -161,6 +165,8 @@ export const useGeneralSetting = () => {
 
       address:
         settingData?.address || "",
+
+      _force_dirty: "",
     });
 
     setLogoPreview(
@@ -439,6 +445,8 @@ export const useGeneralSetting = () => {
 
       Object.entries(data).forEach(
         ([key, value]) => {
+          if (key === "_force_dirty") return;
+          
           if (key === "social_media") {
             formData.append(
               "social_media",
@@ -481,7 +489,27 @@ export const useGeneralSetting = () => {
         data: formData
       });
 
-      await refetch();
+      const refetchResult = await refetch();
+      const updatedData = refetchResult.data || settingData;
+
+      reset({
+        shop_name: updatedData?.shop_name || data.shop_name,
+        shop_code: updatedData?.shop_code || data.shop_code,
+        logo: updatedData?.logo || data.logo,
+        phone: updatedData?.phone || data.phone,
+        chat_id: updatedData?.chat_id || data.chat_id,
+        support: updatedData?.support || data.support,
+        bio_shop: updatedData?.bio_shop || data.bio_shop,
+        qr_upload: updatedData?.qr_upload || data.qr_upload,
+        social_media: parseSocialMedia(updatedData?.social_media || data.social_media),
+        address: updatedData?.address || data.address,
+        _force_dirty: "",
+      });
+
+      setLogoPreview(getFileUrl(updatedData?.logo));
+      setQrPreview(getFileUrl(updatedData?.qr_upload));
+      setQrFileName(getFileName(updatedData?.qr_upload));
+      setSupportFileName(getFileName(updatedData?.support));
 
       Swal.fire({
         icon: "success",
@@ -546,6 +574,8 @@ export const useGeneralSetting = () => {
 
       address:
         settingData?.address || "",
+
+      _force_dirty: "",
     });
 
     setLogoPreview(

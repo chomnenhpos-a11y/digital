@@ -33,8 +33,6 @@ export async function createCardPng(element, pixelRatio = 2) {
   await document.fonts.ready;
 
   const images = [...element.querySelectorAll("img")];
-
-  // ទាញរូបទាំងអស់ឱ្យរួចសិន មុនកែ DOM
   const dataUrls = await Promise.all(
     images.map((img) =>
       img.currentSrc || img.src
@@ -71,8 +69,6 @@ export async function createCardPng(element, pixelRatio = 2) {
       cacheBust: true,
     };
 
-    // Workaround for iOS/Safari bug where images are missing on first render
-    // We call toPng multiple times to ensure images are fully rendered inside the <foreignObject>
     await toPng(element, options);
     await toPng(element, options);
 

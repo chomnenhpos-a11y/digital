@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { FormProvider } from "react-hook-form";
 import { Store, Send, Link as LinkIcon, QrCode, Save, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useBlocker } from "react-router-dom";
+import Swal from "sweetalert2";
 import { useGeneralSetting } from "../hooks/useGeneralSetting";
 import SettingsTabs from "./SettingsTabs";
 import ShopIdentitySection from "./ShopIdentitySection";
@@ -82,7 +84,6 @@ const getFirstErrorTab = (errors) => {
   return -1;
 };
 
-// ─── Component ───────────────────────────────────────────────────────────────
 const GeneralSettings = () => {
   const { t } = useTranslation();
 
@@ -115,7 +116,7 @@ const GeneralSettings = () => {
 
 
   // errors and handleSubmit come from the shared methods object
-  const errors = methods.formState.errors;
+  const { errors, isDirty } = methods.formState;
   const handleSubmit = methods.handleSubmit;
 
   const [activeTab, setActiveTab] = useState(0);
@@ -137,6 +138,54 @@ const GeneralSettings = () => {
     }, 50);
     return () => clearTimeout(timer);
   }, [activeTab, focusOnMount]);
+
+  // Navigation blocker
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  const swalShown = React.useRef(false);
+
+  useEffect(() => {
+    if (blocker.state === "blocked" && !swalShown.current) {
+      swalShown.current = true;
+      
+      Swal.fire({
+        title: t("settings.unsavedChangesTitle", "មានការផ្លាស់ប្តូរដែលមិនទាន់រក្សាទុក"),
+        text: t("settings.unsavedChangesText", "តើអ្នកពិតជាចង់ចាកចេញមែនទេ?"),
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#870d4c",
+        confirmButtonText: t("settings.leaveWithoutSaving", "ចាកចេញដោយមិនរក្សាទុក"),
+        cancelButtonText: t("settings.continueEditing", "បន្តកែប្រែ"),
+        reverseButtons: true
+      }).then((result) => {
+        swalShown.current = false;
+        
+        if (blocker.state === "blocked") {
+          if (result.isConfirmed) {
+            blocker.proceed();
+          } else {
+            blocker.reset();
+          }
+        }
+      });
+    }
+  }, [blocker, t]);
+
+  // Before unload handler
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   // Wrapped submit: on error, route to first tab with errors
   const handleFormSubmit = useCallback(
