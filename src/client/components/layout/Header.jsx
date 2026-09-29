@@ -11,6 +11,11 @@ import ViewModeSelector from "../common/ViewModeSelector";
 
 const VIEW_MODE_STORAGE_KEY = "client-view-mode";
 
+function isMobileDeviceScreen() {
+  if (typeof window === "undefined") return false;
+  return Math.min(window.screen.width, window.screen.height) < 768;
+}
+
 function getSavedViewMode() {
   if (typeof window === "undefined") return "mobile";
 
@@ -34,6 +39,7 @@ export default function Header() {
 
   const shopName = settingData?.shop_name || "Shop";
   const rawLogo = settingData?.logo;
+  const [showViewportSwitch, setShowViewportSwitch] = useState(isMobileDeviceScreen);
 
 
   const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
@@ -73,6 +79,19 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    const syncScreenMode = () => setShowViewportSwitch(isMobileDeviceScreen());
+
+    window.addEventListener("resize", syncScreenMode);
+    window.addEventListener("orientationchange", syncScreenMode);
+    return () => {
+      window.removeEventListener("resize", syncScreenMode);
+      window.removeEventListener("orientationchange", syncScreenMode);
+    };
+  }, []);
+
+  const viewportSwitch = showViewportSwitch ? <ViewModeSelector variant="toggle" /> : null;
+
   return (
     <header className="sticky top-0 z-50 md:shadow-md shadow-lg bg-white md:border-b md:border-slate-100 border-b-2 border-red-800">
       <Container className="w-full py-4">
@@ -107,15 +126,9 @@ export default function Header() {
               )}
             </Link>
 
-            <div
-              className={
-                requestedViewMode === "desktop"
-                  ? "fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 z-[100] flex items-center gap-2"
-                  : "flex items-center gap-2 md:hidden"
-              }
-            >
+            <div className="flex items-center gap-2 md:hidden">
               <LanguageSwitcher className="md:hidden"/>
-              <ViewModeSelector/>
+              {viewportSwitch}
               {/* <button
                 className="relative"
                 onClick={() => setIsCartOpen(true)}
@@ -161,6 +174,7 @@ export default function Header() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
+            {viewportSwitch}
             <button
               className="relative"
               onClick={() => setIsCartOpen(true)}

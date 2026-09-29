@@ -21,8 +21,9 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { useSettingsQuery } from "../../../queries/settings/useSettingQueries";
+import { canAccessAdminRoute } from "../../../routes/adminRouteAccess";
 
-export default function AdminSidebar({ sidebarState, setSidebarState }) {
+export default function AdminSidebar({ sidebarState, setSidebarState, requestedViewMode = "mobile" }) {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -87,6 +88,10 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
         const isMobile = window.innerWidth < 768;
 
         setSidebarState((prev) => {
+          if (requestedViewMode === "desktop") {
+            return prev === 0 ? 2 : prev;
+          }
+
           if (isMobile) {
             return prev === 0 ? prev : 0;
           }
@@ -105,25 +110,34 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
         cancelAnimationFrame(resizeFrame);
       }
     };
-  }, [setSidebarState]);
+  }, [requestedViewMode, setSidebarState]);
 
   useEffect(() => {
+    if (requestedViewMode === "desktop") {
+      setSidebarState((prev) => (prev === 0 ? 2 : prev));
+      return;
+    }
+
     if (window.innerWidth < 768) {
       setSidebarState((prev) => (prev === 0 ? prev : 0));
     }
-  }, [location.pathname, setSidebarState]);
+  }, [location.pathname, requestedViewMode, setSidebarState]);
 
   const handleToggle = useCallback(() => {
     const isMobile = window.innerWidth < 768;
 
     setSidebarState((prev) => {
+      if (requestedViewMode === "desktop") {
+        return prev === 2 ? 1 : 2;
+      }
+
       if (isMobile) {
         return prev === 2 ? 0 : 2;
       }
 
       return prev === 2 ? 1 : 2;
     });
-  }, [setSidebarState]);
+  }, [requestedViewMode, setSidebarState]);
 
   const isFull = sidebarState === 2;
   const isHidden = sidebarState === 0;
@@ -141,16 +155,19 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
             label: t("navigation.dashboard"),
             path: "/admin",
             icon: LayoutDashboard,
+            routeKey: "dashboard",
           },
           {
             label: t("navigation.orders"),
             path: "/admin/orders",
             icon: ClipboardList,
+            routeKey: "orders",
           },
           {
             label: t("navigation.saleForm"),
             path: "/admin/sale-form",
             icon: PlusCircle,
+            routeKey: "saleForm",
           },
         ],
       },
@@ -161,16 +178,19 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
             label: t("navigation.products"),
             path: "/admin/products",
             icon: ShoppingBag,
+            routeKey: "products",
           },
           {
             label: t("navigation.categories"),
             path: "/admin/categories",
             icon: Layers,
+            routeKey: "categories",
           },
           {
             label: t("navigation.promotions"),
             path: "/admin/promotions",
             icon: Image,
+            routeKey: "promotions",
           },
         ],
       },
@@ -181,26 +201,35 @@ export default function AdminSidebar({ sidebarState, setSidebarState }) {
             label: t("navigation.users"),
             path: "/admin/users",
             icon: Users,
+            routeKey: "users",
           },
           {
             label: t("navigation.deliveryProviders"),
             path: "/admin/delivery-providers",
             icon: Truck,
+            routeKey: "deliveryProviders",
           },
           {
             label: t("navigation.qrCode"),
             path: "/admin/qr-code",
             icon: QrCode,
+            routeKey: "qrCode",
           },
           {
             label: t("navigation.settings"),
             path: "/admin/settings",
             icon: Settings,
+            routeKey: "settings",
           },
         ],
       },
-    ],
-    [t]
+    ]
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => canAccessAdminRoute(item.routeKey, user?.role)),
+      }))
+      .filter((section) => section.items.length > 0),
+    [t, user?.role]
   );
 
   return (

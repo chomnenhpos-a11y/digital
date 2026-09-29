@@ -1,18 +1,41 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { FaHome } from "react-icons/fa";
-import { QrCode, Menu } from 'lucide-react'
+import { QrCode } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import NotificationDropdown from '@/admin/features/Notification/components/NotificationDropdown';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import ViewModeSelector from '@/client/components/common/ViewModeSelector';
 
-export default function AdminHeader({ sidebarState, setSidebarState }) {
-  const handleMenuToggle = () => {
-    if (window.innerWidth < 768) {
-      setSidebarState(sidebarState === 0 ? 2 : 0);
-    } else {
-      setSidebarState(sidebarState === 2 ? 1 : 2);
-    }
-  };
+const ADMIN_VIEW_MODE_STORAGE_KEY = "admin-view-mode";
+const ADMIN_VIEW_MODE_EVENT = "admin-view-mode-change";
+
+function isMobileDeviceScreen() {
+  if (typeof window === "undefined") return false;
+  return Math.min(window.screen.width, window.screen.height) < 768;
+}
+
+export default function AdminHeader({ requestedViewMode }) {
+  const [showViewportSwitch, setShowViewportSwitch] = useState(isMobileDeviceScreen);
+
+  useEffect(() => {
+    const syncScreenMode = () => setShowViewportSwitch(isMobileDeviceScreen());
+
+    window.addEventListener("resize", syncScreenMode);
+    window.addEventListener("orientationchange", syncScreenMode);
+    return () => {
+      window.removeEventListener("resize", syncScreenMode);
+      window.removeEventListener("orientationchange", syncScreenMode);
+    };
+  }, []);
+
+  const viewportSwitch = showViewportSwitch ? (
+    <ViewModeSelector
+      storageKey={ADMIN_VIEW_MODE_STORAGE_KEY}
+      eventName={ADMIN_VIEW_MODE_EVENT}
+      desktopWidth={1180}
+      variant="toggle"
+    />
+  ) : null;
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shadow-xl shrink-0">
@@ -37,6 +60,7 @@ export default function AdminHeader({ sidebarState, setSidebarState }) {
       <div className="flex items-center gap-2 text-slate-600 text-xl">
         {/* Notifications Dropdown Component */}
 
+        {viewportSwitch}
         <LanguageSwitcher />
         <NotificationDropdown size={20} className="text-slate-600 hover:text-[#9d1159]" />
       </div>

@@ -28,6 +28,7 @@ import AdminReceiptPage from '../admin/features/Order/pages/AdminReceiptPage'
 import AdminStickerPage from '../admin/features/Order/pages/AdminStickerPage'
 import AdminQRCode from '../admin/features/QRCode/pages/AdminQRCode'
 import AdminDeliveryProviders from '../admin/features/Delivery_Providers/pages/AdminDeliveryProviders'
+import { ADMIN_ROUTE_ACCESS } from './adminRouteAccess'
 
 // Wrap a page in ErrorBoundary — resets on each unique key (page name)
 function Safe({ name, children }) {
@@ -62,12 +63,22 @@ export const appRoutes = (
           <Route path="qr-code" element={<Safe name="qr-code"><AdminQRCode /></Safe>} />
 
           {/* admin / superadmin only pages */}
-          <Route element={<RoleRoute allowedRoles={['admin', 'superadmin']} fallback="/admin" />}>
+          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.products} fallback="/admin" />}>
             <Route path="products" element={<Safe name="products"><AdminProducts /></Safe>} />
+          </Route>
+          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.users} fallback="/admin" />}>
             <Route path="users" element={<Safe name="users"><AdminUsers /></Safe>} />
+          </Route>
+          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.categories} fallback="/admin" />}>
             <Route path="categories" element={<Safe name="categories"><AdminCategories /></Safe>} />
+          </Route>
+          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.promotions} fallback="/admin" />}>
             <Route path="promotions" element={<Safe name="promotions"><AdminSlides /></Safe>} />
+          </Route>
+          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.deliveryProviders} fallback="/admin" />}>
             <Route path="delivery-providers" element={<Safe name="delivery-providers"><AdminDeliveryProviders /></Safe>} />
+          </Route>
+          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.settings} fallback="/admin" />}>
             <Route path="settings" element={<Safe name="settings"><AdminSettings /></Safe>} />
           </Route>
         </Route>

@@ -3,8 +3,8 @@ import { Check, Monitor, Smartphone, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const STORAGE_KEY = "client-view-mode";
+const EVENT_NAME = "client-view-mode-change";
 const MOBILE_VIEWPORT = "width=device-width, initial-scale=1, viewport-fit=cover";
-const DESKTOP_VIEWPORT = "width=1180, viewport-fit=cover";
 
 const VIEW_MODES = [
   {
@@ -21,14 +21,14 @@ const VIEW_MODES = [
   },
 ];
 
-function getSavedViewMode() {
+function getSavedViewMode(storageKey = STORAGE_KEY) {
   if (typeof window === "undefined") return "mobile";
 
-  const savedMode = localStorage.getItem(STORAGE_KEY);
+  const savedMode = localStorage.getItem(storageKey);
   return savedMode === "desktop" || savedMode === "mobile" ? savedMode : "mobile";
 }
 
-function applyViewMode(mode) {
+function applyViewMode(mode, desktopWidth) {
   if (typeof document === "undefined") return;
 
   let viewportMeta = document.querySelector('meta[name="viewport"]');
@@ -41,13 +41,19 @@ function applyViewMode(mode) {
   document.documentElement.dataset.viewMode = mode;
   viewportMeta.setAttribute(
     "content",
-    mode === "desktop" ? DESKTOP_VIEWPORT : MOBILE_VIEWPORT
+    mode === "desktop" ? `width=${desktopWidth}, viewport-fit=cover` : MOBILE_VIEWPORT
   );
 }
 
-export default function ViewModeSelector({ className = "" }) {
+export default function ViewModeSelector({
+  className = "",
+  storageKey = STORAGE_KEY,
+  eventName = EVENT_NAME,
+  desktopWidth = 1180,
+  variant = "menu",
+}) {
   const { t } = useTranslation();
-  const [mode, setMode] = useState(getSavedViewMode);
+  const [mode, setMode] = useState(() => getSavedViewMode(storageKey));
   const [menuOpen, setMenuOpen] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
   const menuRef = useRef(null);
@@ -60,10 +66,11 @@ export default function ViewModeSelector({ className = "" }) {
   const isDesktopMode = mode === "desktop";
 
   useEffect(() => {
-    const savedMode = getSavedViewMode();
+    const savedMode = getSavedViewMode(storageKey);
     setMode(savedMode);
-    applyViewMode(savedMode);
-  }, []);
+    applyViewMode(savedMode, desktopWidth);
+    window.dispatchEvent(new Event("resize"));
+  }, [desktopWidth, storageKey]);
 
   useEffect(() => {
     const onPointerDown = (event) => {
@@ -85,20 +92,45 @@ export default function ViewModeSelector({ className = "" }) {
 
   const saveMode = (nextMode, remember = true) => {
     setMode(nextMode);
-    applyViewMode(nextMode);
+    applyViewMode(nextMode, desktopWidth);
 
     if (remember) {
-      localStorage.setItem(STORAGE_KEY, nextMode);
+      localStorage.setItem(storageKey, nextMode);
     } else {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(storageKey);
     }
 
     setMenuOpen(false);
     setToastOpen(true);
-    window.dispatchEvent(new CustomEvent("client-view-mode-change", {
+    window.dispatchEvent(new CustomEvent(eventName, {
       detail: { mode: nextMode },
     }));
+    window.dispatchEvent(new Event("resize"));
   };
+
+  if (variant === "toggle") {
+    const nextMode = mode === "desktop" ? "mobile" : "desktop";
+    const nextModeConfig = VIEW_MODES.find((item) => item.value === nextMode) || VIEW_MODES[0];
+    const NextIcon = nextModeConfig.icon;
+
+    return (
+      <button
+        type="button"
+        onClick={() => saveMode(nextMode)}
+        className={`relative inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-red-900 hover:bg-red-50 hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-400 ${className}`}
+        ref={menuRef}
+        aria-label={t(nextModeConfig.labelKey)}
+        title={t(nextModeConfig.labelKey)}
+      >
+        <NextIcon className="h-5 w-5" aria-hidden="true" />
+        <span
+          className={`absolute right-1 top-1 h-2 w-2 rounded-full ${
+            mode === "desktop" ? "bg-red-800" : "bg-slate-400"
+          }`}
+        />
+      </button>
+    );
+  }
 
   return (
     <div className={`relative ${className}`} ref={menuRef}>
@@ -154,7 +186,7 @@ export default function ViewModeSelector({ className = "" }) {
               </div>
               {isDesktopMode && (
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">
-                  1180px
+                  {desktopWidth}px
                 </span>
               )}
             </div>
