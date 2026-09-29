@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
         REGISTER: 'api/users',
         GET_ALL: 'api/users',
         UPDATE: (id) => `api/users?id=${id}`,
+        DELETE: (id) => `api/users?id=${id}`,
         DETAIL: (id) => `api/users?id=${id}`,
     },
     CATEGORIES: {
@@ -16,7 +17,7 @@ export const API_ENDPOINTS = {
         GET_ALL: 'api/products',
         CREATE: 'api/products',
         UPDATE: (id) => `api/products?id=${id}`,
-        DELETE: (id) => `api/products?id=${id}`,
+        DELETE: 'api/products',
     },
     ORDERS: {
         GET_ALL: 'api/orders',

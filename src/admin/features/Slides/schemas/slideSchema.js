@@ -33,17 +33,14 @@ export const slideSchema = z.object({
     "validation.descriptionMax"
   ),
 
-  discountPercentage: z
-    .union([
-      z.literal(""),
-      z.coerce
-        .number({
-          message: "validation.discountNumber",
-        })
-        .min(0, "validation.discountMin")
-        .max(100, "validation.discountMax"),
-    ])
-    .optional(),
+  discountPercentage: z.preprocess(
+    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.coerce
+      .number({ error: "validation.discountNumber" })
+      .min(0, "validation.discountMin")
+      .max(100, "validation.discountMax")
+      .optional()
+  ),
 
   ctaText: optionalString(50, "validation.ctaMax"),
 

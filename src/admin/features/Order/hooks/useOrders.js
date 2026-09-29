@@ -43,7 +43,7 @@ export function useOrders(viewMode) {
       Swal.fire({
         icon: 'success',
         title: t('common.success'),
-        text: t('order.updatedSuccess'),
+        text: t('order.orderUpdatedSuccess'),
         timer: 1500,
         showConfirmButton: false
       })
@@ -51,11 +51,11 @@ export function useOrders(viewMode) {
       closeModal()
     } catch (error) {
       console.error('Update error:', error)
-      const errorMsg = error?.response?.data?.message || error.message || 'Error updating order'
       Swal.fire({
         icon: 'error',
         title: t('common.failed'),
-        text: errorMsg,
+        text: t('order.updateOrderError'),
+        confirmButtonText: t('common.ok'),
       })
     }
   }

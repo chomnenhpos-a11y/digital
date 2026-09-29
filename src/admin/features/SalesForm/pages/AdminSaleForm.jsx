@@ -128,11 +128,11 @@ export default function AdminSaleForm() {
     const orderData = result;
     const printConfirm = await Swal.fire({
       icon: "question",
-      title: "បោះពុម្ពវិក្កយបត្រ?",
-      text: "តើអ្នកចង់បោះពុម្ពវិក្កយបត្រដែរឬទេ?",
+      title: t("cart.printReceiptQ"),
+      text: t("cart.doYouWantToPrintReceipt"),
       showCancelButton: true,
-      confirmButtonText: "🖨️ បោះពុម្ពវិក្កយបត្រ",
-      cancelButtonText: "រំលង",
+      confirmButtonText: t("cart.printReceiptBtn"),
+      cancelButtonText: t("cart.skip"),
       confirmButtonColor: "#7f1d1d",
       cancelButtonColor: "#64748b",
     });

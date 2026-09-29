@@ -23,14 +23,19 @@ export default function useCheckout({
     setIsCartOpen(false)
     await Swal.fire({
       icon: "success",
-      title: t('cart.orderSuccessTitle'),
-      text: `${t('cart.orderSuccessText')} $${grandTotal.toFixed(2)}`,
-      confirmButtonText: t('common.ok'),
+      title: t("cart.orderSuccessTitle"),
+      html: `
+        <p>${t("cart.orderSuccessText")}</p>
+        <p style="margin-top: 12px; font-weight: 600;">
+          ${t("cart.totalProductPrice")}: $${grandTotal.toFixed(2)}
+        </p>
+      `,
+      confirmButtonText: t("common.ok"),
       confirmButtonColor: "#16a34a",
       allowOutsideClick: false,
       timer: 3000,
       timerProgressBar: true,
-    })
+    });
 
     const result = await Swal.fire({
       icon: "question",

@@ -54,7 +54,9 @@ export const productService = {
 
   deleteProduct: async (id) => {
     try {
-      const response = await axiosClient.delete(API_ENDPOINTS.PRODUCTS.DELETE(id));
+      const response = await axiosClient.delete(API_ENDPOINTS.PRODUCTS.DELETE, {
+        data: { id },
+      });
       return response.data;
     } catch (error) {
       console.error('Product API Error [deleteProduct]:', {

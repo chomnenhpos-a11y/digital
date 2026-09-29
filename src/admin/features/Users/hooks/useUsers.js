@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import { userService } from "../../../../services/userService";
+import { useDeleteUserMutation } from "../../../../queries/users/useUserQueries";
+import { useAuth } from "../../../../hooks/useAuth";
 
 const ITEMS_PER_PAGE = 5;
 
 export function useUsers() {
   const { t } = useTranslation();
+  const { user: authUser } = useAuth();
+  const deleteMutation = useDeleteUserMutation();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -34,8 +38,16 @@ export function useUsers() {
   }, []);
 
   // ── Filter & Sort ──────────────────────────────────────────────────────────
+  const currentUserId = authUser?.id;
+  const currentUserEmail = authUser?.email?.trim().toLowerCase();
   const filteredUsers = (users || [])
     .filter((user) => {
+      const isCurrentUser = currentUserId != null && user.id != null
+        ? String(user.id) === String(currentUserId)
+        : Boolean(currentUserEmail) && user.email?.trim().toLowerCase() === currentUserEmail;
+
+      if (isCurrentUser) return false;
+
       const matchSearch =
         (user.name || "").toLowerCase().includes(search.toLowerCase()) ||
         (user.email || "").toLowerCase().includes(search.toLowerCase());
@@ -158,8 +170,10 @@ export function useUsers() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    Swal.fire({
+  const handleDelete = async (id) => {
+    if (deleteMutation.isPending) return;
+
+    const result = await Swal.fire({
       title: t('common.areYouSure'),
       text: t('common.cannotRevert'),
       icon: "warning",
@@ -168,13 +182,28 @@ export function useUsers() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: t('common.yesDelete'),
       cancelButtonText: t('common.cancel'),
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Fallback for delete since backend only supports get, update, register
-        setUsers((prev) => prev.filter((s) => s.id !== id));
-        Swal.fire(t('common.deletedSuccess'), t('users.deletedLocally'), "success");
-      }
     });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await deleteMutation.mutateAsync(id);
+      setUsers((prev) => prev.filter((user) => user.id !== id));
+      const lastPage = Math.max(1, Math.ceil((filteredUsers.length - 1) / ITEMS_PER_PAGE));
+      setCurrentPage((page) => Math.min(page, lastPage));
+      Swal.fire({
+        title: t('common.deletedSuccess'),
+        text: t('users.deleteSuccess'),
+        icon: "success",
+      });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      Swal.fire({
+        title: t('common.failed'),
+        text: t('users.deleteError'),
+        icon: "error",
+      });
+    }
   };
 
   const openAddModal = () => {
@@ -191,6 +220,7 @@ export function useUsers() {
     // state
     users,
     isLoading,
+    isDeleting: deleteMutation.isPending,
     search,
     filters,
     sortOrder,

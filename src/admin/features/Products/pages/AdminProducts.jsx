@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, SlidersHorizontal, ImageOff } from "lucide-react";
+import { Plus, Edit, SlidersHorizontal, ImageOff, Trash, Loader2 } from "lucide-react";
 import { useProducts, getStockStatus } from "../hooks/useProducts";
 import ProductsForm from "../components/ProductForm";
 import DataTable from "../../../components/common/DataTable";
@@ -27,12 +27,15 @@ export default function AdminProducts() {
     paginatedProducts,
     totalPages,
     isLoading: isProductsLoading,
+    isDeleting,
+    deletingProductId,
     setCurrentPage,
     handleFilterChange,
     handleSearchChange,
     handleSortChange,
     handleSubmit,
     handleEdit,
+    handleDelete,
     openAddModal,
     closeModal,
   } = useProducts();
@@ -164,6 +167,20 @@ export default function AdminProducts() {
             title={t('products.editProduct')}
           >
             <Edit size={18} />
+          </button>
+          <button
+            onClick={() => handleDelete(row.id)}
+            disabled={isDeleting}
+            className="p-2 bg-[#fcfafb] border border-slate-200 rounded-xl text-red-500 hover:bg-red-100 hover:border-amber-200 hover:text-amber-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            title={t('products.deleteProduct')}
+            aria-label={t('products.deleteProduct')}
+            aria-busy={deletingProductId === row.id}
+          >
+            {deletingProductId === row.id ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <Trash size={18} />
+            )}
           </button>
         </div>
       ),

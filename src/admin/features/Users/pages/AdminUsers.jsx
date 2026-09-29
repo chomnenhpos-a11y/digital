@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Edit, SlidersHorizontal } from 'lucide-react'
+import { Plus, Edit, SlidersHorizontal, Trash } from 'lucide-react'
 import { useUsers } from '../hooks/useUsers'
 import UserForm from '../components/UserForm'
 import DataTable from '../../../components/common/DataTable'
@@ -31,12 +31,14 @@ export default function AdminUsers() {
     paginatedUsers,
     totalPages,
     isLoading,
+    isDeleting,
     setCurrentPage,
     handleFilterChange,
     handleSearchChange,
     handleSortChange,
     handleSubmit,
     handleEdit,
+    handleDelete,
     openAddModal,
     closeModal,
   } = useUsers()
@@ -120,6 +122,15 @@ export default function AdminUsers() {
             title={t('users.editUser')}
           >
             <Edit size={18} />
+          </button>
+          <button
+            onClick={() => handleDelete(row.id)}
+            disabled={isDeleting}
+            className="p-2 bg-[#fcfafb] border border-slate-200 rounded-xl text-red-500 hover:bg-red-100 hover:border-red-200 hover:text-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            title={t('users.deleteUser')}
+            aria-label={t('users.deleteUser')}
+          >
+            <Trash size={18} />
           </button>
         </div>
       ),

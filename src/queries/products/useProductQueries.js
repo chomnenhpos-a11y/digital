@@ -97,7 +97,7 @@ export function useDeleteProductMutation() {
   return useMutation({
     mutationFn: productService.deleteProduct,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: productKeys.all });
+      return queryClient.invalidateQueries({ queryKey: productKeys.all });
     },
   });
 }

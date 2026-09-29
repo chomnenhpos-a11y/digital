@@ -103,13 +103,9 @@ export default function SlideForm({ onSubmit, initialData }) {
             {t("promotions.discount")}
           </label>
           <input
-            type="number"
-            min="0"
-            max="100"
-            {...register("discountPercentage", {
-              setValueAs: (value) =>
-                value === "" ? undefined : Number(value),
-            })}
+            type="text"
+            inputMode="decimal"
+            {...register("discountPercentage")}
             placeholder={t("promotions.discountPlaceholder")}
             className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl outline-none transition focus:border-[#870d4c] focus:ring-2 focus:ring-[#870d4c]/10"
           />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, UserLock, Store } from "lucide-react";
+import { Search, ShoppingBag, Store } from "lucide-react";
 import Container from "./Container";
 import { useSearch } from "../../../context/SearchContext";
 import { useCart } from "../../../context/CartContext";
@@ -7,6 +7,18 @@ import { Link, useParams } from "react-router-dom";
 import { usePublicSettingsQuery } from "../../../queries/settings/useSettingQueries";
 import LanguageSwitcher from "../../../components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import ViewModeSelector from "../common/ViewModeSelector";
+
+const VIEW_MODE_STORAGE_KEY = "client-view-mode";
+
+function getSavedViewMode() {
+  if (typeof window === "undefined") return "mobile";
+
+  const savedViewMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+  return savedViewMode === "desktop" || savedViewMode === "mobile"
+    ? savedViewMode
+    : "mobile";
+}
 
 export default function Header() {
   const { t } = useTranslation();
@@ -15,8 +27,10 @@ export default function Header() {
   const { shop_code } = useParams();
 
   const { data: settingData, isLoading } = usePublicSettingsQuery(shop_code);
-
+  const shopRoute = settingData?.shop_code || shop_code;
+  const shopPath = shopRoute ? `/${encodeURIComponent(shopRoute)}` : "/";
   const [imgError, setImgError] = useState(false);
+  const [requestedViewMode, setRequestedViewMode] = useState(getSavedViewMode);
 
   const shopName = settingData?.shop_name || "Shop";
   const rawLogo = settingData?.logo;
@@ -43,6 +57,22 @@ export default function Header() {
     }
   }, [shop_code]);
 
+  useEffect(() => {
+    setRequestedViewMode(getSavedViewMode());
+
+    const handleViewModeChange = (event) => {
+      const nextMode = event.detail?.mode;
+      if (nextMode === "desktop" || nextMode === "mobile") {
+        setRequestedViewMode(nextMode);
+      }
+    };
+
+    window.addEventListener("client-view-mode-change", handleViewModeChange);
+    return () => {
+      window.removeEventListener("client-view-mode-change", handleViewModeChange);
+    };
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 md:shadow-md shadow-lg bg-white md:border-b md:border-slate-100 border-b-2 border-red-800">
       <Container className="w-full py-4">
@@ -50,7 +80,7 @@ export default function Header() {
 
           <div className="flex items-center justify-between md:justify-start">
 
-            <div className="flex items-center gap-2 overflow-hidden">
+            <Link to={shopPath} className="flex items-center gap-2 overflow-hidden">
               {isLoading ? (
                 <div className="flex items-center gap-2 animate-pulse">
                   <div className="w-8 h-8 md:w-10 md:h-10 bg-slate-200 rounded-full shrink-0" />
@@ -75,11 +105,18 @@ export default function Header() {
                   </span>
                 </>
               )}
-            </div>
+            </Link>
 
-            <div className="flex items-center gap-2 md:hidden">
-              <LanguageSwitcher/>
-              <button
+            <div
+              className={
+                requestedViewMode === "desktop"
+                  ? "fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 z-[100] flex items-center gap-2"
+                  : "flex items-center gap-2 md:hidden"
+              }
+            >
+              <LanguageSwitcher className="md:hidden"/>
+              <ViewModeSelector/>
+              {/* <button
                 className="relative"
                 onClick={() => setIsCartOpen(true)}
                 aria-label="Open cart"
@@ -90,7 +127,7 @@ export default function Header() {
                     {cartCount}
                   </span>
                 )}
-              </button>
+              </button> */}
             </div>
           </div>
 

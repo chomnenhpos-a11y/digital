@@ -141,8 +141,13 @@ export default function CartDrawer() {
 
       await Swal.fire({
         icon: "success",
-        title: t('cart.orderSuccessful'),
-        text: t('cart.totalAmount', { amount: finalTotal.toFixed(2) }),
+        title: t('cart.orderSuccessTitle'),
+        html: `
+          <p>${t('cart.orderSuccessText')}</p>
+          <p style="margin-top: 12px; font-weight: 600;">
+            ${t('cart.totalProductPrice')}: $${finalTotal.toFixed(2)}
+          </p>
+        `,
         confirmButtonText: t('cart.ok'),
         confirmButtonColor: "#7f1d1d",
         allowOutsideClick: false,
@@ -150,10 +155,9 @@ export default function CartDrawer() {
 
       const result = await Swal.fire({
         icon: "question",
-        title: t('cart.printReceiptQ'),
-        text: t('cart.doYouWantToPrintReceipt'),
+        title: t('cart.printReceiptPrompt'),
         showCancelButton: true,
-        confirmButtonText: t('cart.printReceiptBtn'),
+        confirmButtonText: t('cart.printReceipt'),
         cancelButtonText: t('cart.skip'),
         confirmButtonColor: "#7f1d1d",
         cancelButtonColor: "#64748b",

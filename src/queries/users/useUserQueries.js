@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../../services/userService';
 import { userKeys } from './userKeys';
-import { useEffect } from 'react';
 
 export function useUsersListQuery(params = {}) {
   return useQuery({
@@ -28,6 +27,16 @@ export function useUpdateUserMutation() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: userKeys.all });
       queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
+    },
+  });
+}
+
+export function useDeleteUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: userService.deleteUser,
+    onSuccess: () => {
+      return queryClient.invalidateQueries({ queryKey: userKeys.all });
     },
   });
 }

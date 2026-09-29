@@ -65,5 +65,19 @@ export const userService = {
       });
       throw error;
     }
+  },
+
+  deleteUser: async (id) => {
+    try{
+      const response = await axiosClient.delete(API_ENDPOINTS.USERS.DELETE(id));
+      return response.data;
+    } catch (error) {
+      console.error('User API Error [deleteUser]:', {
+        status: error.response?.status,
+        data:   JSON.stringify(error.response?.data),
+        message: error.message,
+      });
+      throw error;
+    }
   }
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Edit, SlidersHorizontal, Search, ImageOff } from 'lucide-react'
+import { Plus, Edit, SlidersHorizontal, Search, ImageOff, Trash } from 'lucide-react'
 import { useCategories } from '../hooks/useCategories'
 import CategoryForm from '../components/CategoryForm'
 import DataTable from '../../../components/common/DataTable'
@@ -34,6 +34,7 @@ export default function AdminCategories() {
     handleEdit,
     openAddModal,
     closeModal,
+    handleDelete,
     setEditingCategory,
     setIsModalOpen,
     updateFilter
@@ -122,6 +123,13 @@ export default function AdminCategories() {
             title={t('category.editTitle')}
           >
             <Edit size={18} />
+          </button>
+          <button
+            onClick={() => handleDelete(row.id)}
+            className="p-2 bg-[#fcfafb] border border-slate-200 rounded-xl text-red-500 hover:bg-red-100 hover:border-amber-200 hover:text-amber-600 transition-all"
+            title={t('category.deleteTitle')}
+          >
+            <Trash size={18} />
           </button>
         </div>
       ),

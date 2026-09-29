@@ -130,22 +130,30 @@ export function useProducts({ shopCode } = {}) {
 
   const handleDelete = (id) => {
     Swal.fire({
-      title: t('common.areYouSure'), // Are you sure?
-      text: t('common.cannotRevert'), // You won't be able to revert this!
+      title: t('common.areYouSure'),
+      text: t('common.cannotRevert'),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: t('common.yesDelete'), // Yes, delete it
-      cancelButtonText: t('common.cancel') // Cancel
+      confirmButtonText: t('common.yesDelete'),
+      cancelButtonText: t('common.cancel')
     }).then(async (result) => {
       if (result.isConfirmed) {
         deleteMutation.mutate(id, {
           onSuccess: () => {
-            Swal.fire(t('common.deletedSuccess'), t('users.deletedLocally'), 'success')
+            Swal.fire({
+              title: t('common.deletedSuccess'),
+              text: t('products.deleteSuccess'),
+              icon: 'success'
+            })
           },
           onError: () => {
-            Swal.fire(t('common.failed'), t('common.deleteError'), 'error')
+            Swal.fire({
+              title: t('common.failed'),
+              text: t('common.deleteError'),
+              icon: 'error'
+            })
           }
         })
       }

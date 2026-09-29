@@ -91,7 +91,7 @@ export function useSlides(settingId = null, shopCode = null) {
         tag: data.tag,
         title: data.title,
         description: data.description || '',
-        discountPercentage: data.discountPercentage === '' ? 0 : Number(data.discountPercentage),
+        discountPercentage: Number(data.discountPercentage ?? 0),
         ctaText: data.ctaText || '',
         backgroundColor: data.backgroundColor || 'radial-gradient(circle, #FF5733 0%, #FFC300 100%)',
         status: data.status || 'Active',
