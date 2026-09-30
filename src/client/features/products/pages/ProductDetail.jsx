@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   SquareChevronDown,
 } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 
 import Header from "../../../components/layout/Header";
 import Footer from "../../../components/layout/Footer";

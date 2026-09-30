@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import { useLocation, useParams, Link, useSearchParams } from "react-router-dom";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { createCardPng } from "../../../../utils/createCardPng";
 import { useReactToPrint } from "react-to-print";
 import {

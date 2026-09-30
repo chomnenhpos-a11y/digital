@@ -20,7 +20,7 @@ import FilterBar from "../../../components/common/FilterBar";
 import DataCardSkeletonGrid from "../../../components/common/DataCardSkeleton";
 
 import useSalesForm from "../hooks/useSalesForm";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 
 export default function AdminSaleForm() {
   const { t } = useTranslation();

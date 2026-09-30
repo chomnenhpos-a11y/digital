@@ -1,4 +1,4 @@
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 

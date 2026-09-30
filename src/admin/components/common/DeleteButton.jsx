@@ -1,5 +1,5 @@
 import React from 'react';
-import Swal from 'sweetalert2';
+import Swal from '../../../lib/alert';
 import { HiTrash } from 'react-icons/hi2';
 import { useTranslation } from 'react-i18next';
 

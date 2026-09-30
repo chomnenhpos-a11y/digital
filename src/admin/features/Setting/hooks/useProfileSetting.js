@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { profileSchema } from "../schemas/profileSchema";
 import { useAdminAuth } from "../../../../context/AdminAuthContext";
 import {

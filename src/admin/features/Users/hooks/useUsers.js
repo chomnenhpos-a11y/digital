@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import { useState } from "react";
+import Swal from "../../../../lib/alert";
 import { useTranslation } from "react-i18next";
-import { userService } from "../../../../services/userService";
-import { useDeleteUserMutation } from "../../../../queries/users/useUserQueries";
+import { useUsersListQuery, useCreateUserMutation, useUpdateUserMutation, useDeleteUserMutation } from "../../../../queries/users/useUserQueries";
 import { useAuth } from "../../../../hooks/useAuth";
 
 const ITEMS_PER_PAGE = 5;
@@ -11,33 +10,17 @@ export function useUsers() {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
   const deleteMutation = useDeleteUserMutation();
-  const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: users = [], isLoading, isError, error, refetch } = useUsersListQuery();
+  const createMutation = useCreateUserMutation();
+  const updateMutation = useUpdateUserMutation();
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({ status: "", role: "" });
-  const [sortOrder, setSortOrder] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    try {
-      const response = await userService.getUsers();
-      setUsers(response.data || response || []);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  // ── Filter & Sort ──────────────────────────────────────────────────────────
   const currentUserId = authUser?.id;
   const currentUserEmail = authUser?.email?.trim().toLowerCase();
   const filteredUsers = (users || [])
@@ -57,24 +40,25 @@ export function useUsers() {
         filters.role === t('common.all') ||
         user.role === filters.role;
 
-      return matchSearch && matchRole;
+      return matchSearch && matchRole && (!filters.status || String(user.status) === filters.status);
     })
     .sort((a, b) => {
       const dateA = a.createAt || a.createdAt || "";
       const dateB = b.createAt || b.createdAt || "";
-      if (sortOrder === "Newest First" || sortOrder === "")
+      if (sortOrder === "newest")
         return dateB.localeCompare(dateA);
-      if (sortOrder === "Oldest First") return dateA.localeCompare(dateB);
-      if (sortOrder === "A → Z")
+      if (sortOrder === "oldest") return dateA.localeCompare(dateB);
+      if (sortOrder === "az")
         return (a.name || "").localeCompare(b.name || "");
       return (b.name || "").localeCompare(a.name || ""); // 'Z → A'
     });
 
   // ── Pagination ─────────────────────────────────────────────────────────────
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const visiblePage = Math.min(currentPage, Math.max(1, totalPages));
   const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
+    (visiblePage - 1) * ITEMS_PER_PAGE,
+    visiblePage * ITEMS_PER_PAGE,
   );
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -94,6 +78,7 @@ export function useUsers() {
   };
 
   const handleSubmit = async (data) => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
 
     Swal.fire({
@@ -109,20 +94,21 @@ export function useUsers() {
         name: data.name,
         email: data.email || "",
         role: data.role || "User",
+        status: data.status || "0",
         token: "",
       };
 
       if (editingUser) {
         payload.id = editingUser.id;
 
-        const res = await userService.updateUser(editingUser.id, payload);
+        const res = await updateMutation.mutateAsync({ id: editingUser.id, data: payload });
 
         closeModal();
 
         Swal.fire({
           icon: "success",
           title: t('common.success'),
-          text: res.message || t('users.updatedSuccess'),
+          text: res?.message || t('users.updatedSuccess'),
           timer: 1500,
           showConfirmButton: false,
         });
@@ -130,20 +116,20 @@ export function useUsers() {
         payload.password = data.password;
         payload.confirmPassword = data.confirmPassword;
 
-        const res = await userService.registerUser(payload);
+        const res = await createMutation.mutateAsync(payload);
 
         closeModal();
 
         Swal.fire({
           icon: "success",
           title: t('common.success'),
-          text: res.message || t('users.createdSuccess'),
+          text: res?.message || t('users.createdSuccess'),
           timer: 1500,
           showConfirmButton: false,
         });
       }
 
-      await fetchUsers();
+      setCurrentPage(1);
     } catch (error) {
       Swal.close();
 
@@ -173,6 +159,17 @@ export function useUsers() {
   const handleDelete = async (id) => {
     if (deleteMutation.isPending) return;
 
+    const user = users.find((item) => String(item.id) === String(id));
+    if (!user || user.role !== "User" || String(user.status) !== "1") {
+      Swal.fire({
+        title: t('common.failed'),
+        text: t('users.deleteNotAllowed'),
+        icon: "error",
+        confirmButtonText: t('common.ok'),
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: t('common.areYouSure'),
       text: t('common.cannotRevert'),
@@ -188,7 +185,6 @@ export function useUsers() {
 
     try {
       await deleteMutation.mutateAsync(id);
-      setUsers((prev) => prev.filter((user) => user.id !== id));
       const lastPage = Math.max(1, Math.ceil((filteredUsers.length - 1) / ITEMS_PER_PAGE));
       setCurrentPage((page) => Math.min(page, lastPage));
       Swal.fire({
@@ -196,12 +192,12 @@ export function useUsers() {
         text: t('users.deleteSuccess'),
         icon: "success",
       });
-    } catch (error) {
-      console.error("Error deleting user:", error);
+    } catch {
       Swal.fire({
         title: t('common.failed'),
         text: t('users.deleteError'),
         icon: "error",
+        confirmButtonText: t('common.ok'),
       });
     }
   };
@@ -220,11 +216,14 @@ export function useUsers() {
     // state
     users,
     isLoading,
+    isError,
+    error,
+    refetch,
     isDeleting: deleteMutation.isPending,
     search,
     filters,
     sortOrder,
-    currentPage,
+    currentPage: visiblePage,
     isModalOpen,
     editingUser,
     isSubmitting,

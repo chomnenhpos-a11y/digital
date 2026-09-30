@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useCategoriesQuery, useCreateCategoryMutation, useUpdateCategoryMutation, useDeleteCategoryMutation } from '../../../../queries/categories/useCategoryQueries'
-import Swal from 'sweetalert2'
+import Swal from '../../../../lib/alert'
 import { useTranslation } from 'react-i18next'
 
 const ITEMS_PER_PAGE = 5
@@ -133,7 +133,15 @@ export function useCategories() {
           Swal.fire(t('common.deletedSuccess'), t('common.dataDeleted'), 'success')
         } catch (error) {
           console.error('Error deleting category:', error)
-          Swal.fire(t('common.failed'), t('common.deleteError'), 'error')
+          const errorData = error?.response?.data
+          const backendMsg = [errorData?.error, errorData?.message]
+            .find((message) => typeof message === 'string' && message.trim())
+            ?.trim()
+          const errorMessage = backendMsg === 'Cannot delete category because products are currently using it'
+            ? t('category.deleteInUseError')
+            : backendMsg || t('common.deleteError')
+
+          Swal.fire(t('common.failed'), errorMessage, 'error')
         }
       }
     })

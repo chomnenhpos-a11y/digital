@@ -4,7 +4,7 @@ import { Save } from "lucide-react";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { userSchema } from "../schemas/userSchema";
+import { userSchema, updateUserSchema } from "../schemas/userSchema";
 
 export default function UserForm({ onSubmit, initialData }) {
   const { t } = useTranslation();
@@ -16,11 +16,12 @@ export default function UserForm({ onSubmit, initialData }) {
     reset,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(isEditing ? updateUserSchema : userSchema),
     defaultValues: {
       name: "",
       email: "",
       role: "User",
+      status: "0",
       password: "",
       confirmPassword: "",
     },
@@ -29,8 +30,9 @@ export default function UserForm({ onSubmit, initialData }) {
   useEffect(() => {
     reset({
       name: initialData?.name || "",
-      email: initialData?.email,
+      email: initialData?.email || "",
       role: initialData?.role || "User",
+      status: String(initialData?.status ?? "0"),
       password: "",
       confirmPassword: "",
     });
@@ -44,7 +46,7 @@ export default function UserForm({ onSubmit, initialData }) {
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
       className="space-y-5"
-    >
+    > <div className="grid grid-cols-2 gap-3">
       <div>
         <label className="block text-xs font-semibold text-gray-600 mb-1">
           {t('users.name')} <span className="text-red-500">*</span>
@@ -67,7 +69,30 @@ export default function UserForm({ onSubmit, initialData }) {
           </p>
         )}
       </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">
+            {t('users.role')} <span className="text-red-500">*</span>
+          </label>
 
+          <select
+            {...register("role")}
+            className={`w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 ${
+              errors.role
+                ? "ring-2 ring-red-400 focus:ring-red-500"
+                : "focus:ring-gray-200"
+            }`}
+          >
+            <option value="Admin">{t('users.adminRoleLabel')}</option>
+            <option value="User">{t('users.userRoleLabel')}</option>
+          </select>
+
+          {errors.role && (
+            <p className="mt-1 text-xs text-red-500">
+              {errors.role?.message ? t(errors.role.message) : ""}
+            </p>
+          )}
+        </div>
+        </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
@@ -94,24 +119,24 @@ export default function UserForm({ onSubmit, initialData }) {
 
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
-            {t('users.role')} <span className="text-red-500">*</span>
+            {t('users.status')} <span className="text-red-500">*</span>
           </label>
 
           <select
-            {...register("role")}
+            {...register("status")}
             className={`w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 ${
-              errors.role
+              errors.status
                 ? "ring-2 ring-red-400 focus:ring-red-500"
                 : "focus:ring-gray-200"
             }`}
           >
-            <option value="Admin">{t('users.adminRoleLabel')}</option>
-            <option value="User">{t('users.userRoleLabel')}</option>
+            <option value="0">{t('users.statusActive')}</option>
+            <option value="1">{t('users.statusInactive')}</option>
           </select>
 
-          {errors.role && (
+          {errors.status && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.role?.message ? t(errors.role.message) : ""}
+              {errors.status?.message ? t(errors.status.message) : ""}
             </p>
           )}
         </div>

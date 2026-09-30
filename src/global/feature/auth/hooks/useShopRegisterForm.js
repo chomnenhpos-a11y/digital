@@ -6,7 +6,7 @@ import {
   accountSetupSchema,
   shopIdentitySchema,
 } from "../../../../validations/shopRegister.schema";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { useNavigate } from "react-router-dom";
 import { shopRegisterSchema } from "../../../../validations/shopRegister.schema";
 import { useTranslation } from "react-i18next";

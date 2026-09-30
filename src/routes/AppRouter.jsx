@@ -57,12 +57,14 @@ export const appRoutes = (
       <Route path="/admin" element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
           {/* Pages accessible by ALL roles (including 'user') */}
-          <Route index element={<Safe name="dashboard"><AdminDashboard /></Safe>} />
           <Route path="orders" element={<Safe name="orders"><AdminOrders /></Safe>} />
           <Route path="sale-form" element={<Safe name="sale-form"><AdminSaleForm /></Safe>} />
           <Route path="qr-code" element={<Safe name="qr-code"><AdminQRCode /></Safe>} />
 
           {/* admin / superadmin only pages */}
+          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.dashboard} fallback="/admin" />}>
+            <Route index element={<Safe name="dashboard"><AdminDashboard /></Safe>} />
+          </Route>
           <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.products} fallback="/admin" />}>
             <Route path="products" element={<Safe name="products"><AdminProducts /></Safe>} />
           </Route>

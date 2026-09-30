@@ -6,7 +6,11 @@ export function useUsersListQuery(params = {}) {
   return useQuery({
     queryKey: userKeys.list(params),
     queryFn: () => userService.getUsers(params),
-    select: (data) => data?.data || data || [],
+    select: (data) => {
+      const users = data?.data ?? data ?? [];
+      if (!Array.isArray(users)) throw new Error('Invalid users response');
+      return users;
+    },
   });
 }
 
@@ -28,6 +32,14 @@ export function useUpdateUserMutation() {
       queryClient.invalidateQueries({ queryKey: userKeys.all });
       queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
     },
+  });
+}
+
+export function useCreateUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: userService.registerUser,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
   });
 }
 

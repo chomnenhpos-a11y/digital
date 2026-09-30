@@ -8,7 +8,7 @@ import {
   Share2,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 
 import Badge from "../../../components/common/Badge";
 import ProductPrice from "./ProductPrice";

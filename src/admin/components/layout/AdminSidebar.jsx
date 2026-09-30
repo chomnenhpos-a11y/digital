@@ -19,7 +19,7 @@ import {
   BadgeCheck,
   Store,
 } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "../../../lib/alert";
 import { useSettingsQuery } from "../../../queries/settings/useSettingQueries";
 import { canAccessAdminRoute } from "../../../routes/adminRouteAccess";
 

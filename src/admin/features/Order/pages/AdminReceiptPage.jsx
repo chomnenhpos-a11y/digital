@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { useParams, Link, useLocation } from "react-router-dom";
 import {
   Printer,

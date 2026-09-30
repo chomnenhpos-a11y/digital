@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { resetPasswordSchema } from "@/validations/auth.schema";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import axiosClient from "@/api/axiosClient";
 import { useNavigate } from "react-router-dom";

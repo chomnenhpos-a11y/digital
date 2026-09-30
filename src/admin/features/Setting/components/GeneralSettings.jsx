@@ -3,7 +3,7 @@ import { FormProvider } from "react-hook-form";
 import { Store, Send, Link as LinkIcon, QrCode, Save, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useBlocker } from "react-router-dom";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { useGeneralSetting } from "../hooks/useGeneralSetting";
 import SettingsTabs from "./SettingsTabs";
 import ShopIdentitySection from "./ShopIdentitySection";

@@ -1,5 +1,6 @@
 {
   "common": {
+    "retry": "Retry",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -480,7 +481,8 @@
     "updateBtn": "Update Category",
     "saveBtn": "Save Category",
     "addSuccess": "Category added successfully",
-    "updateSuccess": "Category updated successfully"
+    "updateSuccess": "Category updated successfully",
+    "deleteInUseError": "Cannot delete category because products are currently using it"
   },
   "delivery": {
     "nameRequired": "Provider name is required.",
@@ -667,11 +669,15 @@
     "role": "Role",
     "adminRoleLabel": "Admin",
     "userRoleLabel": "User",
+    "status": "Status",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
     "joinedDate": "Joined Date",
     "editUser": "Edit User",
     "deleteUser": "Delete User",
     "deleteSuccess": "User deleted successfully.",
     "deleteError": "Could not delete the user. Please try again.",
+    "deleteNotAllowed": "Only inactive users with the User role can be deleted.",
     "addUserTitle": "Add New User",
     "pageTitle": "Users Management",
     "pageDescription": "Manage system users and their roles.",
@@ -714,6 +720,8 @@
     "editProduct": "Edit Product",
     "deleteProduct": "Delete Product",
     "deleteSuccess": "Product deleted successfully.",
+    "deleteRemainingStockError": "Cannot delete product with remaining stock",
+    "deleteSalesHistoryError": "Cannot delete product with sales history",
     "addProductTitle": "Add New Product",
     "pageTitle": "Products",
     "pageDescription": "Manage product catalog, pricing, and inventory.",

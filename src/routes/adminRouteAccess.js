@@ -1,5 +1,5 @@
 export const ADMIN_ROUTE_ACCESS = {
-  dashboard: ["admin", "superadmin", "user"],
+  dashboard: ["admin", "superadmin"],
   orders: ["admin", "superadmin", "user"],
   saleForm: ["admin", "superadmin", "user"],
   qrCode: ["admin", "superadmin", "user"],

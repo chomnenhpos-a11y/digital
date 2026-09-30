@@ -17,6 +17,11 @@ const ROLE_COLORS = {
   User: 'bg-[#870d4c]/10 text-[#9d1159]',
 }
 
+const STATUS_COLORS = {
+  '0': 'bg-green-100 text-green-600',
+  '1': 'bg-red-100 text-red-500',
+}
+
 export default function AdminUsers() {
   const { t } = useTranslation()
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
@@ -31,6 +36,10 @@ export default function AdminUsers() {
     paginatedUsers,
     totalPages,
     isLoading,
+    isError,
+    error,
+    refetch,
+    isSubmitting,
     isDeleting,
     setCurrentPage,
     handleFilterChange,
@@ -55,8 +64,20 @@ export default function AdminUsers() {
   ]
   const userFilters = [
     ...roleFilters,
+    { key: "status", options: [
+      { label: t("common.all"), value: "" },
+      { label: t("users.statusActive"), value: "0" },
+      { label: t("users.statusInactive"), value: "1" },
+    ] },
   ]
 
+
+  const sortFilters = [{ key: 'sort', options: [
+    { label: t('common.sortNewest'), value: 'newest' },
+    { label: t('common.sortOldest'), value: 'oldest' },
+    { label: t('common.sortAZ'), value: 'az' },
+    { label: t('common.sortZA'), value: 'za' },
+  ] }]
 
   const columns = [
     {
@@ -89,6 +110,26 @@ export default function AdminUsers() {
             }`}
         >
           {roleKhmer}
+        </span>
+        )
+      },
+    },
+    {
+      header: t('users.status'),
+      accessor: 'status',
+      render: (row) => {
+        const status = String(row.status ?? '');
+        const statusKhmer = status === '0'
+          ? t('users.statusActive')
+          : status === '1'
+            ? t('users.statusInactive')
+            : row.status ?? '—';
+        return (
+        <span
+          className={`inline-flex items-center whitespace-nowrap px-2 py-1 rounded text-xs font-medium ${STATUS_COLORS[status] || 'bg-gray-100 text-gray-600'
+            }`}
+        >
+          {statusKhmer}
         </span>
         )
       },
@@ -141,13 +182,13 @@ export default function AdminUsers() {
     <div className="space-y-6">
       <Modal
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={isSubmitting ? () => {} : closeModal}
         title={editingUser ? t('users.editUser') : t('users.addUserTitle')}
       >
         <UserForm
           initialData={editingUser}
           onSubmit={handleSubmit}
-          onClose={closeModal}
+          onClose={isSubmitting ? () => {} : closeModal}
         />
       </Modal>
 
@@ -167,7 +208,7 @@ export default function AdminUsers() {
               onChange={handleFilterChange}
             />
             <FilterBar
-              filters={[{ key: 'sort', options: [t('common.sortNewest'), t('common.sortOldest'), t('common.sortAZ'), t('common.sortZA')] }]}
+              filters={sortFilters}
               values={{ sort: sortOrder }}
               onChange={(key, value) => handleSortChange({ target: { value } })}
             />
@@ -214,12 +255,12 @@ export default function AdminUsers() {
             <div className="flex flex-nowrap overflow-x-auto justify-between items-center gap-4 p-4 bg-[#fcfafb] border border-slate-200 rounded-xl">
 
               <FilterBar
-                filters={roleFilters}
+                filters={userFilters}
                 values={filters}
                 onChange={handleFilterChange}
               />
               <FilterBar
-                filters={[{ key: 'sort', options: [t('common.sortNewest'), t('common.sortOldest'), t('common.sortAZ'), t('common.sortZA')] }]}
+                filters={sortFilters}
                 values={{ sort: sortOrder }}
                 onChange={(key, value) => handleSortChange({ target: { value } })}
               />
@@ -231,6 +272,13 @@ export default function AdminUsers() {
       <div className="overflow-x-auto bg-white border border-slate-200 rounded-2xl">
         {isLoading ? (
           <DataTableSkeleton columns={columns.length} rows={5} />
+        ) : isError ? (
+          <div role="alert" className="p-6 text-red-600">
+            <p>{error?.response?.data?.message || error?.message || t('common.failed')}</p>
+            <Button variant="outline" onClick={() => refetch()} className="mt-3">
+              {t('common.retry')}
+            </Button>
+          </div>
         ) : (
           <>
             <DataTable columns={columns} data={paginatedUsers} />

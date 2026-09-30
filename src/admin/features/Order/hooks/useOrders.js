@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Swal from 'sweetalert2'
+import Swal from '../../../../lib/alert'
 import { useTranslation } from 'react-i18next'
 import { useOrdersQuery, useUpdateOrderMutation } from '../../../../queries/orders/useOrderQueries'
 

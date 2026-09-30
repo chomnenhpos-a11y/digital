@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import Swal from "sweetalert2";
+import Swal from "../lib/alert";
 
 export default function useProductShare() {
   const [isSharing, setIsSharing] = useState(false);

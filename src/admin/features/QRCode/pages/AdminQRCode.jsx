@@ -3,7 +3,7 @@ import { ReactQRCode as QRCode } from "@lglab/react-qr-code";
 import { useAuth } from "../../../../hooks/useAuth";
 import { useSettingsQuery } from "../../../../queries/settings/useSettingQueries";
 import { Copy, Download, Link as LinkIcon, QrCode as QrCodeIcon, RotateCcw } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { useTranslation } from "react-i18next";
 
 const DEFAULT_DESIGN = {

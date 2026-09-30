@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPasswordSchema } from "@/validations/auth.schema";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { useTranslation } from "react-i18next";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import axiosClient from "@/api/axiosClient";

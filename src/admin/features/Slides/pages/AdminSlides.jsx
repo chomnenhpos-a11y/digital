@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Edit, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import Swal from "sweetalert2"; // 1. Don't forget to import SweetAlert2!
+import Swal from "../../../../lib/alert"; // 1. Don't forget to import SweetAlert2!
 import { useSlides } from "../hooks/useSlides";
 import SlideForm from "../components/SlideForm";
 import PageHeader from "../../../components/common/PageHeader";

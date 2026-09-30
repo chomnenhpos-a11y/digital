@@ -22,7 +22,6 @@ export const userService = {
     try {
       const response = await axiosClient.get(API_ENDPOINTS.USERS.DETAIL(id));
       return response.data;
-      console.log('User API Response [getUser]:', response.data);
     } catch (error) {
       console.error('User API Error [getUser]:', {
         status: error.response?.status,

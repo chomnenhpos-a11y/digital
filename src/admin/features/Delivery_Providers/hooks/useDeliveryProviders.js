@@ -5,7 +5,7 @@ import {
   useUpdateDeliveryProviderMutation,
   useDeleteDeliveryProviderMutation
 } from '../../../../queries/deliveryProviders/useDeliveryProviderQueries'
-import Swal from 'sweetalert2'
+import Swal from '../../../../lib/alert'
 import { useTranslation } from 'react-i18next'
 
 const ITEMS_PER_PAGE = 5

@@ -13,7 +13,7 @@ import {
 import axiosClient from "@/api/axiosClient";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { useAuth } from "@/hooks/useAuth";
-import Swal from "sweetalert2";
+import Swal from "../../../lib/alert";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "@/validations/auth.schema";

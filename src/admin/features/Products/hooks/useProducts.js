@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useProductsQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation } from '../../../../queries/products/useProductQueries'
-import Swal from 'sweetalert2'
+import Swal from '../../../../lib/alert'
 import { useTranslation } from 'react-i18next'
 
 const ITEMS_PER_PAGE = 5
@@ -148,10 +148,22 @@ export function useProducts({ shopCode } = {}) {
               icon: 'success'
             })
           },
-          onError: () => {
+          onError: (error) => {
+            const errorData = error?.response?.data
+            const backendMsg = [errorData?.error, errorData?.message]
+              .find((message) => typeof message === 'string' && message.trim())
+              ?.trim()
+            let errorMessage = backendMsg || t('common.deleteError')
+
+            if (backendMsg === 'Cannot delete product with remaining stock') {
+              errorMessage = t('products.deleteRemainingStockError')
+            } else if (backendMsg === 'Cannot delete product with sales history') {
+              errorMessage = t('products.deleteSalesHistoryError')
+            }
+
             Swal.fire({
               title: t('common.failed'),
-              text: t('common.deleteError'),
+              text: errorMessage,
               icon: 'error'
             })
           }

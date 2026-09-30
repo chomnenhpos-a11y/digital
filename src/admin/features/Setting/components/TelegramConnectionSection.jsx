@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Send, Users, Radio, X } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "../../../../lib/alert";
 import { telegramService } from "../../../../services/telegramService";
 
 const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME;

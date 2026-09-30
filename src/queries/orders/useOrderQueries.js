@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../../services/orderService';
 import { orderKeys } from './orderKeys';
-import Swal from 'sweetalert2';
+import Swal from '../../lib/alert';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
