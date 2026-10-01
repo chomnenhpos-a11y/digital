@@ -77,27 +77,70 @@
                     const logoPath = resData.data.logo;
                     const logoUrl = logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
 
-                    let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
-                    if (!appleIcon) {
-                      appleIcon = document.createElement('link');
-                      appleIcon.rel = 'apple-touch-icon';
-                      head.appendChild(appleIcon);
-                    }
-                    appleIcon.href = logoUrl; 
+                    // Helper function to draw rounded icon using Canvas
+                    const setRoundedIcon = (src) => {
+                      const img = new Image();
+                      img.crossOrigin = 'Anonymous';
+                      img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const size = 512; // High resolution
+                        canvas.width = size;
+                        canvas.height = size;
+                        const ctx = canvas.getContext('2d');
 
-                    // Dynamically update the default favicon by replacing the node
-                    const oldFavicon = document.querySelector('link[rel="icon"]');
-                    if (oldFavicon) {
-                      const newFavicon = oldFavicon.cloneNode();
-                      newFavicon.href = logoUrl;
-                      oldFavicon.parentNode.replaceChild(newFavicon, oldFavicon);
-                    } else {
-                      const favicon = document.createElement('link');
-                      favicon.rel = 'icon';
-                      favicon.type = 'image/png';
-                      favicon.href = logoUrl;
-                      head.appendChild(favicon);
-                    }
+                        const radius = size * 0.22; // Rounded corners
+                        ctx.beginPath();
+                        ctx.moveTo(radius, 0);
+                        ctx.lineTo(size - radius, 0);
+                        ctx.quadraticCurveTo(size, 0, size, radius);
+                        ctx.lineTo(size, size - radius);
+                        ctx.quadraticCurveTo(size, size, size - radius, size);
+                        ctx.lineTo(radius, size);
+                        ctx.quadraticCurveTo(0, size, 0, size - radius);
+                        ctx.lineTo(0, radius);
+                        ctx.quadraticCurveTo(0, 0, radius, 0);
+                        ctx.closePath();
+                        
+                        ctx.save();
+                        ctx.clip();
+
+                        // Draw image centered and covering the area
+                        const scale = Math.max(size / img.width, size / img.height);
+                        const x = (size / 2) - (img.width / 2) * scale;
+                        const y = (size / 2) - (img.height / 2) * scale;
+                        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                        ctx.restore();
+
+                        applyIcon(canvas.toDataURL('image/png'));
+                      };
+                      img.onerror = () => applyIcon(src); // Fallback to original if CORS fails
+                      img.src = src;
+                    };
+
+                    const applyIcon = (url) => {
+                      let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+                      if (!appleIcon) {
+                        appleIcon = document.createElement('link');
+                        appleIcon.rel = 'apple-touch-icon';
+                        head.appendChild(appleIcon);
+                      }
+                      appleIcon.href = url; 
+
+                      const oldFavicon = document.querySelector('link[rel="icon"]');
+                      if (oldFavicon) {
+                        const newFavicon = oldFavicon.cloneNode();
+                        newFavicon.href = url;
+                        oldFavicon.parentNode.replaceChild(newFavicon, oldFavicon);
+                      } else {
+                        const favicon = document.createElement('link');
+                        favicon.rel = 'icon';
+                        favicon.type = 'image/png';
+                        favicon.href = url;
+                        head.appendChild(favicon);
+                      }
+                    };
+
+                    setRoundedIcon(logoUrl);
                   }
                 }
               })
