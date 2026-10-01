@@ -21,25 +21,44 @@
     <script>
       (function() {
         const pathSegments = window.location.pathname.split('/').filter(Boolean);
-        const shopCode = pathSegments[0];
+        const urlShopCode = pathSegments[0];
         const head = document.head;
 
-        if (shopCode && shopCode !== 'admin') {
+        let activeShopCode = null;
 
+        if (urlShopCode && urlShopCode !== 'admin') {
+          activeShopCode = urlShopCode;
+        } else if (urlShopCode === 'admin') {
+          try {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+              const user = JSON.parse(userStr);
+              activeShopCode = user?.shop?.code || user?.shop?.shop_code || user?.shop_code || user?.shopCode || null;
+            }
+          } catch (e) {}
+        }
+
+        if (activeShopCode) {
           const manifestLink = document.createElement('link');
           manifestLink.rel = 'manifest';
-          manifestLink.href = `/api/manifest?shop_code=${shopCode}`;
+          manifestLink.href = `/api/manifest?shop_code=${activeShopCode}`;
           head.appendChild(manifestLink);
 
           const appleIcon = document.createElement('link');
           appleIcon.rel = 'apple-touch-icon';
-          appleIcon.href = `/images/shops/${shopCode}/logo.png`; 
+          appleIcon.href = `/images/shops/${activeShopCode}/logo.png`; 
           head.appendChild(appleIcon);
 
           const appleTitle = document.createElement('meta');
           appleTitle.name = 'apple-mobile-web-app-title';
-          appleTitle.content = shopCode;
+          appleTitle.content = activeShopCode;
           head.appendChild(appleTitle);
+
+          // Dynamically update the default favicon
+          const favicon = document.querySelector('link[rel="icon"]');
+          if (favicon) {
+            favicon.href = `/images/shops/${activeShopCode}/logo.png`;
+          }
 
         } else {
           const fallbackManifest = document.createElement('link');
