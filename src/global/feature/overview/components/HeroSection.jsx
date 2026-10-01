@@ -48,10 +48,7 @@ const HeroSection = ({ t }) => {
               <div className="lg:col-span-6 text-center">
                 <div className="system-preview-card p-2 bg-white transition-all duration-300 hover:shadow-2xl">
                   <img
-                    src={adminImg}
-                    onError={(e) => {
-                      e.target.src = 'https://digital.muchtrading.com/admin.png';
-                    }}
+                    src="/images/BoardHome.png"
                     alt="System UI"
                     className="w-full h-auto rounded-xl object-cover"
                   />

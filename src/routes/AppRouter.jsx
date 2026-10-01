@@ -37,58 +37,58 @@ function Safe({ name, children }) {
 
 export const appRoutes = (
   <>
-      {/* Global Entry Point */}
-      <Route path="/" element={<GlobalPage />} />
-      <Route path="/login" element={<GlobalLogin />} />
-      <Route path="/signin" element={<Navigate to="/login" replace />} />
-      <Route path="/register" element={<GlobalRegister />} />
-      <Route path="/forgot-password" element={<GlobalForgotPassword />} />
-      <Route path="/reset-password" element={<GlobalResetPassword />} />
-      <Route path="/signup" element={<Navigate to="/register" replace />} />
+    {/* Global Entry Point */}
+    <Route path="/" element={<GlobalPage />} />
+    <Route path="/login" element={<GlobalLogin />} />
+    <Route path="/signin" element={<Navigate to="/login" replace />} />
+    <Route path="/register" element={<GlobalRegister />} />
+    <Route path="/forgot-password" element={<GlobalForgotPassword />} />
+    <Route path="/reset-password" element={<GlobalResetPassword />} />
+    <Route path="/signup" element={<Navigate to="/register" replace />} />
 
-      {/* Existing Digital E-Commerce (Moved to /:shop_code) */}
-      <Route path="/:shop_code" element={<Home />} />
-      <Route path="/:shop_code/products/:id" element={<ProductDetail />} />
-      <Route path="/print-receipt/:orderId" element={<Receipt />} />
-      <Route path="/admin/print-receipt/:No" element={<AdminReceiptPage />} />
-      <Route path="/admin/print-sticker/:id" element={<AdminStickerPage />} />
-      <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
+    {/* Existing Digital E-Commerce (Moved to /:shop_code) */}
+    <Route path="/:shop_code" element={<Home />} />
+    <Route path="/:shop_code/products/:id" element={<ProductDetail />} />
+    <Route path="/print-receipt/:orderId" element={<Receipt />} />
+    <Route path="/admin/print-receipt/:No" element={<AdminReceiptPage />} />
+    <Route path="/admin/print-sticker/:id" element={<AdminStickerPage />} />
+    <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
 
-      <Route path="/admin" element={<ProtectedRoute />}>
-        <Route element={<AdminLayout />}>
-          {/* Pages accessible by ALL roles (including 'user') */}
-          <Route path="orders" element={<Safe name="orders"><AdminOrders /></Safe>} />
-          <Route path="sale-form" element={<Safe name="sale-form"><AdminSaleForm /></Safe>} />
-          <Route path="qr-code" element={<Safe name="qr-code"><AdminQRCode /></Safe>} />
+    <Route path="/admin" element={<ProtectedRoute />}>
+      <Route element={<AdminLayout />}>
+        {/* Pages accessible by ALL roles (including 'user') */}
+        <Route path="orders" element={<Safe name="orders"><AdminOrders /></Safe>} />
+        <Route path="sale-form" element={<Safe name="sale-form"><AdminSaleForm /></Safe>} />
+        <Route path="qr-code" element={<Safe name="qr-code"><AdminQRCode /></Safe>} />
 
-          {/* admin / superadmin only pages */}
-          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.dashboard} fallback="/admin" />}>
-            <Route index element={<Safe name="dashboard"><AdminDashboard /></Safe>} />
-          </Route>
-          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.products} fallback="/admin" />}>
-            <Route path="products" element={<Safe name="products"><AdminProducts /></Safe>} />
-          </Route>
-          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.users} fallback="/admin" />}>
-            <Route path="users" element={<Safe name="users"><AdminUsers /></Safe>} />
-          </Route>
-          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.categories} fallback="/admin" />}>
-            <Route path="categories" element={<Safe name="categories"><AdminCategories /></Safe>} />
-          </Route>
-          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.promotions} fallback="/admin" />}>
-            <Route path="promotions" element={<Safe name="promotions"><AdminSlides /></Safe>} />
-          </Route>
-          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.deliveryProviders} fallback="/admin" />}>
-            <Route path="delivery-providers" element={<Safe name="delivery-providers"><AdminDeliveryProviders /></Safe>} />
-          </Route>
-          <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.settings} fallback="/admin" />}>
-            <Route path="settings" element={<Safe name="settings"><AdminSettings /></Safe>} />
-          </Route>
+        {/* admin / superadmin only pages */}
+        <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.dashboard} fallback="/admin" />}>
+          <Route index element={<Safe name="dashboard"><AdminDashboard /></Safe>} />
         </Route>
-        {/* Admin 404 — full screen (no sidebar), still auth-protected */}
-        <Route path="*" element={<NotFoundPage />} />
+        <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.products} fallback="/admin" />}>
+          <Route path="products" element={<Safe name="products"><AdminProducts /></Safe>} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.users} fallback="/admin" />}>
+          <Route path="users" element={<Safe name="users"><AdminUsers /></Safe>} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.categories} fallback="/admin" />}>
+          <Route path="categories" element={<Safe name="categories"><AdminCategories /></Safe>} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.promotions} fallback="/admin" />}>
+          <Route path="promotions" element={<Safe name="promotions"><AdminSlides /></Safe>} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.deliveryProviders} fallback="/admin" />}>
+          <Route path="delivery-providers" element={<Safe name="delivery-providers"><AdminDeliveryProviders /></Safe>} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.settings} fallback="/admin" />}>
+          <Route path="settings" element={<Safe name="settings"><AdminSettings /></Safe>} />
+        </Route>
       </Route>
-
-      {/* Global 404 — full screen */}
+      {/* Admin 404 — full screen (no sidebar), still auth-protected */}
       <Route path="*" element={<NotFoundPage />} />
+    </Route>
+
+    {/* Global 404 — full screen */}
+    <Route path="*" element={<NotFoundPage />} />
   </>
 );

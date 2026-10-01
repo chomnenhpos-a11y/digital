@@ -191,18 +191,16 @@ export default function CartDrawer() {
   return (
     <>
       <div
-        className={`fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 ${
-          isCartOpen
+        className={`fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 ${isCartOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
-        }`}
+          }`}
         onClick={() => setIsCartOpen(false)}
       />
 
       <div
-        className={`fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[420px] md:w-[480px] bg-white flex flex-col shadow-2xl md:rounded-l-3xl overflow-hidden transition-transform duration-300 ease-in-out ${
-          isCartOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[420px] md:w-[480px] bg-white flex flex-col shadow-2xl md:rounded-l-3xl overflow-hidden transition-transform duration-300 ease-in-out ${isCartOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <CartHeader />
 
@@ -248,11 +246,10 @@ export default function CartDrawer() {
             type="button"
             onClick={handleOrder}
             disabled={!hasItems || createOrderMutation.isPending}
-            className={`w-full py-2 rounded-full font-semibold transition ${
-              hasItems && !createOrderMutation.isPending
+            className={`w-full py-2 rounded-full font-semibold transition ${hasItems && !createOrderMutation.isPending
                 ? "bg-red-900 text-white hover:bg-red-800"
                 : "bg-slate-300 text-slate-500 cursor-not-allowed"
-            }`}
+              }`}
           >
             {createOrderMutation.isPending
               ? t('cart.processing')
@@ -263,3 +260,4 @@ export default function CartDrawer() {
     </>
   );
 }
+

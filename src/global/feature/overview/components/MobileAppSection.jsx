@@ -22,10 +22,7 @@ const MobileAppSection = ({ t }) => {
           <div className="lg:col-span-6 flex justify-center">
             <div className="relative group">
               <img
-                src={appMockupImg}
-                onError={(e) => {
-                  e.target.src = 'https://digital.muchtrading.com/app.png';
-                }}
+                src="/images/BoardHome1.png"
                 alt="Chomnenh Digital Menu App Mockup"
                 className="w-full max-w-[280px] sm:max-w-[320px] rounded-3xl shadow-xl transition-all duration-300 group-hover:scale-105"
               />

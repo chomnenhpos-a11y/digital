@@ -7,7 +7,7 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
 
   // Only hide logo while sources are still loading
   const logoLoading = settingsLoading;
-  const shopName = settings?.shop_name || settings?.shopName ;
+  const shopName = settings?.shop_name || settings?.shopName;
   const rawLogo = settings?.logo;
   const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
   const logoUrl = rawLogo

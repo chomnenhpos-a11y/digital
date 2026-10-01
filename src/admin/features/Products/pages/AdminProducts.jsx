@@ -140,6 +140,22 @@ export default function AdminProducts() {
       },
     },
     {
+      header: t('products.salesStatus'),
+      render: (row) => {
+        const isActive = String(row.status) === "0";
+        console.log("row.status", row.status, isActive);
+        return (
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+              isActive ? "bg-blue-100 text-blue-700" : "bg-red-200 text-red-700"
+            }`}
+          >
+            {isActive ? t('products.activeStatus') : t('products.inactiveStatus')}
+          </span>
+        );
+      },
+    },
+    {
       header: t('products.createdAt'),
       render: (row) => (
         <span className="text-sm text-slate-600">

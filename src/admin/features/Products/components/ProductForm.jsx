@@ -40,6 +40,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
       categoryId: "",
       stockQuantity: "",
       price: "",
+      status:"0",
       discountPrice: "",
       salePrice: "",
       description: "",
@@ -60,6 +61,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
         categoryId: "",
         stockQuantity: "",
         price: "",
+        status:"0",
         discountPrice: "",
         salePrice: "",
         description: "",
@@ -82,6 +84,8 @@ export default function ProductsForm({ onSubmit, initialData }) {
         initialData.stockQuantity ?? initialData.stock_quantity ?? 0,
 
       price: initialData.price ?? "",
+
+      status: String(initialData.status ?? "0"),
 
       discountPrice:
         initialData.discountPrice ?? initialData.discount_price ?? 0,
@@ -234,6 +238,8 @@ export default function ProductsForm({ onSubmit, initialData }) {
 
       payload.append("price", String(data.price || 0));
 
+      payload.append("status", String(data.status || "0"));
+
       payload.append("discount_price", String(data.discountPrice || 0));
 
       payload.append("salePrice", String(data.salePrice || 0));
@@ -338,6 +344,21 @@ export default function ProductsForm({ onSubmit, initialData }) {
           {errors.price && (
             <p className="text-xs text-red-500 mt-1">{t(errors.price.message)}</p>
           )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">
+            {t('products.status')}
+          </label>
+          <select
+            {...register("status")}
+            className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
+          >
+            <option value="0">{t('products.activeStatus')}</option>
+            <option value="1">{t('products.inactiveStatus')}</option>
+          </select>
         </div>
       </div>
 

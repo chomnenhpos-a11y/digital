@@ -14,6 +14,8 @@ export const productSchema = z.object({
       message: "validation.product.categoryRequired",
     }),
 
+  status: z.union([z.string(), z.number()]).optional(),
+
   stockQuantity: z.coerce
     .number()
     .int({

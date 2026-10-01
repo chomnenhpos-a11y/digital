@@ -41,6 +41,7 @@ const mapProduct = (item, categories = []) => {
     categoryId: item.categoryId || item.category_id,
     categoryName: item.categoryName || matchedCategory?.name || '',
     createdAt: item.createdAt,
+    status: item.status,
   };
 };
 
