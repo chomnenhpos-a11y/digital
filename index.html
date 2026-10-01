@@ -58,8 +58,12 @@
             }
             appleTitle.content = activeShopCode;
 
+            // The base URL must be used directly since Vercel doesn't proxy /api to Laravel in production
+            const baseUrl = '%VITE_API_URL%'.replace(/\/$/, '');
+            const apiUrl = `${baseUrl}/api/settings?shop_code=${activeShopCode}`;
+
             // Fetch settings to get the correct logo URL and Shop Name
-            fetch(`/api/settings?shop_code=${activeShopCode}`)
+            fetch(apiUrl)
               .then(res => res.json())
               .then(resData => {
                 if (resData && resData.data) {
@@ -71,7 +75,6 @@
                   // 2. Dynamically update the Logos
                   if (resData.data.logo) {
                     const logoPath = resData.data.logo;
-                    const baseUrl = '%VITE_API_URL%'.replace(/\/$/, '');
                     const logoUrl = logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
 
                     let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
