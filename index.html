@@ -20,52 +20,99 @@
     <!-- Script សម្រាប់ Dynamic PWA Manifest & iOS Logo -->
     <script>
       (function() {
-        const pathSegments = window.location.pathname.split('/').filter(Boolean);
-        const urlShopCode = pathSegments[0];
-        const head = document.head;
+        window.updateShopBranding = function() {
+          const pathSegments = window.location.pathname.split('/').filter(Boolean);
+          const urlShopCode = pathSegments[0];
+          const head = document.head;
 
-        let activeShopCode = null;
+          let activeShopCode = null;
 
-        if (urlShopCode && urlShopCode !== 'admin') {
-          activeShopCode = urlShopCode;
-        } else if (urlShopCode === 'admin') {
-          try {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-              const user = JSON.parse(userStr);
-              activeShopCode = user?.shop?.code || user?.shop?.shop_code || user?.shop_code || user?.shopCode || null;
-            }
-          } catch (e) {}
-        }
-
-        if (activeShopCode) {
-          const manifestLink = document.createElement('link');
-          manifestLink.rel = 'manifest';
-          manifestLink.href = `/api/manifest?shop_code=${activeShopCode}`;
-          head.appendChild(manifestLink);
-
-          const appleIcon = document.createElement('link');
-          appleIcon.rel = 'apple-touch-icon';
-          appleIcon.href = `/images/shops/${activeShopCode}/logo.png`; 
-          head.appendChild(appleIcon);
-
-          const appleTitle = document.createElement('meta');
-          appleTitle.name = 'apple-mobile-web-app-title';
-          appleTitle.content = activeShopCode;
-          head.appendChild(appleTitle);
-
-          // Dynamically update the default favicon
-          const favicon = document.querySelector('link[rel="icon"]');
-          if (favicon) {
-            favicon.href = `/images/shops/${activeShopCode}/logo.png`;
+          if (urlShopCode && urlShopCode !== 'admin') {
+            activeShopCode = urlShopCode;
+          } else if (urlShopCode === 'admin') {
+            try {
+              const userStr = localStorage.getItem('user');
+              if (userStr) {
+                const user = JSON.parse(userStr);
+                activeShopCode = user?.shop?.code || user?.shop?.shop_code || user?.shop_code || user?.shopCode || null;
+              }
+            } catch (e) {}
           }
 
-        } else {
-          const fallbackManifest = document.createElement('link');
-          fallbackManifest.rel = 'manifest';
-          fallbackManifest.href = '/manifest.json';
-          head.appendChild(fallbackManifest);
-        }
+          if (activeShopCode) {
+            const manifestUrl = `/api/manifest?shop_code=${activeShopCode}`;
+
+            let manifestLink = document.querySelector('link[rel="manifest"]');
+            if (!manifestLink) {
+              manifestLink = document.createElement('link');
+              manifestLink.rel = 'manifest';
+              head.appendChild(manifestLink);
+            }
+            manifestLink.href = manifestUrl;
+
+            let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+            if (!appleTitle) {
+              appleTitle = document.createElement('meta');
+              appleTitle.name = 'apple-mobile-web-app-title';
+              head.appendChild(appleTitle);
+            }
+            appleTitle.content = activeShopCode;
+
+            // Fetch settings to get the correct logo URL and Shop Name
+            fetch(`/api/settings?shop_code=${activeShopCode}`)
+              .then(res => res.json())
+              .then(resData => {
+                if (resData && resData.data) {
+                  // 1. Dynamically update the website title
+                  const shopName = resData.data.shop_name || activeShopCode;
+                  document.title = `${shopName}`;
+                  appleTitle.content = shopName;
+
+                  // 2. Dynamically update the Logos
+                  if (resData.data.logo) {
+                    const logoPath = resData.data.logo;
+                    const baseUrl = '%VITE_API_URL%'.replace(/\/$/, '');
+                    const logoUrl = logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
+
+                    let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+                    if (!appleIcon) {
+                      appleIcon = document.createElement('link');
+                      appleIcon.rel = 'apple-touch-icon';
+                      head.appendChild(appleIcon);
+                    }
+                    appleIcon.href = logoUrl; 
+
+                    // Dynamically update the default favicon by replacing the node
+                    const oldFavicon = document.querySelector('link[rel="icon"]');
+                    if (oldFavicon) {
+                      const newFavicon = oldFavicon.cloneNode();
+                      newFavicon.href = logoUrl;
+                      oldFavicon.parentNode.replaceChild(newFavicon, oldFavicon);
+                    } else {
+                      const favicon = document.createElement('link');
+                      favicon.rel = 'icon';
+                      favicon.type = 'image/png';
+                      favicon.href = logoUrl;
+                      head.appendChild(favicon);
+                    }
+                  }
+                }
+              })
+              .catch(e => console.error("Error fetching shop settings:", e));
+
+          } else {
+            let fallbackManifest = document.querySelector('link[rel="manifest"]');
+            if (!fallbackManifest) {
+              fallbackManifest = document.createElement('link');
+              fallbackManifest.rel = 'manifest';
+              head.appendChild(fallbackManifest);
+            }
+            fallbackManifest.href = '/manifest.json';
+          }
+        };
+
+        // Run on initial page load
+        window.updateShopBranding();
       })();
     </script>
   </head>

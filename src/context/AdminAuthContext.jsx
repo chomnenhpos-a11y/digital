@@ -43,6 +43,10 @@ export const AdminAuthProvider = ({ children }) => {
     setUser(userData);
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(userData));
+
+    if (typeof window !== 'undefined' && window.updateShopBranding) {
+      window.updateShopBranding();
+    }
   };
 
   return (
