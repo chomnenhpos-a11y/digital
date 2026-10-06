@@ -253,15 +253,15 @@ export default function ProductSection({ allProductsRef }) {
 
         return Number(product.categoryId) === Number(activeTab);
       })
-      .filter((product) =>
-        (product.name || "")
-          .toLowerCase()
-          .includes(
-            searchItem
-              .trim()
-              .toLowerCase()
-          )
-      )
+      .filter((product) => {
+        const query = searchItem.trim().toLowerCase();
+        if (!query) return true;
+        return (
+          (product.name || "").toLowerCase().includes(query) ||
+          (product.sku || "").toLowerCase().includes(query) ||
+          (product.categoryName || "").toLowerCase().includes(query)
+        );
+      })
       .filter((product) =>
         matchPriceRange(
           product.salePrice ??

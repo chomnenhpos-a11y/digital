@@ -854,7 +854,11 @@
     "allProducts": "All Products",
     "loadMore": "Load More Products",
     "showingAll": "Showing all products",
-    "noProducts": "No products found"
+    "noProducts": "No products found",
+    "searchSuggestions": "Product Suggestions",
+    "viewAllResults": "View all {{count}} results",
+    "noProductsFound": "No matching products found",
+    "clearSearch": "Clear search"
   },
   "product": {
     "notFoundTitle": "Product not found",

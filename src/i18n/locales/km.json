@@ -855,7 +855,11 @@
     "allProducts": "ទំនិញពេញទាំងអស់",
     "loadMore": "មើលទំនិញបន្ថែម",
     "showingAll": "បានបង្ហាញទំនិញទាំងអស់",
-    "noProducts": "រកមិនឃើញទំនិញទេ"
+    "noProducts": "រកមិនឃើញទំនិញទេ",
+    "searchSuggestions": "ការផ្ដល់អនុសាសន៍ទំនិញ",
+    "viewAllResults": "មើលលទ្ធផលទាំង {{count}}",
+    "noProductsFound": "រកមិនឃើញទំនិញដែលត្រូវគ្នាទេ",
+    "clearSearch": "សម្អាតការស្វែងរក"
   },
   "product": {
     "notFoundTitle": "រកមិនឃើញផលិតផលនេះទេ",

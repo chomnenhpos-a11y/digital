@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
+import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Bar,
@@ -11,7 +11,7 @@ import {
   PieChart,
   Cell,
   Legend,
-} from 'recharts'
+} from "recharts";
 
 import {
   Card,
@@ -19,103 +19,128 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/admin/components/ui/card'
+} from "@/admin/components/ui/card";
 
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from '@/admin/components/ui/chart'
+} from "@/admin/components/ui/chart";
 
-import { useOrdersQuery } from '../../../../queries/orders/useOrderQueries'
-import { useProductsQuery } from '../../../../queries/products/useProductQueries'
+import { useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
+import { useProductsQuery } from "../../../../queries/products/useProductQueries";
+
+const EMPTY_DATA = [];
+const COLORS = [
+  "#870d4c",
+  "#b31b6b",
+  "#5d0a35",
+  "#c92a7e",
+  "#44092e",
+  "#db4d98",
+];
+
+const moneyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 
 export default function DashboardCharts() {
-  const { t } = useTranslation()
-  const { data: orders = [] } = useOrdersQuery()
-  const { data: products = [] } = useProductsQuery()
+  const { t } = useTranslation();
+  const { data: orders = EMPTY_DATA } = useOrdersQuery();
+  const { data: products = EMPTY_DATA } = useProductsQuery();
 
   const barChartData = useMemo(() => {
-    const monthlySales = orders
-      .filter((order) => order.paymentStatus === 'Paid')
-      .reduce((acc, order) => {
-        const date = new Date(order.createdAt)
+    const now = new Date();
 
-        if (isNaN(date.getTime())) return acc
+    // Current month and the previous five months, oldest first.
+    const monthlySales = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(
+        now.getFullYear(),
+        now.getMonth() - 5 + index,
+        1,
+      );
 
-        const month = date.toLocaleString('default', {
-          month: 'short',
-        })
+      return {
+        month: date.toLocaleString("default", {
+          month: "short",
+          year: "numeric",
+        }),
+        total: 0,
+        salesCount: 0,
+      };
+    });
 
-        const year = date.getFullYear()
-        const key = `${month} ${year}`
+    for (const order of orders) {
+      if (order.paymentStatus !== "Paid") continue;
 
-        if (!acc[key]) {
-          acc[key] = {
-            month: key,
-            total: 0,
-          }
-        }
+      const date = new Date(order.createdAt);
+      if (Number.isNaN(date.getTime())) continue;
 
-        acc[key].total += Number(order.totalAmount || 0)
+      const monthsAgo =
+        (now.getFullYear() - date.getFullYear()) * 12 +
+        now.getMonth() -
+        date.getMonth();
 
-        return acc
-      }, {})
+      if (monthsAgo < 0 || monthsAgo > 5) continue;
 
-    return Object.values(monthlySales)
-  }, [orders])
+      const amount = Number(order.totalAmount ?? 0);
+      if (!Number.isFinite(amount)) continue;
+
+      const monthData = monthlySales[5 - monthsAgo];
+      monthData.total += amount;
+      monthData.salesCount += 1;
+    }
+
+    return monthlySales;
+  }, [orders]);
 
   const barChartConfig = {
     total: {
-      label: t('dashboard.totalSales'),
-      color: '#870d4c',
+      label: t("dashboard.totalMoney", {
+        defaultValue: "Total money",
+      }),
+      color: "#870d4c",
     },
-  }
+  };
 
   const pieChartData = useMemo(() => {
-    const stockByCategory = products.reduce((acc, product) => {
-      const category = product.categoryName || 'Other'
+    const stockByCategory = new Map();
 
-      if (!acc[category]) {
-        acc[category] = {
+    for (const product of products) {
+      const category = product.categoryName || "Other";
+      const quantity = Number(product.stockQuantity ?? 0);
+      if (!Number.isFinite(quantity)) continue;
+
+      if (!stockByCategory.has(category)) {
+        stockByCategory.set(category, {
           name: category,
           value: 0,
-        }
+        });
       }
 
-      acc[category].value += Number(product.stockQuantity || 0)
+      stockByCategory.get(category).value += quantity;
+    }
 
-      return acc
-    }, {})
-
-    const COLORS = [
-      '#870d4c',
-      '#b31b6b',
-      '#5d0a35',
-      '#c92a7e',
-      '#44092e',
-      '#db4d98',
-    ]
-
-    return Object.values(stockByCategory).map((item, index) => ({
+    return Array.from(stockByCategory.values()).map((item, index) => ({
       ...item,
       fill: COLORS[index % COLORS.length],
-    }))
-  }, [products])
+    }));
+  }, [products]);
 
   const pieChartConfig = {
     value: {
-      label: t('dashboard.stock'),
+      label: t("dashboard.stock"),
     },
-  }
+  };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>{t('dashboard.monthlySalesTitle')}</CardTitle>
+          <CardTitle>{t("dashboard.monthlySalesTitle")}</CardTitle>
           <CardDescription>
-            {t('dashboard.monthlySalesSubtitle')}
+            {t("dashboard.monthlySalesSubtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -131,9 +156,7 @@ export default function DashboardCharts() {
                 dataKey="month"
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) =>
-                  value.split(' ')[0]
-                }
+                tickFormatter={(value) => String(value).split(" ")[0]}
               />
 
               <YAxis
@@ -143,7 +166,40 @@ export default function DashboardCharts() {
               />
 
               <ChartTooltip
-                content={<ChartTooltipContent />}
+                content={
+                  <ChartTooltipContent
+                    className="min-w-[220px]"
+                    formatter={(_value, _name, item) => {
+                      const monthData = item.payload;
+
+                      return (
+                        <div className="grid w-full gap-2">
+                          <div className="flex items-center justify-between gap-6">
+                            <span className="text-muted-foreground">
+                              {t("dashboard.totalPaidOrders", {
+                                defaultValue: "Total sales (orders)",
+                              })}
+                            </span>
+                            <span className="font-mono font-medium tabular-nums">
+                              {monthData.salesCount.toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-6">
+                            <span className="text-muted-foreground">
+                              {t("dashboard.totalMoney", {
+                                defaultValue: "Total money",
+                              })}
+                            </span>
+                            <span className="font-mono font-medium tabular-nums">
+                              {moneyFormatter.format(monthData.total)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                }
               />
 
               <Bar
@@ -158,23 +214,19 @@ export default function DashboardCharts() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('dashboard.stockByCategoryTitle')}</CardTitle>
+          <CardTitle>{t("dashboard.stockByCategoryTitle")}</CardTitle>
           <CardDescription>
-            {t('dashboard.stockByCategorySubtitle')}
+            {t("dashboard.stockByCategorySubtitle")}
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="flex justify-center items-center">
+        <CardContent className="flex items-center justify-center">
           <ChartContainer
             config={pieChartConfig}
             className="h-[300px] w-full"
           >
             <PieChart>
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent hideLabel />
-                }
-              />
+              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
 
               <Pie
                 data={pieChartData}
@@ -183,14 +235,11 @@ export default function DashboardCharts() {
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
-                outerRadius={80}
+                outerRadius={100}
                 label
               >
-                {pieChartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.fill}
-                  />
+                {pieChartData.map((entry) => (
+                  <Cell key={entry.name} fill={entry.fill} />
                 ))}
               </Pie>
 
@@ -200,5 +249,5 @@ export default function DashboardCharts() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
