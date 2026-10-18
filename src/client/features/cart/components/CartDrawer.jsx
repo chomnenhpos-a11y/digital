@@ -10,6 +10,7 @@ import CartItemList from "./CartItemList";
 import CartSummary from "./CartSummary";
 import EmptyCart from "./EmptyCart";
 import DeliveryForm from "./DeliveryForm";
+import PaymentMethod from "./PaymentMethod";
 
 import useClientOrder from "../hooks/useClientOrder";
 import { useTranslation } from "react-i18next";
@@ -29,6 +30,7 @@ export default function CartDrawer() {
     setIsCartOpen,
     cartTotal,
     clearCart,
+    isScanningProcessing,
   } = useCart();
 
   const createOrderMutation = useCreateOrderMutation();
@@ -130,11 +132,8 @@ export default function CartDrawer() {
         return;
       }
 
-      // Capture snapshot before resetCheckoutForm clears deliveryFee & cart
       const finalTotal = grandTotal;
 
-      // Enrich orderData with settingId AND chatId so Telegram can resolve
-      // the chat without an authenticated API call (avoids 401 on public pages)
       const enrichedOrder = { ...orderData, setting_id: settingId, chat_id: chatId, shop_code: orderData?.shop_code || shop_code };
 
       resetCheckoutForm();
@@ -164,12 +163,29 @@ export default function CartDrawer() {
       });
 
       if (result.isConfirmed) {
-        navigate(`/print-receipt/${orderData.orderNo}`, {
-          state: {
-            orderId: orderData.id,
-            orderData: enrichedOrder,
-          },
-        });
+        setIsCartOpen(false);
+        const receiptNo = orderData.orderNo || orderData.id;
+        const receiptUrl = `/print-receipt/${receiptNo}${shop_code ? `?shop_code=${shop_code}` : ""}`;
+        try {
+          if (enrichedOrder) {
+            localStorage.setItem(`client_receipt_${receiptNo}`, JSON.stringify(enrichedOrder));
+            if (orderData.id) {
+              localStorage.setItem(`client_receipt_${orderData.id}`, JSON.stringify(enrichedOrder));
+            }
+          }
+        } catch (e) {
+          console.warn("Could not cache client order in localStorage", e);
+        }
+
+        const newTab = window.open(receiptUrl, "_blank", "noopener,noreferrer");
+        if (!newTab || newTab.closed || typeof newTab.closed === "undefined") {
+          navigate(receiptUrl, {
+            state: {
+              orderId: orderData.id,
+              orderData: enrichedOrder,
+            },
+          });
+        }
       } else {
         setIsCartOpen(false);
       }
@@ -228,6 +244,8 @@ export default function CartDrawer() {
                 onDeliveryClear={handleDeliveryClear}
                 errors={errors}
               />
+              
+              {/* <PaymentMethod /> */}
             </>
           ) : (
             <EmptyCart />
@@ -245,13 +263,13 @@ export default function CartDrawer() {
           <button
             type="button"
             onClick={handleOrder}
-            disabled={!hasItems || createOrderMutation.isPending}
-            className={`w-full py-2 rounded-full font-semibold transition ${hasItems && !createOrderMutation.isPending
+            disabled={!hasItems || createOrderMutation.isPending || isScanningProcessing}
+            className={`w-full py-2 rounded-full font-semibold transition ${hasItems && !createOrderMutation.isPending && !isScanningProcessing
                 ? "bg-red-900 text-white hover:bg-red-800"
                 : "bg-slate-300 text-slate-500 cursor-not-allowed"
               }`}
           >
-            {createOrderMutation.isPending
+            {createOrderMutation.isPending || isScanningProcessing
               ? t('cart.processing')
               : t('cart.proceedToCheckout')}
           </button>

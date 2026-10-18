@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 
 import { usePublicSettingsQuery } from "../../../../queries/settings/useSettingQueries";
 import { useOrderQuery, useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
+import { useDynamicShopBranding } from "../../../../hooks/useDynamicShopBranding";
 
 import ReceiptCard from "../components/ReceiptCard";
 
@@ -29,8 +30,21 @@ export default function Receipt() {
   const receiptRef = useRef(null);
   const [loading, setLoading] = useState(null);
 
-  const orderId = location.state?.orderId;
-  const initialOrder = location.state?.orderData ?? null;
+  const cachedOrder = useMemo(() => {
+    try {
+      if (!orderNo) return null;
+      const stored =
+        localStorage.getItem(`client_receipt_${orderNo}`) ||
+        sessionStorage.getItem(`client_order_${orderNo}`);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  }, [orderNo]);
+
+  const initialOrder = location.state?.orderData ?? cachedOrder ?? null;
+  const isNumeric = /^\d+$/.test(String(orderNo || ""));
+  const orderId = location.state?.orderId || (isNumeric ? orderNo : initialOrder?.id);
 
   const { data: orderResponse, isLoading: orderLoading } = useOrderQuery(
     orderId,
@@ -44,11 +58,12 @@ export default function Receipt() {
   const order = useMemo(() => {
     if (initialOrder) return initialOrder;
     if (orderResponse?.data) return orderResponse.data;
-    if (orderResponse) return orderResponse;
+    if (orderResponse?.id) return orderResponse;
     const foundOrder = orders.find(
       (o) =>
         String(o.orderNo) === String(orderNo) ||
-        String(o.orderNumber) === String(orderNo)
+        String(o.orderNumber) === String(orderNo) ||
+        String(o.id) === String(orderNo)
     );
     return foundOrder || null;
   }, [initialOrder, orderResponse, orders, orderNo]);
@@ -71,6 +86,8 @@ export default function Receipt() {
 
     return settingsData?.data ?? settingsData ?? {};
   }, [settingsData]);
+
+  useDynamicShopBranding(orderShopCode, settings);
 
   const handlePrint = useReactToPrint({
     contentRef: receiptRef,
@@ -220,7 +237,56 @@ export default function Receipt() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center py-8 px-4 font-sans text-slate-800">
+    <div
+      id="print-page-root"
+      className="min-h-screen bg-slate-100 flex flex-col items-center py-8 px-4 font-sans text-slate-800"
+    >
+      <style>{`
+        @page {
+          size: auto;
+          margin: 5mm;
+        }
+        @media print {
+          html, body {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            visibility: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          #print-page-root {
+            min-height: 0 !important;
+            height: auto !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            display: block !important;
+          }
+          .no-print,
+          .print-controls,
+          header,
+          nav,
+          button {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          #client-receipt-card,
+          #client-receipt-card * {
+            visibility: visible !important;
+          }
+          #client-receipt-card {
+            margin: 0 auto !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+        }
+      `}</style>
+
       <div className="bg-white mb-6 border border-slate-200 flex items-center justify-center">
         <div ref={receiptRef} className="bg-white inline-block">
           <ReceiptCard
@@ -232,7 +298,7 @@ export default function Receipt() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-center gap-3 max-w-lg w-full pb-6">
+      <div className="no-print print-controls flex items-center justify-center gap-3 max-w-lg w-full pb-6">
         <button
           onClick={handlePrint}
           title={t("order.printReceipt") || "Print"}

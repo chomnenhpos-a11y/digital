@@ -50,8 +50,38 @@ export const appRoutes = (
     <Route path="/:shop_code" element={<Home />} />
     <Route path="/:shop_code/products/:id" element={<ProductDetail />} />
     <Route path="/print-receipt/:orderId" element={<Receipt />} />
-    <Route path="/admin/print-receipt/:No" element={<AdminReceiptPage />} />
-    <Route path="/admin/print-sticker/:id" element={<AdminStickerPage />} />
+
+    {/* Dedicated Print Routes (Protected, Outside Dashboard Layout) */}
+    <Route path="/print" element={<ProtectedRoute />}>
+      <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.orders} fallback="/login" />}>
+        <Route path="receipt/:id" element={<AdminReceiptPage />} />
+        <Route path="receipt" element={<AdminReceiptPage />} />
+        <Route path="sticker/:id" element={<AdminStickerPage />} />
+        <Route path="sticker" element={<AdminStickerPage />} />
+      </Route>
+    </Route>
+
+    {/* Compatible Aliases with Auth & Role Protection */}
+    <Route
+      path="/admin/print-receipt/:No"
+      element={
+        <ProtectedRoute>
+          <RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.orders} fallback="/login">
+            <AdminReceiptPage />
+          </RoleRoute>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/print-sticker/:id"
+      element={
+        <ProtectedRoute>
+          <RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.orders} fallback="/login">
+            <AdminStickerPage />
+          </RoleRoute>
+        </ProtectedRoute>
+      }
+    />
     <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
 
     <Route path="/admin" element={<ProtectedRoute />}>

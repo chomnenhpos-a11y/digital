@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": [
+    "src/utils/bestSellers.ts",
+    "src/utils/bestSellers.test.ts",
+    "src/config/bestSellers.ts",
+    "src/hooks/useBestSellers.ts"
+  ]
+}

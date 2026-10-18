@@ -1,5 +1,14 @@
 @import "tw-animate-css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/kantumruy-pro";
+
+@font-face {
+  font-family: 'Kantumruy Pro';
+  font-style: normal;
+  font-weight: 100 900;
+  src: local('Kantumruy Pro Variable'), local('Kantumruy Pro');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -125,5 +134,18 @@
   html, body {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: none;
+  }
+}
+
+@media print {
+  .no-print,
+  .print-controls {
+    display: none !important;
+  }
+  
+  /* Ensure backgrounds and graphics are printed with exact colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

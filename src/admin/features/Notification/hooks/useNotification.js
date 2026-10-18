@@ -245,11 +245,11 @@ export function useNotifications() {
       markAsRead(notification.id);
       setIsOpen(false);
 
-      navigate(
-        notification.type === "order"
-          ? `/admin/print-receipt/${notification.orderNo}`
-          : "/admin/products"
-      );
+      if (notification.type === "order") {
+        window.open(`/print/receipt/${notification.orderNo}`, "_blank", "noopener,noreferrer");
+      } else {
+        navigate("/admin/products");
+      }
     },
     [markAsRead, navigate]
   );

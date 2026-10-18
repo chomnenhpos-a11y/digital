@@ -5,6 +5,7 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isScanningProcessing, setIsScanningProcessing] = useState(false);
 
   const deliveryFee = 2.5;
 
@@ -144,6 +145,8 @@ export function CartProvider({ children }) {
     cartTotal,
     cartCount,
     clearCart,
+    isScanningProcessing,
+    setIsScanningProcessing,
   };
 
   return (

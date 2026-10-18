@@ -25,6 +25,7 @@ import FloatingCartBanner from "../../cart/components/FloatingCartBanner";
 import Badge from "../../../components/common/Badge";
 import { useCart } from "../../../../context/CartContext";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
+import { useBestSellers } from "../../../../hooks/useBestSellers";
 import RecommendedProducts from "../components/RecommendedProducts";
 import { useTranslation } from "react-i18next";
 
@@ -34,9 +35,11 @@ export default function ProductDetail() {
 
   const { addToCart, setIsCartOpen } = useCart();
 
-  const { data: products = [], isLoading: loading } = useProductsQuery({
+  const productsQuery = useProductsQuery({
     shop_code,
   });
+  const { isLoading: loading } = productsQuery;
+  const { products } = useBestSellers({ shopCode: shop_code, catalog: productsQuery });
 
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);

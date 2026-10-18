@@ -2,7 +2,6 @@ import React from 'react'
 import {
   Phone,
   MapPin,
-  Receipt,
   Printer,
   Clock,
   ChevronDown,
@@ -10,14 +9,12 @@ import {
   FileText,
   FileEdit
 } from 'lucide-react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'
 import { useUpdateOrderStatusMutation, useUpdateOrderPaymentStatusMutation } from '../../../../queries/orders/useOrderQueries'
 
 export default function OrderCard({ order, onEdit }) {
   const { t } = useTranslation()
-  const navigate = useNavigate();
-  const { shop_code: routeShopCode } = useParams();
   const updateOrderStatusMutation = useUpdateOrderStatusMutation();
   const updatePaymentStatusMutation = useUpdateOrderPaymentStatusMutation()
 
@@ -46,22 +43,6 @@ export default function OrderCard({ order, onEdit }) {
     }
   }
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'Pending':
-        return t('dashboard.statusPending')
-      case 'Pickup':
-        return t('dashboard.statusPickedUp')
-      case 'Delivering':
-        return t('dashboard.statusDelivering')
-      case 'Completed':
-        return t('dashboard.statusCompleted')
-      case 'Cancelled':
-        return t('dashboard.statusCancelled')
-      default:
-        return status || t('order.unknownStatus')
-    }
-  }
 
   const formatCurrency = (amount) =>
     typeof amount === 'number' ? amount.toFixed(2) : '0.00'
@@ -249,25 +230,27 @@ export default function OrderCard({ order, onEdit }) {
           <span className="truncate">{t('order.edit')}</span>
         </button>
 
-        <button
-           onClick={() => {
-            navigate(`/admin/print-receipt/${order?.orderNo}`);
-          }}
+        <Link
+          to={`/print/receipt/${order?.orderNo || order?.orderNumber || order?.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex min-w-0 items-center justify-center gap-0.5 border-x border-slate-200 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-rose-50 hover:text-rose-600 sm:gap-1 sm:py-1.5 sm:text-[9px]"
+          title={t('order.receipt')}
         >
           <Printer size={16} className="shrink-0" />
           <span className="truncate">{t('order.receipt')}</span>
-        </button>
+        </Link>
 
-        <button
-          onClick={() => {
-            navigate(`/admin/print-sticker/${order?.orderNo}`);
-          }}
+        <Link
+          to={`/print/sticker/${order?.orderNo || order?.orderNumber || order?.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex min-w-0 items-center justify-center gap-0.5 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-violet-50 hover:text-violet-600 sm:gap-1 sm:py-1.5 sm:text-[9px]"
+          title={t('order.sticker')}
         >
           <FileText size={16} className="shrink-0" />
           <span className="truncate">{t('order.sticker')}</span>
-        </button>
+        </Link>
 
       </div>
     </div>

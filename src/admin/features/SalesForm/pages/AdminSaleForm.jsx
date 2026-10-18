@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PackageOpen, X, ShoppingCart } from "lucide-react";
@@ -25,7 +24,6 @@ import Swal from "../../../../lib/alert";
 export default function AdminSaleForm() {
   const { t } = useTranslation();
 
-  const navigate = useNavigate();
   const {
     search,
     setSearch,
@@ -41,6 +39,7 @@ export default function AdminSaleForm() {
     subtotal,
     INITIAL_CUSTOMER,
     isLoading,
+    shopCode,
   } = useSalesForm();
 
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -142,7 +141,7 @@ export default function AdminSaleForm() {
       setIsCartOpen(false);
       
       const receiptNo = orderData.orderNo || orderData.orderNumber || orderData.id;
-      navigate(`/admin/print-receipt/${receiptNo}`, { state: { orderData } });
+      window.open(`/print/receipt/${receiptNo}`, '_blank', 'noopener,noreferrer');
       return;
     }
 

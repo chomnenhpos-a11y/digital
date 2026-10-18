@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Edit, SlidersHorizontal, ImageOff, Trash, Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Plus, Edit, SlidersHorizontal, ImageOff, Trash, Loader2, Printer } from "lucide-react";
 import { useProducts, getStockStatus } from "../hooks/useProducts";
 import ProductsForm from "../components/ProductForm";
 import DataTable from "../../../components/common/DataTable";
@@ -177,6 +178,15 @@ export default function AdminProducts() {
       align: "right",
       render: (row) => (
         <div className="flex items-center justify-end gap-3">
+          <Link
+            to={`/print/sticker/${row.id}?type=product`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 bg-[#fcfafb] border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-100 hover:border-slate-300 transition-all"
+            title="Print Barcode / Sticker (New Tab)"
+          >
+            <Printer size={18} />
+          </Link>
           <button
             onClick={() => handleEdit(row)}
             className="p-2 bg-[#fcfafb] border border-slate-200 rounded-xl text-amber-500 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-600 transition-all"
@@ -227,6 +237,7 @@ export default function AdminProducts() {
       >
         <ProductsForm initialData={editingProduct} onSubmit={handleSubmit} />
       </Modal>
+
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader

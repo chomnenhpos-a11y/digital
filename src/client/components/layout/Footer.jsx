@@ -22,6 +22,9 @@ export default function Footer() {
   const bioShop = settingData?.bio_shop || "Welcome to our shop!";
   const socialMediaLinks = settingData?.social_media || [];
 
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+  const supportURL = baseUrl + settingData?.support || "#";
+
   // Maps icon value strings (saved from GeneralSettings) to React icon components
   const socialIconMap = {
     "telegram": <FaTelegramPlane size={16} className="text-white" />,
@@ -81,7 +84,7 @@ export default function Footer() {
             <ul className="text-sm space-y-2">
               <li>
                 <a
-                  href={settingData?.support || "#"}
+                  href={ supportURL || "#"}
                   target="_blank"
                   rel="noopener noreferrer" 
                   download={false} 
@@ -92,7 +95,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href={settingData?.support || "#"}
+                  href={supportURL  || "#"}
                   target="_blank"
                   rel="noopener noreferrer" 
                   download={false} 
@@ -111,7 +114,7 @@ export default function Footer() {
             <ul className="text-sm space-y-2">
               <li>
                 <a
-                  href={settingData?.support || "#"}
+                  href={ supportURL || "#"}
                   target="_blank" 
                   rel="noopener noreferrer" 
                   download={false} 
@@ -122,7 +125,7 @@ export default function Footer() {
               </li>
               <li>
                  <a
-                  href={settingData?.support || "#"}
+                  href={ supportURL|| "#"}
                   target="_blank" 
                   rel="noopener noreferrer" 
                   download={false} 

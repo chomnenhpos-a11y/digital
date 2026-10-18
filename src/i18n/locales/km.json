@@ -343,10 +343,10 @@
     "courier2": "កាពីតូល",
     "courier3": "ផ្សេងៗ",
     "deliverySticker": "ប័ណ្ណដឹកជញ្ជូនទំនិញ",
-    "sender": "អ្នកផ្ញើ :",
-    "receiver": "អ្នកទទួល :",
+    "sender": "អ្នកផ្ញើ:",
+    "receiver": "អ្នកទទួល:",
     "generalCustomer": "អតិថិជនទូទៅ",
-    "deliveryAddress": "អាស័យដ្ឋានដឹកជញ្ជូន :",
+    "deliveryAddress": "អាស័យដ្ឋានដឹកជញ្ជូន:",
     "none": "មិនមាន",
     "noAddress": "មិនមានអាសយដ្ឋាន",
     "items": "ទំនិញ:",
@@ -806,12 +806,13 @@
     "printReceiptBtn": "🖨️ បោះពុម្ពវិក្កយបត្រ",
     "failed": "បរាជ័យ",
     "problemCreatingOrder": "មានបញ្ហាក្នុងការបង្កើតការបញ្ជាទិញ",
-    "proceedToCheckout": "បន្តទៅការបញ្ជាទិញ",
+    "proceedToCheckout": "បញ្ជាការទិញ",
     "removeFromCart": "លុបចេញពីកន្ត្រក",
     "cannotFetchDeliveryProvider": "មិនអាចទាញយក Delivery Provider បានទេ",
     "noDeliveryProvider": "មិនមាន Delivery Provider ទេ",
     "items": "ទំនិញ",
-    "itemsCount": "{{count}} មុខ"
+    "itemsCount": "{{count}} មុខ",
+    "scanToPay": "ស្កេនទូទាត់តាមធនាគារជាសមាជិក"
   },
   "notifications": {
     "title": "សេចក្តីជូនដំណឹង",
@@ -862,6 +863,7 @@
     "clearSearch": "សម្អាតការស្វែងរក"
   },
   "product": {
+    "bestSelling": "ទំនិញលក់ដាច់",
     "notFoundTitle": "រកមិនឃើញផលិតផលនេះទេ",
     "notFoundDesc": "ផលិតផលដែលអ្នកកំពុងស្វែងរកប្រហែលជាត្រូវបានលុប ឬផ្លាស់ប្តូរទីតាំង។",
     "backToHome": "ត្រឡប់ទៅទំព័រដើម",

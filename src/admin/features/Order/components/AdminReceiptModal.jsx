@@ -8,9 +8,9 @@ export default function AdminReceiptModal({ isOpen, onClose, order }) {
   const { t } = useTranslation();
   const { data: settingsResponse, isLoading: settingsLoading } = useSettingByIdQuery(order?.settingId);
   const settings = settingsResponse?.data ?? settingsResponse;
-  
+
   const printRef = useRef(null);
-  
+
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Receipt-${order?.orderNo || order?.orderNumber || order?.id || "order"}`,
@@ -59,14 +59,14 @@ export default function AdminReceiptModal({ isOpen, onClose, order }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-[#fcfafb] rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[90vh]">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200">
           <h3 className="font-semibold text-slate-800 flex items-center gap-2">
             <Package size={18} />
             {t("order.receiptSize", "Receipt")}
           </h3>
-          <button 
+          <button
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors"
           >
@@ -81,7 +81,7 @@ export default function AdminReceiptModal({ isOpen, onClose, order }) {
               id="admin-receipt-card"
               style={{
                 width: "340px",
-                fontFamily: "'Geist Variable', 'Battambang', 'Siemreap', 'Kantumruy Pro', 'Noto Sans Khmer', sans-serif",
+                fontFamily: "'Geist Variable', 'Kantumruy Pro Variable', 'Kantumruy Pro', 'Battambang', 'Siemreap', 'Noto Sans Khmer', sans-serif",
                 boxSizing: "border-box",
                 WebkitFontSmoothing: "antialiased",
                 MozOsxFontSmoothing: "grayscale",
@@ -126,8 +126,8 @@ export default function AdminReceiptModal({ isOpen, onClose, order }) {
                 </div>
                 {order?.customerName && (
                   <div className="flex justify-between items-center w-full">
-                    <span className="font-medium text-slate-900">{t("order.customer")}</span>
-                    <span className="font-bold text-slate-900 truncate max-w-[180px]">
+                    <span className="font-medium text-slate-900 shrink-0">{t("order.customer")}</span>
+                    <span className="font-bold text-slate-900 text-right break-words ml-2">
                       {order.customerName}
                     </span>
                   </div>
@@ -149,7 +149,7 @@ export default function AdminReceiptModal({ isOpen, onClose, order }) {
                     <span className="font-medium text-slate-900 shrink-0">
                       {t("order.addressLabel")}
                     </span>
-                    <span className="text-slate-800 text-right truncate max-w-[190px]">
+                    <span className="text-slate-800 text-right break-words ml-2">
                       {order.customerAddress || order.address}
                     </span>
                   </div>

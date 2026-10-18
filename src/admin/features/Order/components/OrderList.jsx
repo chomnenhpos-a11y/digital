@@ -1,6 +1,6 @@
 import React from "react";
 import { Phone, MapPin, Receipt, Printer, Clock, AlertCircle, Package } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   useUpdateOrderStatusMutation,
@@ -10,7 +10,6 @@ import DataTable from "../../../components/common/DataTable";
 import { ReceiptText, SquarePen } from "lucide-react";
 
 export default function OrderList({ orders, onEdit }) {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const updateOrderStatusMutation = useUpdateOrderStatusMutation();
   const updatePaymentStatusMutation = useUpdateOrderPaymentStatusMutation();
@@ -185,18 +184,21 @@ export default function OrderList({ orders, onEdit }) {
             <SquarePen size={16} className="text-yellow-600" />
           </button>
           <Link
-            to={`/admin/print-receipt/${order?.orderNo}`}
+            to={`/print/receipt/${order?.orderNo || order?.orderNumber || order?.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
             title={t('order.receipt')}
           >
             <Printer size={16} className="text-violet-500" />
           </Link>
           <Link
-            to={`/admin/print-sticker/${order?.orderNo}`}
+            to={`/print/sticker/${order?.orderNo || order?.orderNumber || order?.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="p-1.5 text-slate-500 hover:text-violet-600 hover:bg-violet-50 rounded transition-colors"
             title={t('order.sticker')}
           >
-            {/* <Printer size={16} className="text-violet-500" /> */}
             <ReceiptText size={16} className="text-red-500" />
           </Link>
         </div>

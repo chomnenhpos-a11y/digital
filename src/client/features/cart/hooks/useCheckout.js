@@ -49,8 +49,12 @@ export default function useCheckout({
     })
 
     if (result.isConfirmed && currentOrderId) {
-      if (navigate) {
-        navigate(`/print-receipt/${currentOrderId}`)
+      const receiptUrl = `/print-receipt/${currentOrderId}`;
+      const newTab = window.open(receiptUrl, "_blank", "noopener,noreferrer");
+      if (!newTab || newTab.closed || typeof newTab.closed === "undefined") {
+        if (navigate) {
+          navigate(receiptUrl);
+        }
       }
     }
   }, [currentOrderId, grandTotal, navigate, resetCheckoutForm, setIsCartOpen, t])

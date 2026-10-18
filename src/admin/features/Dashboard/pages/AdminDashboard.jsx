@@ -95,7 +95,9 @@ export default function AdminDashboard() {
       render: (row) => (
         <div className="flex justify-end space-x-2">
           <Link
-            to={`/admin/print-receipt/${row.orderNo || row.orderNumber || row.id}`}
+            to={`/print/receipt/${row.orderNo || row.orderNumber || row.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="px-5 py-1 bg-[#870d4c] text-white rounded hover:bg-[#9d1159]"
             title={t('common.viewReceipt') || 'View Receipt'}
           >

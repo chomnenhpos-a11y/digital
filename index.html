@@ -15,30 +15,62 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Battambang:wght@100;300;400;700;900&family=Kantumruy+Pro:wght@100;200;300;400;500;600;700&family=Siemreap&family=Suwannaphum:wght@100;300;400;700;900&display=swap"
       rel="stylesheet"
+      crossorigin="anonymous"
     />
     <script>
       (function() {
-        window.updateShopBranding = function() {
+        window.updateShopBranding = function(overrideShopCode, overrideSettings) {
           const pathSegments = window.location.pathname.split('/').filter(Boolean);
-          const urlShopCode = pathSegments[0];
+          const firstSegment = (pathSegments[0] || '').toLowerCase();
           const head = document.head;
 
-          let activeShopCode = null;
+          let activeShopCode = overrideShopCode || null;
 
-          if (urlShopCode && urlShopCode !== 'admin') {
-            activeShopCode = urlShopCode;
-          } else if (urlShopCode === 'admin') {
-            try {
-              const userStr = localStorage.getItem('user');
-              if (userStr) {
-                const user = JSON.parse(userStr);
-                activeShopCode = user?.shop?.code || user?.shop?.shop_code || user?.shop_code || user?.shopCode || null;
+          if (!activeShopCode) {
+            const nonShopRoutes = [
+              'admin',
+              'print',
+              'print-receipt',
+              'login',
+              'signin',
+              'register',
+              'signup',
+              'forgot-password',
+              'reset-password',
+              'dashboard'
+            ];
+
+            if (firstSegment && !nonShopRoutes.includes(firstSegment)) {
+              activeShopCode = pathSegments[0];
+            } else {
+              // Try query params (?shop_code=... or ?shop=...)
+              try {
+                const searchParams = new URLSearchParams(window.location.search);
+                activeShopCode = searchParams.get('shop_code') || searchParams.get('shop') || null;
+              } catch (e) {}
+
+              // Try localStorage user
+              if (!activeShopCode) {
+                try {
+                  const userStr = localStorage.getItem('user');
+                  if (userStr) {
+                    const user = JSON.parse(userStr);
+                    activeShopCode = user?.shop?.code || user?.shop?.shop_code || user?.shop_code || user?.shopCode || null;
+                  }
+                } catch (e) {}
               }
-            } catch (e) {}
+            }
+          }
+
+          let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+          if (!appleTitle) {
+            appleTitle = document.createElement('meta');
+            appleTitle.name = 'apple-mobile-web-app-title';
+            head.appendChild(appleTitle);
           }
 
           if (activeShopCode) {
-            const manifestUrl = `/api/manifest?shop_code=${activeShopCode}`;
+            const manifestUrl = `/api/manifest?shop_code=${encodeURIComponent(activeShopCode)}`;
 
             let manifestLink = document.querySelector('link[rel="manifest"]');
             if (!manifestLink) {
@@ -47,102 +79,114 @@
               head.appendChild(manifestLink);
             }
             manifestLink.href = manifestUrl;
-
-            let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
-            if (!appleTitle) {
-              appleTitle = document.createElement('meta');
-              appleTitle.name = 'apple-mobile-web-app-title';
-              head.appendChild(appleTitle);
-            }
             appleTitle.content = activeShopCode;
 
-            // The base URL must be used directly since Vercel doesn't proxy /api to Laravel in production
-            const baseUrl = '%VITE_API_URL%'.replace(/\/$/, '');
-            const apiUrl = `${baseUrl}/api/settings?shop_code=${activeShopCode}`;
+            let baseUrl = '%VITE_API_URL%';
+            if (!baseUrl || baseUrl.startsWith('%')) {
+              baseUrl = 'https://onlineapi.chomnenhapp.com';
+            }
+            baseUrl = baseUrl.replace(/\/$/, '');
 
-            // Fetch settings to get the correct logo URL and Shop Name
-            fetch(apiUrl)
-              .then(res => res.json())
-              .then(resData => {
-                if (resData && resData.data) {
-                  // 1. Dynamically update the website title
-                  const shopName = resData.data.shop_name || activeShopCode;
-                  document.title = `${shopName}`;
-                  appleTitle.content = shopName;
+            const applyIcon = (url) => {
+              if (!url) return;
+              let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+              if (!appleIcon) {
+                appleIcon = document.createElement('link');
+                appleIcon.rel = 'apple-touch-icon';
+                head.appendChild(appleIcon);
+              }
+              appleIcon.href = url;
 
-                  // 2. Dynamically update the Logos
-                  if (resData.data.logo) {
-                    const logoPath = resData.data.logo;
-                    const logoUrl = logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
+              const oldFavicon = document.querySelector('link[rel="icon"]');
+              if (oldFavicon) {
+                const newFavicon = oldFavicon.cloneNode();
+                newFavicon.href = url;
+                oldFavicon.parentNode.replaceChild(newFavicon, oldFavicon);
+              } else {
+                const favicon = document.createElement('link');
+                favicon.rel = 'icon';
+                favicon.type = 'image/png';
+                favicon.href = url;
+                head.appendChild(favicon);
+              }
+            };
 
-                    // Helper function to draw rounded icon using Canvas
-                    const setRoundedIcon = (src) => {
-                      const img = new Image();
-                      img.crossOrigin = 'Anonymous';
-                      img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const size = 512; // High resolution
-                        canvas.width = size;
-                        canvas.height = size;
-                        const ctx = canvas.getContext('2d');
+            const setRoundedIcon = (src) => {
+              if (!src) return;
+              const img = new Image();
+              img.crossOrigin = 'Anonymous';
+              img.onload = () => {
+                try {
+                  const canvas = document.createElement('canvas');
+                  const size = 512; // High resolution
+                  canvas.width = size;
+                  canvas.height = size;
+                  const ctx = canvas.getContext('2d');
 
-                        const radius = size * 0.22; // Rounded corners
-                        ctx.beginPath();
-                        ctx.moveTo(radius, 0);
-                        ctx.lineTo(size - radius, 0);
-                        ctx.quadraticCurveTo(size, 0, size, radius);
-                        ctx.lineTo(size, size - radius);
-                        ctx.quadraticCurveTo(size, size, size - radius, size);
-                        ctx.lineTo(radius, size);
-                        ctx.quadraticCurveTo(0, size, 0, size - radius);
-                        ctx.lineTo(0, radius);
-                        ctx.quadraticCurveTo(0, 0, radius, 0);
-                        ctx.closePath();
-                        
-                        ctx.save();
-                        ctx.clip();
+                  const radius = size * 0.22; // Rounded corners
+                  ctx.beginPath();
+                  ctx.moveTo(radius, 0);
+                  ctx.lineTo(size - radius, 0);
+                  ctx.quadraticCurveTo(size, 0, size, radius);
+                  ctx.lineTo(size, size - radius);
+                  ctx.quadraticCurveTo(size, size, size - radius, size);
+                  ctx.lineTo(radius, size);
+                  ctx.quadraticCurveTo(0, size, 0, size - radius);
+                  ctx.lineTo(0, radius);
+                  ctx.quadraticCurveTo(0, 0, radius, 0);
+                  ctx.closePath();
+                  
+                  ctx.save();
+                  ctx.clip();
 
-                        // Draw image centered and covering the area
-                        const scale = Math.max(size / img.width, size / img.height);
-                        const x = (size / 2) - (img.width / 2) * scale;
-                        const y = (size / 2) - (img.height / 2) * scale;
-                        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-                        ctx.restore();
+                  // Draw image centered and covering the area
+                  const scale = Math.max(size / img.width, size / img.height);
+                  const x = (size / 2) - (img.width / 2) * scale;
+                  const y = (size / 2) - (img.height / 2) * scale;
+                  ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                  ctx.restore();
 
-                        applyIcon(canvas.toDataURL('image/png'));
-                      };
-                      img.onerror = () => applyIcon(src); // Fallback to original if CORS fails
-                      img.src = src;
-                    };
-
-                    const applyIcon = (url) => {
-                      let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
-                      if (!appleIcon) {
-                        appleIcon = document.createElement('link');
-                        appleIcon.rel = 'apple-touch-icon';
-                        head.appendChild(appleIcon);
-                      }
-                      appleIcon.href = url; 
-
-                      const oldFavicon = document.querySelector('link[rel="icon"]');
-                      if (oldFavicon) {
-                        const newFavicon = oldFavicon.cloneNode();
-                        newFavicon.href = url;
-                        oldFavicon.parentNode.replaceChild(newFavicon, oldFavicon);
-                      } else {
-                        const favicon = document.createElement('link');
-                        favicon.rel = 'icon';
-                        favicon.type = 'image/png';
-                        favicon.href = url;
-                        head.appendChild(favicon);
-                      }
-                    };
-
-                    setRoundedIcon(logoUrl);
-                  }
+                  applyIcon(canvas.toDataURL('image/png'));
+                } catch (e) {
+                  applyIcon(src);
                 }
-              })
-              .catch(e => console.error("Error fetching shop settings:", e));
+              };
+              img.onerror = () => applyIcon(src);
+              img.src = src;
+            };
+
+            const applyBranding = (data) => {
+              if (!data) return;
+              const shopName = data.shop_name || data.shopName || activeShopCode;
+              if (shopName) {
+                document.title = String(shopName);
+                appleTitle.content = String(shopName);
+              }
+
+              if (data.logo) {
+                const logoPath = data.logo;
+                const logoUrl = logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
+                setRoundedIcon(logoUrl);
+              }
+            };
+
+            const settingsObj = overrideSettings && typeof overrideSettings === 'object'
+              ? (overrideSettings.data || overrideSettings)
+              : null;
+
+            if (settingsObj && (settingsObj.shop_name || settingsObj.shopName || settingsObj.logo)) {
+              applyBranding(settingsObj);
+            } else {
+              const apiUrl = `${baseUrl}/api/settings?shop_code=${encodeURIComponent(activeShopCode)}`;
+              fetch(apiUrl)
+                .then(res => res.json())
+                .then(resData => {
+                  if (resData && resData.data) {
+                    applyBranding(resData.data);
+                  }
+                })
+                .catch(e => console.error("Error fetching shop settings:", e));
+            }
 
           } else {
             let fallbackManifest = document.querySelector('link[rel="manifest"]');

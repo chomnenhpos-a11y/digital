@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Share2,
+  Flame,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Swal from "../../../../lib/alert";
@@ -33,6 +34,7 @@ export default function ProductCard({ product = {}, index = 0 }) {
     images = [],
     categoryName,
     cashback,
+    isBestSeller = false,
   } = product;
 
   const [hoverIndex, setHoverIndex] = useState(0);
@@ -181,6 +183,15 @@ export default function ProductCard({ product = {}, index = 0 }) {
           <div className="absolute top-3 left-3 z-20">
             <span className="bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
               -{discountPricePercent}%
+            </span>
+          </div>
+        )}
+
+        {isBestSeller === true && (
+          <div className="absolute bottom-2 left-2 right-2 z-30 flex pointer-events-none sm:bottom-3 sm:left-3 sm:right-3">
+            <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50/95 px-2 py-1 text-[10px] font-semibold leading-relaxed text-amber-800 shadow-sm backdrop-blur-sm sm:gap-1.5 sm:px-2.5 sm:text-[11px]">
+              <Flame size={13} className="shrink-0 text-amber-600" aria-hidden="true" />
+              <span>{t('product.bestSelling')}</span>
             </span>
           </div>
         )}

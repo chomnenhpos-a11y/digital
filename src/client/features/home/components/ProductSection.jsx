@@ -2,6 +2,7 @@ import {
   useMemo,
   useState,
   useEffect,
+  useCallback,
 } from "react";
 
 import { useParams } from "react-router-dom";
@@ -12,43 +13,37 @@ import FilterTabs from "../../../components/common/FilterTabs";
 import SectionHeader from "../../../components/common/SectionHeader";
 
 import ProductGrid from "../../products/components/ProductGrid";
-import HorizontalProductGrid from "../../products/components/HorizontalProductGrid";
 
 import ProductSkeletonGrid from "../../../components/common/ProductSkeletonGrid";
-import HorizontalProductSkeletonGrid from "../../../components/common/HorizontalProductSkeletonGrid";
 import FilterTabsSkeleton from "../../../components/common/FilterTabsSkeleton";
 
 import { useSearch } from "../../../../context/SearchContext";
 
-import { useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
+import { useBestSellers } from "../../../../hooks/useBestSellers";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
 import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 8;
 
-export default function ProductSection({ allProductsRef }) {
+export default function ProductSection({ allProductsRef, bestSellerRules }) {
   const { t } = useTranslation();
   const { shop_code } = useParams();
 
-  const {
-    data: products = [],
-    isPending: isProductsPending,
-  } = useProductsQuery({
+  const productsQuery = useProductsQuery({
     shop_code,
+  });
+  const { isPending: isProductsPending } = productsQuery;
+  const { products: productsWithBadges } = useBestSellers({
+    shopCode: shop_code,
+    catalog: productsQuery,
+    rules: bestSellerRules,
   });
 
   const {
     data: categories = [],
     isPending: isCategoriesPending,
   } = useCategoriesQuery({
-    shop_code,
-  });
-
-  const {
-    data: orders = [],
-    isPending: isOrdersPending,
-  } = useOrdersQuery({
     shop_code,
   });
 
@@ -64,18 +59,12 @@ export default function ProductSection({ allProductsRef }) {
   const isProductLoading =
     isProductsPending || isCategoriesPending;
 
-  const isBestSellingLoading =
-    isProductsPending || isOrdersPending;
-
   const isSearching =
     searchItem.trim() !== "" ||
     priceRange !== "all";
 
   const isCategoryFiltered =
     activeTab !== "ALL_CATEGORIES";
-
-  const shouldHideHighlights =
-    isSearching || isCategoryFiltered;
 
   const tabs = useMemo(() => {
     return [
@@ -92,7 +81,7 @@ export default function ProductSection({ allProductsRef }) {
     ];
   }, [categories, t]);
 
-  const matchPriceRange = (price) => {
+  const matchPriceRange = useCallback((price) => {
     const numPrice = Number(price) || 0;
 
     if (priceRange === "under-20") {
@@ -118,7 +107,7 @@ export default function ProductSection({ allProductsRef }) {
     }
 
     return true;
-  };
+  }, [priceRange]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -148,104 +137,12 @@ export default function ProductSection({ allProductsRef }) {
     }
   };
 
-  const bestSellingProducts = useMemo(() => {
-    if (!products.length) {
-      return [];
-    }
-
-    const salesCountMap = new Map();
-
-    (orders || [])
-      .filter(
-        (order) =>
-          order.paymentStatus === "Paid"
-      )
-      .flatMap(
-        (order) =>
-          order.orderDetails ||
-          order.items ||
-          []
-      )
-      .forEach((item) => {
-        const productId = Number(
-          item.productId ??
-            item.product_id ??
-            item.id
-        );
-
-        const quantity = Number(
-          item.quantity || 0
-        );
-
-        if (!productId) {
-          return;
-        }
-
-        salesCountMap.set(
-          productId,
-          (salesCountMap.get(productId) || 0) +
-            quantity
-        );
-      });
-
-    const sortedProducts = [...products].sort(
-      (a, b) => {
-        const soldA =
-          salesCountMap.get(
-            Number(a.id)
-          ) || 0;
-
-        const soldB =
-          salesCountMap.get(
-            Number(b.id)
-          ) || 0;
-
-        if (soldB !== soldA) {
-          return soldB - soldA;
-        }
-
-        return (
-          new Date(b.createdAt || 0) -
-          new Date(a.createdAt || 0)
-        );
-      }
-    );
-
-    const soldOnly =
-      sortedProducts.filter(
-        (product) =>
-          (salesCountMap.get(
-            Number(product.id)
-          ) || 0) > 0
-      );
-
-    return (
-      soldOnly.length > 0
-        ? soldOnly
-        : sortedProducts
-    ).slice(0, 10);
-  }, [products, orders]);
-
-  const latestProducts = useMemo(() => {
-    if (!products.length) {
-      return [];
-    }
-
-    return [...products]
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt || 0) -
-          new Date(a.createdAt || 0)
-      )
-      .slice(0, 10);
-  }, [products]);
-
   const filteredProducts = useMemo(() => {
-    if (!products.length) {
+    if (!productsWithBadges.length) {
       return [];
     }
 
-    return products
+    return productsWithBadges
       .filter((product) => {
         if (activeTab === "ALL_CATEGORIES") {
           return true;
@@ -270,11 +167,10 @@ export default function ProductSection({ allProductsRef }) {
         )
       );
   }, [
-    products,
-    categories,
+    productsWithBadges,
     activeTab,
     searchItem,
-    priceRange,
+    matchPriceRange,
   ]);
 
   const visibleProducts = useMemo(() => {
@@ -334,47 +230,6 @@ export default function ProductSection({ allProductsRef }) {
           />
         )}
       </div>
-
-      {!shouldHideHighlights && (
-        <section>
-          <SectionHeader
-            icon="arcticons:questionnaire-star"
-            iconHeight="1.5em"
-            title={t('home.bestSelling')}
-          />
-
-          {isBestSellingLoading ? (
-            <HorizontalProductSkeletonGrid
-              count={5}
-            />
-          ) : (
-            <HorizontalProductGrid
-              products={bestSellingProducts}
-            />
-          )}
-        </section>
-      )}
-
-      {!shouldHideHighlights && (
-        <section>
-          <SectionHeader
-            icon="arcticons:all-accor"
-            iconHeight="1.5em"
-            title={t('home.newArrivals')}
-          />
-
-          {isProductLoading ? (
-            <HorizontalProductSkeletonGrid
-              count={5}
-            />
-          ) : (
-            <HorizontalProductGrid
-              products={latestProducts}
-            />
-          )}
-        </section>
-      )}
-
       <section
         ref={allProductsRef}
         className="scroll-mt-24"

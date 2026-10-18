@@ -7,7 +7,7 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
 
   // Only hide logo while sources are still loading
   const logoLoading = settingsLoading;
-  const shopName = settings?.shop_name || settings?.shopName;
+  const shopName = settings?.shop_name || settings?.shopName || "Store Name";
   const rawLogo = settings?.logo;
   const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
   const logoUrl = rawLogo
@@ -19,95 +19,136 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
   const delivery = Number(order?.deliveryFee) || 0;
   const total = Number(order?.totalAmount) || 0;
   const subtotal = total - delivery;
+  const discount = Number(order?.discount) || 0;
+  const tax = Number(order?.tax) || 0;
 
   const orderItems = order?.orderDetails || order?.items || [];
+
+  const formatCurrency = (val) => `$${Number(val || 0).toFixed(2)}`;
+
+  const formatDateTime = (dateStr, timeStr) => {
+    if (!dateStr && !timeStr) return "";
+    if (!dateStr) return timeStr;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return `${dateStr} ${timeStr || ""}`;
+    return `${d.toLocaleDateString("en-US", {
+      month: "numeric",
+      day: "numeric",
+      year: "numeric",
+    })} ${d.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    })}`;
+  };
 
   return (
     <div
       id="client-receipt-card"
       style={{
-        width: "340px",
+        width: "360px",
+        minWidth: "360px",
+        maxWidth: "360px",
         fontFamily:
-          "'Geist Variable', 'Battambang', 'Siemreap', 'Kantumruy Pro', 'Noto Sans Khmer', sans-serif",
+          "'Geist Variable', 'Kantumruy Pro Variable', 'Kantumruy Pro', 'Battambang', 'Siemreap', 'Noto Sans Khmer', sans-serif",
         boxSizing: "border-box",
         WebkitFontSmoothing: "antialiased",
         MozOsxFontSmoothing: "grayscale",
         textRendering: "optimizeLegibility",
+        lineHeight: "1.4",
       }}
-      className="bg-white text-slate-900 mx-auto text-xs px-5 py-6 shadow-sm overflow-hidden flex flex-col"
+      className="bg-white text-slate-900 mx-auto text-xs px-5 py-6 shadow-sm overflow-hidden flex flex-col print:shadow-none print:border-none print:w-full"
     >
-      <div className="text-center border-b border-dashed border-slate-800 pb-3 mb-3 w-full">
+      {/* Header section with Logo & Store Info */}
+      <div className="text-center border-b border-dashed border-slate-700 pb-3 mb-3 w-full">
         {logoUrl && !imgError && !logoLoading ? (
           <img
             src={logoUrl}
             alt={shopName}
-            className="h-10 mx-auto mb-2 object-contain rounded-md"
+            crossOrigin="anonymous"
+            className="w-14 h-14 mx-auto mb-2 object-cover rounded-xl"
             onError={() => setImgError(true)}
           />
         ) : null}
-        <h2 className="font-black text-base tracking-wider uppercase text-slate-900 leading-tight">
+        <h2 className="font-black text-lg tracking-wider uppercase text-slate-900 leading-tight">
           {shopName}
         </h2>
-        <p className="text-[11px] text-slate-900 mt-1">
+        <p className="text-xs text-slate-800 mt-1 leading-normal">
           {t("order.phone")} {settings?.phone || "xxxxxxxxx"}
         </p>
-        <p className="text-[11px] text-slate-900">{settings?.address || ""}</p>
-      </div>
-
-      <div className="text-[11px] space-y-1.5 mb-3 flex flex-col border-b border-dashed border-slate-800 pb-3 text-slate-700 w-full">
-        <div className="flex justify-between items-center w-full">
-          <span className="font-medium text-slate-900">{t("order.receiptNo")}</span>
-          <span className="font-mono font-bold text-slate-900">
-            {order?.orderNo || order?.orderNumber || `ORD-${order?.id}`}
-          </span>
-        </div>
-        <div className="flex justify-between items-center w-full">
-          <span className="font-medium text-slate-900">{t("order.date")}</span>
-          <span className="font-mono text-slate-800">
-            {order?.createdAt
-              ? new Date(order.createdAt).toLocaleDateString()
-              : order?.date || ""}{" "}
-            {order?.createdAt
-              ? new Date(order.createdAt).toLocaleTimeString()
-              : order?.time || ""}
-          </span>
-        </div>
-        {order?.customerName && (
-          <div className="flex justify-between items-center w-full">
-            <span className="font-medium text-slate-900">{t("order.customer")}</span>
-            <span className="font-bold text-slate-900 truncate max-w-[180px]">
-              {order.customerName}
-            </span>
-          </div>
-        )}
-        <div className="flex justify-between items-center w-full">
-          <span className="font-medium text-slate-900">{t("order.phone")}</span>
-          <span className="font-mono text-slate-900 font-semibold">
-            {order?.customerPhone || order?.phone || "—"}
-          </span>
-        </div>
-        <div className="flex justify-between items-center w-full">
-          <span className="font-medium text-slate-900">{t("order.deliveryService")}</span>
-          <span className="font-bold text-slate-900">
-            {order?.deliveryProvider?.name || order?.deliveryMethod || t("order.none")}
-          </span>
-        </div>
-        {(order?.customerAddress || order?.address) && (
-          <div className="flex justify-between items-start w-full">
-            <span className="font-medium text-slate-900 shrink-0">
-              {t("order.addressLabel")}
-            </span>
-            <span className="text-slate-800 text-right truncate max-w-[190px]">
-              {order.customerAddress || order.address}
-            </span>
-          </div>
+        {settings?.address && (
+          <p className="text-xs text-slate-800 mt-0.5 leading-normal">
+            {settings.address}
+          </p>
         )}
       </div>
 
-      <div className="mb-3 w-full border-b border-dashed border-slate-800 pb-3">
-        <table className="w-full text-[11px] table-fixed border-collapse">
+      {/* Order Info Section (Table layout prevents text-wrapping & line collision) */}
+      <div className="border-b border-dashed border-slate-700 pb-3 mb-3 w-full">
+        <table className="w-full text-xs border-collapse">
+          <tbody>
+            <tr>
+              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                {t("order.receiptNo")}
+              </td>
+              <td className="py-1 font-mono font-bold text-slate-900 text-right align-middle">
+                {order?.orderNo || order?.orderNumber || `ORD-${order?.id}`}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                {t("order.date")}
+              </td>
+              <td className="py-1 font-mono text-slate-900 text-right align-middle">
+                {formatDateTime(order?.createdAt || order?.date, order?.time)}
+              </td>
+            </tr>
+            {order?.customerName && (
+              <tr>
+                <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                  {t("order.customer")}
+                </td>
+                <td className="py-1 font-bold text-slate-900 text-right align-middle break-words">
+                  {order.customerName}
+                </td>
+              </tr>
+            )}
+            <tr>
+              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                {t("order.phone")}
+              </td>
+              <td className="py-1 font-mono text-slate-900 font-semibold text-right align-middle">
+                {order?.customerPhone || order?.phone || "—"}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                {t("order.deliveryService")}
+              </td>
+              <td className="py-1 font-bold text-slate-900 text-right align-middle">
+                {order?.deliveryProvider?.name || order?.deliveryMethod || t("order.none")}
+              </td>
+            </tr>
+            {(order?.customerAddress || order?.address) && (
+              <tr>
+                <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-top">
+                  {t("order.addressLabel")}
+                </td>
+                <td className="py-1 text-slate-900 text-right align-top max-w-[190px] leading-snug break-words">
+                  {order.customerAddress || order.address}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Items Table Section */}
+      <div className="mb-3 w-full border-b border-dashed border-slate-700 pb-3">
+        <table className="w-full text-xs table-fixed border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 text-slate-900 font-bold">
+            <tr className="border-b border-slate-900 text-slate-900 font-bold">
               <th className="text-left pb-1.5 font-bold w-[45%]">{t("order.itemCol")}</th>
               <th className="text-center pb-1.5 font-bold w-[15%]">{t("order.qtyCol")}</th>
               <th className="text-right pb-1.5 font-bold w-[20%]">{t("order.priceCol")}</th>
@@ -120,18 +161,18 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
                 const price = Number(item.price) || Number(item.salePrice) || 0;
                 const qty = Number(item.quantity) || 0;
                 return (
-                  <tr key={item.id ?? idx} className="text-slate-800">
+                  <tr key={item.id ?? idx} className="text-slate-900">
                     <td className="py-1.5 pr-1 font-medium break-words text-left align-top leading-snug">
                       {item.product_name || item.name}
                     </td>
-                    <td className="py-1.5 text-center tabular-nums text-slate-600 font-semibold align-top">
+                    <td className="py-1.5 text-center tabular-nums text-slate-700 font-medium align-top">
                       {qty}
                     </td>
-                    <td className="py-1.5 text-right tabular-nums text-slate-600 align-top">
-                      ${price.toFixed(2)}
+                    <td className="py-1.5 text-right tabular-nums text-slate-700 align-top">
+                      {formatCurrency(price)}
                     </td>
                     <td className="py-1.5 text-right tabular-nums font-bold text-slate-900 align-top">
-                      ${(price * qty).toFixed(2)}
+                      {formatCurrency(price * qty)}
                     </td>
                   </tr>
                 );
@@ -147,32 +188,64 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
         </table>
       </div>
 
-      <div className="space-y-1.5 pb-3 mb-3 border-b border-dashed border-slate-800 text-[11px] text-slate-700 w-full">
-        <div className="flex justify-between items-center">
-          <span className="text-slate-900">{t("order.subtotalLabel")}</span>
-          <span className="tabular-nums font-medium text-slate-800">
-            ${subtotal.toFixed(2)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-slate-900">{t("order.deliveryFeeLabel")}</span>
-          <span className="tabular-nums font-medium text-slate-800">
-            ${delivery.toFixed(2)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center pt-1.5 border-t border-slate-800 text-sm font-bold text-slate-900">
-          <span>{t("order.totalLabel")}</span>
-          <span className="tabular-nums font-black text-slate-950">
-            ${total.toFixed(2)}
-          </span>
-        </div>
+      {/* Summary Totals Section (Table layout prevents text-wrapping & line collision) */}
+      <div className="mb-3 border-b border-dashed border-slate-700 pb-3 text-xs text-slate-800 w-full">
+        <table className="w-full text-xs border-collapse">
+          <tbody>
+            <tr>
+              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                {t("order.subtotalLabel")}
+              </td>
+              <td className="py-1 tabular-nums font-medium text-slate-900 text-right align-middle">
+                {formatCurrency(subtotal)}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                {t("order.deliveryFeeLabel")}
+              </td>
+              <td className="py-1 tabular-nums font-medium text-slate-900 text-right align-middle">
+                {formatCurrency(delivery)}
+              </td>
+            </tr>
+            {discount > 0 && (
+              <tr>
+                <td className="py-1 text-green-600 font-medium whitespace-nowrap text-left align-middle">
+                  {t("order.discountLabel") || "Discount"}
+                </td>
+                <td className="py-1 tabular-nums font-medium text-green-600 text-right align-middle">
+                  -{formatCurrency(discount)}
+                </td>
+              </tr>
+            )}
+            {tax > 0 && (
+              <tr>
+                <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                  {t("order.taxLabel") || "Tax"}
+                </td>
+                <td className="py-1 tabular-nums font-medium text-slate-900 text-right align-middle">
+                  {formatCurrency(tax)}
+                </td>
+              </tr>
+            )}
+            <tr className="border-t border-slate-900">
+              <td className="pt-2 text-slate-900 font-black text-sm whitespace-nowrap text-left align-middle">
+                {t("order.totalLabel")}
+              </td>
+              <td className="pt-2 tabular-nums font-black text-slate-950 text-base text-right align-middle">
+                {formatCurrency(total)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div className="text-center space-y-0.5 pt-0.5 w-full">
-        <p className="text-[11px] font-bold text-slate-900">
+      {/* Footer Message */}
+      <div className="text-center pt-1 pb-1 w-full">
+        <p className="text-xs font-bold text-slate-900 leading-normal">
           {t("order.thankYouReceipt")}
         </p>
-        <p className="text-[10px] text-slate-900 font-medium tracking-wide uppercase">
+        <p className="text-[11px] text-slate-800 font-medium leading-normal mt-0.5">
           {t("order.comeAgain")}
         </p>
       </div>

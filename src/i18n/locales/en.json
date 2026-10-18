@@ -343,10 +343,10 @@
     "courier2": "Capitol",
     "courier3": "Others",
     "deliverySticker": "Delivery Sticker",
-    "sender": "Sender :",
-    "receiver": "Receiver :",
+    "sender": "Sender:",
+    "receiver": "Receiver:",
     "generalCustomer": "General Customer",
-    "deliveryAddress": "Delivery Address :",
+    "deliveryAddress": "Delivery Address:",
     "none": "None",
     "noAddress": "No Address",
     "items": "Items:",
@@ -805,12 +805,13 @@
     "printReceiptBtn": "🖨️ Print Receipt",
     "failed": "Failed",
     "problemCreatingOrder": "Problem creating order",
-    "proceedToCheckout": "Proceed to Checkout",
+    "proceedToCheckout": "Proceed to Order",
     "removeFromCart": "Remove from cart",
     "cannotFetchDeliveryProvider": "Cannot fetch Delivery Provider",
     "noDeliveryProvider": "No Delivery Provider",
     "items": "Items",
-    "itemsCount": "{{count}} items"
+    "itemsCount": "{{count}} items",
+    "scanToPay": "Scan to pay via member banks"
   },
   "notifications": {
     "title": "Notifications",
@@ -861,6 +862,7 @@
     "clearSearch": "Clear search"
   },
   "product": {
+    "bestSelling": "Best Seller",
     "notFoundTitle": "Product not found",
     "notFoundDesc": "The product you are looking for may have been deleted or moved.",
     "backToHome": "Back to Home",
