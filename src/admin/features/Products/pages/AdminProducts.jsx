@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus, Edit, SlidersHorizontal, ImageOff, Trash, Loader2, Printer } from "lucide-react";
 import { useProducts, getStockStatus } from "../hooks/useProducts";
 import ProductsForm from "../components/ProductForm";
+import ProductMediaIcons from "../components/ProductMediaIcons.jsx";
 import DataTable from "../../../components/common/DataTable";
 import DataTableSkeleton from "../../../components/common/DataTableSkeleton";
 import SearchBar from "../../../components/common/SearchBar";
@@ -65,6 +66,12 @@ export default function AdminProducts() {
     {
       header: t('products.productName'),
       accessor: "name",
+      render: (row) => (
+        <div className="min-w-[160px] space-y-2">
+          <span className="font-semibold text-slate-900">{row.name}</span>
+          <ProductMediaIcons media={row.media} />
+        </div>
+      ),
     },
 
     {
@@ -178,7 +185,7 @@ export default function AdminProducts() {
       align: "right",
       render: (row) => (
         <div className="flex items-center justify-end gap-3">
-          <Link
+          {/* <Link
             to={`/print/sticker/${row.id}?type=product`}
             target="_blank"
             rel="noopener noreferrer"
@@ -186,7 +193,7 @@ export default function AdminProducts() {
             title="Print Barcode / Sticker (New Tab)"
           >
             <Printer size={18} />
-          </Link>
+          </Link> */}
           <button
             onClick={() => handleEdit(row)}
             className="p-2 bg-[#fcfafb] border border-slate-200 rounded-xl text-amber-500 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-600 transition-all"

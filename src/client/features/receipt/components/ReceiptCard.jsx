@@ -98,10 +98,18 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
             </tr>
             <tr>
               <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
-                {t("order.date")}
+                {t("order.date")}:
               </td>
               <td className="py-1 font-mono text-slate-900 text-right align-middle">
                 {formatDateTime(order?.createdAt || order?.date, order?.time)}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                {t("order.seller")}:
+              </td>
+              <td className="py-1 font-mono text-slate-900 text-right align-middle">
+                {order.seller.name}
               </td>
             </tr>
             {order?.customerName && (
@@ -122,14 +130,6 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
                 {order?.customerPhone || order?.phone || "—"}
               </td>
             </tr>
-            <tr>
-              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
-                {t("order.deliveryService")}
-              </td>
-              <td className="py-1 font-bold text-slate-900 text-right align-middle">
-                {order?.deliveryProvider?.name || order?.deliveryMethod || t("order.none")}
-              </td>
-            </tr>
             {(order?.customerAddress || order?.address) && (
               <tr>
                 <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-top">
@@ -140,6 +140,14 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
                 </td>
               </tr>
             )}
+            <tr>
+              <td className="py-1 text-slate-900 font-medium whitespace-nowrap text-left align-middle">
+                {t("order.deliveryService")}
+              </td>
+              <td className="py-1 font-bold text-slate-900 text-right align-middle">
+                {order?.deliveryProvider?.name || order?.deliveryMethod || t("order.none")}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

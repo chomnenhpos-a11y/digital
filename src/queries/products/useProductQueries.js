@@ -3,6 +3,7 @@ import { productService } from '../../services/productService';
 import { productKeys } from './productKeys';
 import { useCategoriesQuery } from '../categories/useCategoryQueries';
 import { useMemo } from 'react';
+import { normalizeProductMedia } from '../../utils/productMedia.js';
 
 // Shared mapping logic moved out of Context
 const mapProduct = (item, categories = []) => {
@@ -37,6 +38,8 @@ const mapProduct = (item, categories = []) => {
     images: mappedImages,
     rawImages,
     image: mappedImages[0] || '',
+    media: normalizeProductMedia(item.media),
+    rawMedia: Array.isArray(item.media) ? item.media : [],
     description: item.description || '',
     categoryId: item.categoryId || item.category_id,
     categoryName: item.categoryName || matchedCategory?.name || '',

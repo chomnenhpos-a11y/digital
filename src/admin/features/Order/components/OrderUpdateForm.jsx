@@ -308,13 +308,13 @@ export default function OrderUpdateForm({ onSubmit, initialData, onClose, isSubm
         </button>
       </div>
 
-      <div className="bg-slate-900 text-white p-4 rounded-xl space-y-2 shadow-sm">
+      <div className="bg-[#870d4c] text-white p-4 rounded-xl space-y-2 shadow-sm">
         <div className="flex justify-between text-sm">
-          <span className="text-slate-400">{t('order.subtotalAmount')}</span>
+          <span className="text-white">{t('order.subtotalAmount')}</span>
           <span className="font-semibold">${calcSubtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-slate-400">{t('order.deliveryFeeAmount')}</span>
+          <span className="text-white">{t('order.deliveryFeeAmount')}</span>
           <span className="font-semibold">${deliveryFee.toFixed(2)}</span>
         </div>
         <div className="flex justify-between items-center pt-2 border-t border-slate-700/50">

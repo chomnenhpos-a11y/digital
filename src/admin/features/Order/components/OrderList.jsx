@@ -9,9 +9,13 @@ import {
 import DataTable from "../../../components/common/DataTable";
 import { ReceiptText, SquarePen, Trash2 } from "lucide-react";
 import { canDeleteOrder } from "../../../../utils/orderRules.js";
+import { useAuth } from "../../../../hooks/useAuth";
+import { normalizeRole } from "../../../../routes/adminRouteAccess.js";
 
 export default function OrderList({ orders, onEdit, onDelete, isDeleting = false }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const showDeleteButton = ["admin", "superadmin"].includes(normalizeRole(user?.role));
   const updateOrderStatusMutation = useUpdateOrderStatusMutation();
   const updatePaymentStatusMutation = useUpdateOrderPaymentStatusMutation();
 
@@ -158,6 +162,15 @@ export default function OrderList({ orders, onEdit, onDelete, isDeleting = false
       ),
     },
     {
+      header: t('order.seller'),
+      accessor: "seller",
+      render: (order) => (
+        <div className="text-sm text-slate-600">
+          {order.seller?.name || order.seller?.sellerName || "—"}
+        </div>
+      ),
+    },
+    {
       header: t('order.date'),
       render: (row) => (
         <span className="text-sm text-slate-600">
@@ -205,16 +218,18 @@ export default function OrderList({ orders, onEdit, onDelete, isDeleting = false
           >
             <ReceiptText size={16} className="text-red-500" />
           </Link>
-          <button
-            type="button"
-            onClick={() => onDelete(order.id)}
-            disabled={!onDelete || !canDeleteOrder(order) || isDeleting || updateOrderStatusMutation.isPending || updatePaymentStatusMutation.isPending}
-            className="rounded p-1.5 text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
-            aria-label={t('common.delete')}
-            title={canDeleteOrder(order) ? t('common.delete') : t('order.deleteNotAllowed')}
-          >
-            <Trash2 size={16} />
-          </button>
+          {showDeleteButton && (
+            <button
+              type="button"
+              onClick={() => onDelete(order.id)}
+              disabled={!onDelete || !canDeleteOrder(order) || isDeleting || updateOrderStatusMutation.isPending || updatePaymentStatusMutation.isPending}
+              className="rounded p-1.5 text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
+              aria-label={t('common.delete')}
+              title={canDeleteOrder(order) ? t('common.delete') : t('order.deleteNotAllowed')}
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
         </div>
       ),
     },

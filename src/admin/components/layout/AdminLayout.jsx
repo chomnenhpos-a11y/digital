@@ -57,7 +57,10 @@ export default function AdminLayout() {
         <AdminHeader
           requestedViewMode={requestedViewMode}
         />
-        <main ref={mainRef} className="flex-1 overflow-x-hidden overflow-y-auto p-6 bg-[#fcfafb]">
+        <main
+          ref={mainRef}
+          className="flex-1 overflow-x-hidden overflow-y-auto p-6 bg-[#fcfafb] has-[>.error-boundary-page]:p-0 [&>.error-boundary-page]:min-h-full"
+        >
           <Outlet />
         </main>
       </div>

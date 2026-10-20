@@ -27,6 +27,7 @@ import { useCart } from "../../../../context/CartContext";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
 import { useBestSellers } from "../../../../hooks/useBestSellers";
 import RecommendedProducts from "../components/RecommendedProducts";
+import ProductMediaGuides from "../components/ProductMediaGuides.jsx";
 import { useTranslation } from "react-i18next";
 
 export default function ProductDetail() {
@@ -460,6 +461,8 @@ export default function ProductDetail() {
                     </p>
                   </div>
                 )}
+
+                <ProductMediaGuides media={product.media} />
 
                 <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px] text-slate-700 font-medium">
                   <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-100 shadow-xs">

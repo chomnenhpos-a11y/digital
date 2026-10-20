@@ -246,13 +246,13 @@ export default function OrderFormFields({ register, errors, setValue, watch }) {
                 />
 
                 <span
-                  className={`relative inline-flex min-h-11 min-w-24 max-w-full items-center justify-center rounded-md border px-4 py-1 text-center text-sm font-semibold transition-colors duration-150 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 ${option.focus} ${
+                  className={`relative inline-flex md:min-h-2 md:min-w-5 max-w-full items-center justify-between rounded-md border px-1.5 md:px-2 py-1 text-center text-[10px] md:text-sm font-semibold transition-colors duration-150 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 ${option.focus} ${
                     isSelected ? option.selected : option.unselected
                   }`}
                 >
                   {isSelected && (
-                    <span className={`absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-white ring-2 ring-white ${option.indicator}`}>
-                      <Check size={12} strokeWidth={3} aria-hidden="true" />
+                    <span className={`absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full text-white ring-2 ring-white ${option.indicator}`}>
+                      <Check size={10} md:size={12} strokeWidth={3} aria-hidden="true" />
                     </span>
                   )}
 

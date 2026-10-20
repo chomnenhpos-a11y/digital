@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test:orders": "node --experimental-test-module-mocks --test src/queries/orders/useOrderQueries.test.js",
+    "test:product-media": "node --test src/utils/productMedia.test.js",
     "test:best-sellers": "node --test src/utils/bestSellers.test.ts",
     "typecheck:best-sellers": "tsc --project tsconfig.best-sellers.json"
   },

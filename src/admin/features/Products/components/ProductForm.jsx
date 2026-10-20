@@ -14,6 +14,8 @@ import { useTranslation } from "react-i18next";
 
 import { productSchema } from "../schemas/productSchema";
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
+import { normalizeProductMedia } from "../../../../utils/productMedia.js";
+import ProductMediaLinks from "./ProductMediaLinks.jsx";
 
 export default function ProductsForm({ onSubmit, initialData }) {
   const { t } = useTranslation();
@@ -27,6 +29,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     watch,
@@ -45,6 +48,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
       salePrice: "",
       description: "",
       images: [],
+      media: [],
     },
   });
 
@@ -66,6 +70,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
         salePrice: "",
         description: "",
         images: [],
+        media: [],
       });
 
       setDiscountPercentage(0);
@@ -93,6 +98,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
       salePrice: initialData.salePrice ?? initialData.sale_price ?? "",
 
       description: initialData.description || "",
+      media: normalizeProductMedia(initialData.media ?? initialData.rawMedia),
       images: (initialData.images || []).map((img, i) =>
         typeof img === "string" ? { id: `existing-${i}`, url: img } : img,
       ),
@@ -245,6 +251,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
       payload.append("salePrice", String(data.salePrice || 0));
 
       payload.append("description", data.description || "");
+      payload.append("media", JSON.stringify(data.media || []));
 
       const finalImages = data.images || [];
 
@@ -257,7 +264,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
         }
       });
 
-      onSubmit(payload);
+      await onSubmit(payload);
     } catch (error) {
       console.error("Failed to prepare product:", error);
     }
@@ -510,6 +517,8 @@ export default function ProductsForm({ onSubmit, initialData }) {
           </label>
         )}
       </div>
+
+      <ProductMediaLinks control={control} register={register} errors={errors} />
 
       <div className="flex justify-end pt-2">
         <button

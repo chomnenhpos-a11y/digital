@@ -1,13 +1,13 @@
 import React from "react";
 import { IoGift } from "react-icons/io5";
 import { useTranslation } from "react-i18next";
-
+import { Image as ImageIcon, } from "lucide-react";
 export default function ProductSelectCard({ product, onSelect }) {
   const { t } = useTranslation();
 
   const stock = Math.max(
     0,
-    Number(product?.stockQuantity ?? product?.stock ?? 0) || 0
+    Number(product?.stockQuantity ?? product?.stock ?? 0) || 0,
   );
 
   const isOutOfStock = stock <= 0;
@@ -44,7 +44,12 @@ export default function ProductSelectCard({ product, onSelect }) {
               }`}
             />
           ) : (
-            <span className="text-xl">📦</span>
+            <div className="flex flex-col items-center justify-center text-gray-300">
+              <ImageIcon size={40} strokeWidth={1.5} />
+              <span className="text-[11px] mt-2 font-medium text-gray-400">
+                {t("product.noImage")}
+              </span>
+            </div>
           )}
         </div>
 
@@ -86,10 +91,7 @@ export default function ProductSelectCard({ product, onSelect }) {
         <div className="flex items-center gap-1 min-h-[20px]">
           {discountPrice > 0 && salePrice < price ? (
             <>
-              <IoGift
-                size={13}
-                className="text-[#870d4c] flex-shrink-0"
-              />
+              <IoGift size={13} className="text-[#870d4c] flex-shrink-0" />
 
               <span className="text-[10px] font-khmer text-[#870d4c] rounded line-clamp-1">
                 {t("sales.save")} ${discountPrice.toFixed(2)}
@@ -107,9 +109,7 @@ export default function ProductSelectCard({ product, onSelect }) {
               : "bg-[#870d4c] text-white hover:bg-[#9d1159]"
           }`}
         >
-          {isOutOfStock
-            ? t("sales.outOfStock")
-            : t("common.addBtn")}
+          {isOutOfStock ? t("sales.outOfStock") : t("common.addBtn")}
         </span>
       </div>
     </div>

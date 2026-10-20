@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getProductMediaUrl } from "../../../../utils/productMedia.js";
 
 export const productSchema = z.object({
   name: z
@@ -57,6 +58,15 @@ export const productSchema = z.object({
         url: z.string(),
         file: z.any().nullable().optional(),
         isNew: z.boolean().optional(),
+      })
+    )
+    .optional(),
+  media: z
+    .array(
+      z.object({
+        icon: z.string().trim().min(1, "validation.requiredIcon"),
+        url: z.string().trim().min(1, "validation.requiredUrl")
+          .refine((value) => !!getProductMediaUrl(value), "validation.invalidUrl"),
       })
     )
     .optional(),
