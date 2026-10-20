@@ -6,7 +6,6 @@ export default function useCheckout({
   grandTotal,
   setIsCartOpen,
   resetCheckoutForm,
-  navigate,
   t,
 }) {
   const [showQr, setShowQr] = useState(false)
@@ -50,14 +49,9 @@ export default function useCheckout({
 
     if (result.isConfirmed && currentOrderId) {
       const receiptUrl = `/print-receipt/${currentOrderId}`;
-      const newTab = window.open(receiptUrl, "_blank", "noopener,noreferrer");
-      if (!newTab || newTab.closed || typeof newTab.closed === "undefined") {
-        if (navigate) {
-          navigate(receiptUrl);
-        }
-      }
+      window.open(receiptUrl, "_blank", "noopener,noreferrer");
     }
-  }, [currentOrderId, grandTotal, navigate, resetCheckoutForm, setIsCartOpen, t])
+  }, [currentOrderId, grandTotal, resetCheckoutForm, setIsCartOpen, t])
 
   useEffect(() => {
     if (!showQr || !hasItems) {

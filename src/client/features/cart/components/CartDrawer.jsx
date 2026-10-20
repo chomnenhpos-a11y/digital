@@ -1,6 +1,6 @@
 import Swal from "../../../../lib/alert";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { useCart } from "../../../../context/CartContext";
 import { useCreateOrderMutation } from "../../../../queries/orders/useOrderQueries";
@@ -17,7 +17,6 @@ import { useTranslation } from "react-i18next";
 
 export default function CartDrawer() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { shop_code } = useParams();
 
   const [settingId, setSettingId] = useState(null);
@@ -177,15 +176,7 @@ export default function CartDrawer() {
           console.warn("Could not cache client order in localStorage", e);
         }
 
-        const newTab = window.open(receiptUrl, "_blank", "noopener,noreferrer");
-        if (!newTab || newTab.closed || typeof newTab.closed === "undefined") {
-          navigate(receiptUrl, {
-            state: {
-              orderId: orderData.id,
-              orderData: enrichedOrder,
-            },
-          });
-        }
+        window.open(receiptUrl, "_blank", "noopener,noreferrer");
       } else {
         setIsCartOpen(false);
       }
