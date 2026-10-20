@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import Swal from "../../../../lib/alert";
 import { useTranslation } from "react-i18next";
 
-import { useCreateOrderMutation } from "../../../../queries/orders/useOrderQueries";
+import { useCreatePOSOrderMutation } from "../../../../queries/orders/useOrderQueries";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
 
@@ -13,6 +13,7 @@ const INITIAL_CUSTOMER = {
   phone: "",
   address: "",
   deliveryFee: "",
+  status: "Pending",
   paymentStatus: "Unpaid",
 };
 
@@ -37,12 +38,12 @@ export default function useSalesForm() {
     isPending: isCategoriesLoading,
   } = useCategoriesQuery();
 
-  const createOrderMutation = useCreateOrderMutation();
+  const createPOSOrderMutation = useCreatePOSOrderMutation();
 
   const isLoading =
     isProductsLoading ||
     isCategoriesLoading ||
-    createOrderMutation.isPending;
+    createPOSOrderMutation.isPending;
 
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
@@ -302,11 +303,11 @@ export default function useSalesForm() {
     }
 
     let newOrder;
-    let paymentUpdateFailed = false;
+    let statusUpdateFailed = false;
 
     try {
       const mutationResponse =
-        await createOrderMutation.mutateAsync({
+        await createPOSOrderMutation.mutateAsync({
           shop_code: shopCode,
           paymentStatus: customerInfo.paymentStatus,
           items: cart,
@@ -346,13 +347,13 @@ export default function useSalesForm() {
       );
     } catch (error) {
       console.error(
-        "Failed to create order:",
+        "Checkout could not be completed:",
         error
       );
 
       if (error.createdOrder?.id) {
         newOrder = { ...error.createdOrder, shop_code: shopCode };
-        paymentUpdateFailed = true;
+        statusUpdateFailed = true;
       } else {
         await Swal.fire({
           icon: "error",
@@ -377,10 +378,10 @@ export default function useSalesForm() {
     });
 
     await Swal.fire({
-      icon: paymentUpdateFailed ? "warning" : "success",
-      title: t(paymentUpdateFailed ? "sales.orderCreatedPaymentFailed" : "sales.orderSuccess"),
-      ...(paymentUpdateFailed && {
-        text: t("sales.orderCreatedPaymentFailedMessage", {
+      icon: statusUpdateFailed ? "warning" : "success",
+      title: t(statusUpdateFailed ? "sales.orderCreatedStatusFailed" : "sales.orderSuccess"),
+      ...(statusUpdateFailed && {
+        text: t("sales.orderCreatedStatusFailedMessage", {
           orderNo: newOrder.orderNo || newOrder.orderNumber || newOrder.id,
         }),
       }),

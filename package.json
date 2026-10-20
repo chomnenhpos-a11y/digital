@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "test:orders": "node --experimental-test-module-mocks --test src/queries/orders/useOrderQueries.test.js",
     "test:best-sellers": "node --test src/utils/bestSellers.test.ts",
     "typecheck:best-sellers": "tsc --project tsconfig.best-sellers.json"
   },

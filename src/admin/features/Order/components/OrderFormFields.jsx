@@ -5,19 +5,55 @@ import { useDeliveryProvidersQuery } from "../../../../queries/deliveryProviders
 
 import { useTranslation } from "react-i18next";
 
-export default function OrderFormFields({
-  register,
-  errors,
-  setValue,
-  watch,
-}) {
+const DELIVERY_STATUS_OPTIONS = [
+  {
+    value: "Pending",
+    labelKey: "order.statusPendingTitle",
+    selected: "border-amber-700 bg-amber-700 text-white shadow-sm hover:bg-amber-800",
+    unselected: "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100",
+    focus: "peer-focus-visible:outline-amber-700",
+    indicator: "bg-amber-700",
+  },
+  {
+    value: "Pickup",
+    labelKey: "order.statusPickupTitle",
+    selected: "border-[#9d1159] bg-[#9d1159] text-white shadow-sm hover:bg-[#870d4c]",
+    unselected: "border-[#870d4c]/20 bg-[#870d4c]/5 text-[#9d1159] hover:border-[#870d4c]/40 hover:bg-[#870d4c]/10",
+    focus: "peer-focus-visible:outline-[#9d1159]",
+    indicator: "bg-[#9d1159]",
+  },
+  {
+    value: "Delivering",
+    labelKey: "order.statusDeliveringTitle",
+    selected: "border-purple-700 bg-purple-700 text-white shadow-sm hover:bg-purple-800",
+    unselected: "border-purple-200 bg-purple-50 text-purple-700 hover:border-purple-400 hover:bg-purple-100",
+    focus: "peer-focus-visible:outline-purple-700",
+    indicator: "bg-purple-700",
+  },
+  {
+    value: "Completed",
+    labelKey: "order.statusCompletedTitle",
+    selected: "border-emerald-700 bg-emerald-700 text-white shadow-sm hover:bg-emerald-800",
+    unselected: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-400 hover:bg-emerald-100",
+    focus: "peer-focus-visible:outline-emerald-700",
+    indicator: "bg-emerald-700",
+  },
+  {
+    value: "Cancelled",
+    labelKey: "order.statusCancelledTitle",
+    selected: "border-rose-700 bg-rose-700 text-white shadow-sm hover:bg-rose-800",
+    unselected: "border-rose-200 bg-rose-50 text-rose-700 hover:border-rose-400 hover:bg-rose-100",
+    focus: "peer-focus-visible:outline-rose-700",
+    indicator: "bg-rose-700",
+  },
+];
+
+export default function OrderFormFields({ register, errors, setValue, watch }) {
   const { t } = useTranslation();
   const { data: providers = [] } = useDeliveryProvidersQuery();
-  console.log("providers",providers);
   const activeProviders = providers.filter((p) => p.is_active == 1);
-  const selectedProviderId = watch
-    ? watch("deliveryProviderId")
-    : null;
+  const selectedProviderId = watch ? watch("deliveryProviderId") : null;
+  const selectedDeliveryStatus = watch ? watch("status") : null;
   const selectedPaymentStatus = watch ? watch("paymentStatus") : null;
 
   return (
@@ -38,8 +74,7 @@ export default function OrderFormFields({
           }`}
         >
           <div className="pl-3.5 pr-2 py-2 text-slate-600 text-sm font-semibold select-none flex items-center bg-[#fcfafb] border-r border-slate-200 h-full">
-            +855{" "}
-            <span className="text-slate-300 ml-1.5 text-xs">|</span>
+            +855 <span className="text-slate-300 ml-1.5 text-xs">|</span>
           </div>
 
           <input
@@ -48,8 +83,7 @@ export default function OrderFormFields({
             className="flex-1 px-3 py-2 bg-transparent text-sm text-slate-800 focus:outline-hidden"
             {...register("phone", {
               onChange: (e) => {
-                const degitsOnly = 
-                  e.target.value.replace(/\D/g, "");
+                const degitsOnly = e.target.value.replace(/\D/g, "");
                 if (degitsOnly.length <= 10) {
                   e.target.value = degitsOnly;
                 }
@@ -60,9 +94,7 @@ export default function OrderFormFields({
         </div>
 
         {errors.phone && (
-          <p className="text-red-500 text-xs mt-1">
-            {t(errors.phone.message)}
-          </p>
+          <p className="text-red-500 text-xs mt-1">{t(errors.phone.message)}</p>
         )}
       </div>
 
@@ -94,10 +126,7 @@ export default function OrderFormFields({
           {t("order.deliveryProviderLabel")}
         </label>
 
-        <input
-          type="hidden"
-          {...register("deliveryProviderId")}
-        />
+        <input type="hidden" {...register("deliveryProviderId")} />
 
         <div className="grid grid-cols-5 gap-1">
           {activeProviders.map((p) => {
@@ -125,25 +154,17 @@ export default function OrderFormFields({
                     return;
                   }
 
-                  setValue(
-                    "deliveryProviderId",
-                    p.id.toString(),
-                    {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                      shouldTouch: true,
-                    }
-                  );
+                  setValue("deliveryProviderId", p.id.toString(), {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
 
-                  setValue(
-                    "deliveryFee",
-                    Number(p.shipping_fee),
-                    {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                      shouldTouch: true,
-                    }
-                  );
+                  setValue("deliveryFee", Number(p.shipping_fee), {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
                 }}
                 className={`relative min-w-0 flex flex-col items-center justify-center rounded-xl border-[2px] cursor-pointer transition-all text-center p-1.5 min-h-[90px] ${
                   isSelected
@@ -170,9 +191,7 @@ export default function OrderFormFields({
 
                 <div
                   className={`w-11 h-11 flex flex-shrink-0 items-center justify-center bg-white rounded-lg overflow-hidden border shadow-sm mb-1.5 transition-colors ${
-                    isSelected
-                      ? "border-red-200"
-                      : "border-slate-100"
+                    isSelected ? "border-red-200" : "border-slate-100"
                   }`}
                 >
                   <img
@@ -184,9 +203,7 @@ export default function OrderFormFields({
 
                 <span
                   className={`text-[11px] font-semibold tracking-wide ${
-                    isSelected
-                      ? "text-red-700"
-                      : "text-slate-500"
+                    isSelected ? "text-red-700" : "text-slate-500"
                   }`}
                 >
                   {p.name?.slice(0, 6)}
@@ -202,7 +219,56 @@ export default function OrderFormFields({
           </p>
         )}
       </div>
+      <fieldset className="min-w-0">
+        <legend className="mb-2 text-xs font-semibold text-slate-600">
+          {t("order.deliveryStatus")}
+        </legend>
 
+        <div className="flex flex-wrap gap-2">
+          {DELIVERY_STATUS_OPTIONS.map((option) => {
+            const { value, labelKey } = option;
+            const isSelected = selectedDeliveryStatus === value;
+
+            return (
+              <label
+                key={value}
+                className="relative min-w-0 max-w-full cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  value={value}
+                  {...register("status")}
+                  aria-invalid={!!errors.status}
+                  aria-describedby={
+                    errors.status ? "delivery-status-error" : undefined
+                  }
+                  className="peer sr-only"
+                />
+
+                <span
+                  className={`relative inline-flex min-h-11 min-w-24 max-w-full items-center justify-center rounded-md border px-4 py-1 text-center text-sm font-semibold transition-colors duration-150 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 ${option.focus} ${
+                    isSelected ? option.selected : option.unselected
+                  }`}
+                >
+                  {isSelected && (
+                    <span className={`absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-white ring-2 ring-white ${option.indicator}`}>
+                      <Check size={12} strokeWidth={3} aria-hidden="true" />
+                    </span>
+                  )}
+
+                  <span className="min-w-0 break-words">{t(labelKey)}</span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+
+        {errors.status && (
+          <p id="delivery-status-error" className="mt-1 text-xs text-red-500">
+            {t(errors.status.message)}
+          </p>
+        )}
+      </fieldset>
       <fieldset className="min-w-0">
         <legend className="mb-2 text-xs font-semibold text-slate-600">
           {t("common.paymentStatus")}

@@ -24,6 +24,10 @@ export const API_ENDPOINTS = {
         GET_ONE: (id) => `api/orders?id=${id}`,
         CREATE: 'api/orders',
         UPDATE: (id) => `api/orders?id=${id}`,
+        DELETE: (id) => `api/orders?id=${id}`,
+    },
+    POS:{
+        CREATE: '/api/orders?type=pos',
     },
     SLIDES: {
         GET_ALL: 'api/promotions',

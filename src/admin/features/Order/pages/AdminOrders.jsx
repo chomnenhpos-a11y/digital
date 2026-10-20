@@ -37,9 +37,11 @@ export default function AdminOrders() {
     editingOrder,
     isSubmitting,
     isLoading,
+    isDeleting,
     closeModal,
     openEditModal,
-    handleUpdateSubmit
+    handleUpdateSubmit,
+    handleDeleteOrder
   } = useOrders(viewMode)
 
   return (
@@ -123,11 +125,22 @@ export default function AdminOrders() {
           {viewMode === 'card' ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
               {paginatedOrders.map(order => (
-                <OrderCard key={order.id} order={order} onEdit={() => openEditModal(order)} />
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  onEdit={() => openEditModal(order)}
+                  onDelete={handleDeleteOrder}
+                  isDeleting={isDeleting}
+                />
               ))}
             </div>
           ) : (
-            <OrderList orders={paginatedOrders} onEdit={openEditModal} />
+            <OrderList
+              orders={paginatedOrders}
+              onEdit={openEditModal}
+              onDelete={handleDeleteOrder}
+              isDeleting={isDeleting}
+            />
           )}
           <div>
             <Pagination

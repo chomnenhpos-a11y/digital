@@ -7,13 +7,15 @@ import {
   ChevronDown,
   Package,
   FileText,
-  FileEdit
+  FileEdit,
+  Trash2
 } from 'lucide-react'
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'
 import { useUpdateOrderStatusMutation, useUpdateOrderPaymentStatusMutation } from '../../../../queries/orders/useOrderQueries'
+import { canDeleteOrder } from '../../../../utils/orderRules.js'
 
-export default function OrderCard({ order, onEdit }) {
+export default function OrderCard({ order, onEdit, onDelete, isDeleting = false }) {
   const { t } = useTranslation()
   const updateOrderStatusMutation = useUpdateOrderStatusMutation();
   const updatePaymentStatusMutation = useUpdateOrderPaymentStatusMutation()
@@ -100,6 +102,7 @@ export default function OrderCard({ order, onEdit }) {
             <select
               aria-label="Order Status"
               value={order?.status || 'Pending'}
+              disabled={isDeleting}
               onChange={(e) => updateOrderStatus(order.id, e.target.value)}
               className={`appearance-none rounded-full border pl-2 pr-5 py-0.5 text-[8px] font-bold shadow-sm outline-none transition-all sm:pl-2.5 sm:pr-6 sm:py-1 sm:text-[9px] cursor-pointer ${getStatusStyle(order?.status)}`}
             >
@@ -186,6 +189,7 @@ export default function OrderCard({ order, onEdit }) {
           <select
             aria-label="Payment Status"
             value={order?.paymentStatus || 'Unpaid'}
+            disabled={isDeleting}
             onChange={(e) =>
               updatePaymentStatus(order.id, e.target.value)
             }
@@ -220,11 +224,12 @@ export default function OrderCard({ order, onEdit }) {
       </div>
 
       {/* Actions */}
-      <div className="mx-2 mb-2 grid grid-cols-3 overflow-hidden rounded-md border border-slate-200 bg-white sm:mx-3 sm:mb-2.5 sm:rounded-lg">
+      <div className="mx-2 mb-2 grid grid-cols-2 overflow-hidden rounded-md border border-slate-200 bg-white sm:mx-3 sm:mb-2.5 sm:rounded-lg">
 
         <button
           onClick={onEdit}
-          className="flex min-w-0 items-center justify-center gap-0.5 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-blue-50 hover:text-[#9d1159] sm:gap-1 sm:py-1.5 sm:text-[9px]"
+          disabled={isDeleting}
+          className="flex min-w-0 items-center justify-center gap-0.5 border-b border-r border-slate-200 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-blue-50 hover:text-[#9d1159] sm:gap-1 sm:py-1.5 sm:text-[9px]"
         >
           <FileEdit size={16} className="shrink-0" />
           <span className="truncate">{t('order.edit')}</span>
@@ -234,7 +239,7 @@ export default function OrderCard({ order, onEdit }) {
           to={`/print/receipt/${order?.orderNo || order?.orderNumber || order?.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-w-0 items-center justify-center gap-0.5 border-x border-slate-200 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-rose-50 hover:text-rose-600 sm:gap-1 sm:py-1.5 sm:text-[9px]"
+          className="flex min-w-0 items-center justify-center gap-0.5 border-b border-slate-200 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-rose-50 hover:text-rose-600 sm:gap-1 sm:py-1.5 sm:text-[9px]"
           title={t('order.receipt')}
         >
           <Printer size={16} className="shrink-0" />
@@ -245,12 +250,23 @@ export default function OrderCard({ order, onEdit }) {
           to={`/print/sticker/${order?.orderNo || order?.orderNumber || order?.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-w-0 items-center justify-center gap-0.5 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-violet-50 hover:text-violet-600 sm:gap-1 sm:py-1.5 sm:text-[9px]"
+          className="flex min-w-0 items-center justify-center gap-0.5 border-r border-slate-200 bg-white px-1 py-1.5 text-[8px] font-semibold text-slate-600 transition-all hover:bg-violet-50 hover:text-violet-600 sm:gap-1 sm:py-1.5 sm:text-[9px]"
           title={t('order.sticker')}
         >
           <FileText size={16} className="shrink-0" />
           <span className="truncate">{t('order.sticker')}</span>
         </Link>
+
+        <button
+          type="button"
+          onClick={() => onDelete(order.id)}
+          disabled={!onDelete || !canDeleteOrder(order) || isDeleting || updateOrderStatusMutation.isPending || updatePaymentStatusMutation.isPending}
+          className="flex min-w-0 items-center justify-center gap-0.5 bg-white px-1 py-1.5 text-[8px] font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-white sm:gap-1 sm:text-[9px]"
+          title={canDeleteOrder(order) ? t('common.delete') : t('order.deleteNotAllowed')}
+        >
+          <Trash2 size={16} className="shrink-0" />
+          <span className="truncate">{t('common.delete')}</span>
+        </button>
 
       </div>
     </div>

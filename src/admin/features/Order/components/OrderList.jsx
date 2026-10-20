@@ -7,9 +7,10 @@ import {
   useUpdateOrderPaymentStatusMutation,
 } from "../../../../queries/orders/useOrderQueries";
 import DataTable from "../../../components/common/DataTable";
-import { ReceiptText, SquarePen } from "lucide-react";
+import { ReceiptText, SquarePen, Trash2 } from "lucide-react";
+import { canDeleteOrder } from "../../../../utils/orderRules.js";
 
-export default function OrderList({ orders, onEdit }) {
+export default function OrderList({ orders, onEdit, onDelete, isDeleting = false }) {
   const { t } = useTranslation();
   const updateOrderStatusMutation = useUpdateOrderStatusMutation();
   const updatePaymentStatusMutation = useUpdateOrderPaymentStatusMutation();
@@ -127,6 +128,7 @@ export default function OrderList({ orders, onEdit }) {
         return (
           <select
             value={order.status || "Pending"}
+            disabled={isDeleting}
             onChange={(e) => updateOrderStatus(order.id, e.target.value)}
             className={`text-xs px-2.5 py-1.5 rounded-md font-bold outline-none cursor-pointer border-none ${config.styles}`}
           >
@@ -147,6 +149,7 @@ export default function OrderList({ orders, onEdit }) {
           className={`text-xs px-2 py-1 rounded-md font-bold outline-none cursor-pointer
           ${order.paymentStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
           value={order.paymentStatus}
+          disabled={isDeleting}
           onChange={(e) => updatePaymentStatus(order.id, e.target.value)}
         >
           <option value="Unpaid">{t('order.unpaid')}</option>
@@ -178,6 +181,7 @@ export default function OrderList({ orders, onEdit }) {
         <div className="flex justify-end gap-2">
           <button
             onClick={() => onEdit(order)}
+            disabled={isDeleting}
             className="p-1.5 text-slate-500 hover:text-[#9d1159] hover:bg-blue-50 rounded transition-colors"
             title={t('order.edit')}
           >
@@ -201,6 +205,16 @@ export default function OrderList({ orders, onEdit }) {
           >
             <ReceiptText size={16} className="text-red-500" />
           </Link>
+          <button
+            type="button"
+            onClick={() => onDelete(order.id)}
+            disabled={!onDelete || !canDeleteOrder(order) || isDeleting || updateOrderStatusMutation.isPending || updatePaymentStatusMutation.isPending}
+            className="rounded p-1.5 text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
+            aria-label={t('common.delete')}
+            title={canDeleteOrder(order) ? t('common.delete') : t('order.deleteNotAllowed')}
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       ),
     },

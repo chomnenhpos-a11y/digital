@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { orderService } from '../../services/orderService';
-import { orderKeys } from './orderKeys';
-import Swal from '../../lib/alert';
+import { orderService } from '../../services/orderService.js';
+import { orderKeys } from './orderKeys.js';
+import { productKeys } from '../products/productKeys.js';
+import Swal from '../../lib/alert.js';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -67,6 +68,14 @@ export function useOrderStats() {
 }
 
 export function useCreateOrderMutation() {
+  return useOrderCreationMutation(orderService.createOrder);
+}
+
+export function useCreatePOSOrderMutation() {
+  return useOrderCreationMutation(orderService.createPOSOrder);
+}
+
+function useOrderCreationMutation(createOrder) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -82,6 +91,10 @@ export function useCreateOrderMutation() {
       customerInfo,
     }) => {
       const requestedPaymentStatus = paymentStatus ?? customerInfo?.paymentStatus;
+      const requestedStatuses = {
+        ...(customerInfo?.status != null && { status: customerInfo.status }),
+        ...(requestedPaymentStatus != null && { paymentStatus: requestedPaymentStatus }),
+      };
       const payload = {
         shop_code: shop_code || "",
 
@@ -93,6 +106,8 @@ export function useCreateOrderMutation() {
 
         customerAddress:
           customerInfo?.address || "",
+
+        ...(customerInfo?.status != null && { status: customerInfo.status }),
 
         paymentStatus:
           requestedPaymentStatus ?? "Unpaid",
@@ -123,7 +138,7 @@ export function useCreateOrderMutation() {
       };
 
       const response =
-        await orderService.createOrder(
+        await createOrder(
           payload
         );
 
@@ -131,19 +146,20 @@ export function useCreateOrderMutation() {
 
       if (
         createdOrder?.id &&
-        requestedPaymentStatus != null &&
-        createdOrder.paymentStatus !== requestedPaymentStatus
+        Object.entries(requestedStatuses).some(
+          ([field, value]) => createdOrder[field] !== value,
+        )
       ) {
         try {
-          const savedOrder = await orderService.updatePaymentStatus(
+          const savedOrder = await orderService.updateStatuses(
             createdOrder.id,
-            requestedPaymentStatus,
+            requestedStatuses,
           );
 
           return { ...createdOrder, ...savedOrder };
         } catch (error) {
           // The order already exists: callers must not retry checkout as a new sale.
-          error.createdOrder = createdOrder;
+          error.createdOrder = { ...createdOrder, ...error.savedOrder };
           throw error;
         }
       }
@@ -151,9 +167,10 @@ export function useCreateOrderMutation() {
       return createdOrder;
     },
 
-    onSettled: () => queryClient.invalidateQueries({
-      queryKey: orderKeys.all,
-    }),
+    onSettled: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+      queryClient.invalidateQueries({ queryKey: productKeys.all }),
+    ]),
   });
 }
 
@@ -317,3 +334,27 @@ export function useUpdateOrderViewedMutation() {
   });
 }
 
+export const useDeleteOrderMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    retry: false,
+    mutationFn: async ({ orderId }) => {
+      const response = await orderService.deleteOrder(orderId);
+      return response;
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: orderKeys.lists() });
+    },
+    onSuccess: (_data, { orderId }) => {
+      queryClient.setQueriesData(
+        { queryKey: orderKeys.lists() },
+        (orders) => Array.isArray(orders)
+          ? orders.filter((order) => String(order.id) !== String(orderId))
+          : orders,
+      );
+      queryClient.removeQueries({ queryKey: orderKeys.detail(orderId), exact: true });
+      return queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+  });
+}

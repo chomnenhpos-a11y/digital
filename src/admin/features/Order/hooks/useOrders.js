@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Swal from '../../../../lib/alert'
 import { useTranslation } from 'react-i18next'
-import { useOrdersQuery, useUpdateOrderMutation } from '../../../../queries/orders/useOrderQueries'
+import { useOrdersQuery, useUpdateOrderMutation, useDeleteOrderMutation} from '../../../../queries/orders/useOrderQueries'
+import { canDeleteOrder } from '../../../../utils/orderRules.js'
 
 export function useOrders(viewMode) {
   const { t } = useTranslation()
   const { data: orders = [], isPending: isLoading } = useOrdersQuery()
   const updateOrderMutation = useUpdateOrderMutation()
+  const deleteOrderMutation = useDeleteOrderMutation()
+  const deleteInProgress = useRef(false)
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -32,6 +35,58 @@ export function useOrders(viewMode) {
   const closeModal = () => {
     setIsModalOpen(false)
     setEditingOrder(null)
+  }
+
+  const handleDeleteOrder = async (orderId) => {
+    if (!orderId || deleteInProgress.current) return
+
+    const order = orders.find((item) => String(item.id) === String(orderId))
+    if (!canDeleteOrder(order)) {
+      await Swal.fire({
+        icon: 'warning',
+        title: t('common.failed'),
+        text: t('order.deleteNotAllowed'),
+      })
+      return
+    }
+
+    deleteInProgress.current = true
+    try {
+      const result = await Swal.fire({
+        icon: 'warning',
+        title: t('common.confirm'),
+        text: t('order.confirmDeleteOrder', {
+          orderNo: order.orderNo || order.orderNumber || order.id,
+        }),
+        showCancelButton: true,
+        confirmButtonText: t('common.delete'),
+        cancelButtonText: t('common.cancel'),
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+      })
+
+      if (!result.isConfirmed) return
+      await deleteOrderMutation.mutateAsync({ orderId })
+      if (String(editingOrder?.id) === String(orderId)) closeModal()
+
+      await Swal.fire({
+        icon: 'success',
+        title: t('common.deletedSuccess'),
+        text: t('order.deleteSuccess'),
+        timer: 1500,
+        showConfirmButton: false,
+      })
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: t('common.deleteFailed'),
+        text: error.code === 'ORDER_DELETE_NOT_ALLOWED'
+          ? t('order.deleteNotAllowed')
+          : error?.response?.data?.message || error?.response?.data?.error || t('order.deleteError'),
+      })
+    } finally {
+      deleteInProgress.current = false
+    }
   }
 
   const handleUpdateSubmit = async (formData) => {
@@ -117,9 +172,10 @@ export function useOrders(viewMode) {
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE)
+  const activePage = Math.min(currentPage, Math.max(1, totalPages))
   const paginatedOrders = filteredOrders.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    (activePage - 1) * ITEMS_PER_PAGE,
+    activePage * ITEMS_PER_PAGE
   )
 
   return {
@@ -135,7 +191,7 @@ export function useOrders(viewMode) {
     setToDate: handleToDateChange,
     paymentFilter,
     setPaymentFilter: handlePaymentFilterChange,
-    currentPage,
+    currentPage: activePage,
     setCurrentPage,
     totalPages,
     isModalOpen,
@@ -144,6 +200,8 @@ export function useOrders(viewMode) {
     openEditModal,
     closeModal,
     handleUpdateSubmit,
+    handleDeleteOrder,
+    isDeleting: deleteOrderMutation.isPending,
     isLoading
   }
 }
