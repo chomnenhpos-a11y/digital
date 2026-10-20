@@ -90,11 +90,11 @@ export default function AdminDeliveryProviders() {
       render: (row) => (
         <div className="flex items-center">
           {row.is_active == 1 ? (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-200">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-200">
               <CheckCircle2 size={14} /> Active
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-200">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium bg-red-50 text-red-600 border border-red-200">
               <XCircle size={14} /> Inactive
             </span>
           )}
@@ -179,7 +179,7 @@ export default function AdminDeliveryProviders() {
               title={t('common.showFilters')}
               aria-label={t('common.showFilters')}
             >
-              <SlidersHorizontal size={18} />
+              <SlidersHorizontal size={18} className="md:hidden" />
             </button>
           </div>
         </div>
