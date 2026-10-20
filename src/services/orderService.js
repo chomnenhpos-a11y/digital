@@ -62,6 +62,22 @@ export const orderService = {
     }
   },
 
+  updatePaymentStatus: async (id, paymentStatus) => {
+    await orderService.updateOrder(id, { paymentStatus });
+
+    const response = await orderService.getOrder(id);
+    const savedOrder = response?.data?.data ?? response?.data ?? response;
+
+    if (
+      String(savedOrder?.id) !== String(id) ||
+      savedOrder?.paymentStatus !== paymentStatus
+    ) {
+      throw new Error('The payment status could not be confirmed. Refresh the order and try again.');
+    }
+
+    return savedOrder;
+  },
+
   sendTelegramNotification: async (message) => {
     try {
       const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.REACT_APP_TELEGRAM_BOT_TOKEN;

@@ -1,4 +1,5 @@
 import React from "react";
+import { Check } from "lucide-react";
 
 import { useDeliveryProvidersQuery } from "../../../../queries/deliveryProviders/useDeliveryProviderQueries";
 
@@ -17,6 +18,7 @@ export default function OrderFormFields({
   const selectedProviderId = watch
     ? watch("deliveryProviderId")
     : null;
+  const selectedPaymentStatus = watch ? watch("paymentStatus") : null;
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
@@ -200,6 +202,67 @@ export default function OrderFormFields({
           </p>
         )}
       </div>
+
+      <fieldset className="min-w-0">
+        <legend className="mb-2 text-xs font-semibold text-slate-600">
+          {t("common.paymentStatus")}
+        </legend>
+
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { value: "Unpaid", label: t("order.unpaid") },
+            { value: "Paid", label: t("common.paid") },
+          ].map(({ value, label }) => {
+            const isSelected = selectedPaymentStatus === value;
+            const isPaid = value === "Paid";
+
+            return (
+              <label key={value} className="relative min-w-0 cursor-pointer">
+                <input
+                  type="radio"
+                  value={value}
+                  {...register("paymentStatus")}
+                  aria-invalid={!!errors.paymentStatus}
+                  aria-describedby={
+                    errors.paymentStatus ? "payment-status-error" : undefined
+                  }
+                  className="peer sr-only"
+                />
+
+                <span
+                  className={`flex min-h-[72px] flex-col items-center justify-center gap-1 rounded-md border px-3 py-2 text-xs font-semibold text-slate-700 transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-600 ${
+                    isSelected
+                      ? isPaid
+                        ? "border-emerald-400 bg-emerald-50"
+                        : "border-orange-500 bg-orange-50"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                      isSelected
+                        ? isPaid
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-orange-500 bg-orange-500 text-white"
+                        : "border-slate-400 bg-white"
+                    }`}
+                  >
+                    {isSelected && <Check size={14} strokeWidth={3} />}
+                  </span>
+                  {label}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+
+        {errors.paymentStatus && (
+          <p id="payment-status-error" className="mt-1 text-xs text-red-500">
+            {t(errors.paymentStatus.message)}
+          </p>
+        )}
+      </fieldset>
     </div>
   );
 }

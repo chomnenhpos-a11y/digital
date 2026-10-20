@@ -13,6 +13,7 @@ const INITIAL_CUSTOMER = {
   phone: "",
   address: "",
   deliveryFee: "",
+  paymentStatus: "Unpaid",
 };
 
 export default function useSalesForm() {
@@ -301,11 +302,13 @@ export default function useSalesForm() {
     }
 
     let newOrder;
+    let paymentUpdateFailed = false;
 
     try {
       const mutationResponse =
         await createOrderMutation.mutateAsync({
           shop_code: shopCode,
+          paymentStatus: customerInfo.paymentStatus,
           items: cart,
           subtotal,
           delivery:
@@ -347,19 +350,24 @@ export default function useSalesForm() {
         error
       );
 
-      await Swal.fire({
-        icon: "error",
-        title: t("common.failed"),
-        text:
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          error?.message ||
-          t("sales.createOrderError"),
-        confirmButtonColor: "#3b82f6",
-        confirmButtonText: t("common.gotIt"),
-      });
+      if (error.createdOrder?.id) {
+        newOrder = { ...error.createdOrder, shop_code: shopCode };
+        paymentUpdateFailed = true;
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: t("common.failed"),
+          text:
+            error?.response?.data?.message ||
+            error?.response?.data?.error ||
+            error?.message ||
+            t("sales.createOrderError"),
+          confirmButtonColor: "#3b82f6",
+          confirmButtonText: t("common.gotIt"),
+        });
 
-      return null;
+        return null;
+      }
     }
 
     setCart([]);
@@ -369,8 +377,13 @@ export default function useSalesForm() {
     });
 
     await Swal.fire({
-      icon: "success",
-      title: t("sales.orderSuccess"),
+      icon: paymentUpdateFailed ? "warning" : "success",
+      title: t(paymentUpdateFailed ? "sales.orderCreatedPaymentFailed" : "sales.orderSuccess"),
+      ...(paymentUpdateFailed && {
+        text: t("sales.orderCreatedPaymentFailedMessage", {
+          orderNo: newOrder.orderNo || newOrder.orderNumber || newOrder.id,
+        }),
+      }),
       confirmButtonColor: "#3b82f6",
       confirmButtonText: t("common.great"),
       showClass: {

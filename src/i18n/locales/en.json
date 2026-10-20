@@ -511,6 +511,8 @@
     "reviewOrder": "Review Order",
     "items": "Items",
     "createOrderError": "There was an issue creating the order.",
+    "orderCreatedPaymentFailed": "Order created; payment needs attention",
+    "orderCreatedPaymentFailedMessage": "Order {{orderNo}} was created, but its payment status could not be confirmed. Check and update the payment on the Orders page. Do not submit this sale again.",
     "outOfStock": "Out of Stock",
     "stock": "Stock",
     "save": "Save",

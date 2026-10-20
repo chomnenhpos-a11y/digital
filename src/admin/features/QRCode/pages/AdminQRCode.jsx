@@ -7,7 +7,7 @@ import Swal from "../../../../lib/alert";
 import { useTranslation } from "react-i18next";
 
 const DEFAULT_DESIGN = {
-  foreground: "#000000ff",
+  foreground: "#7A1F1F",
   background: "#ffffff",
   moduleStyle: "square",
   finderStyle: "square",

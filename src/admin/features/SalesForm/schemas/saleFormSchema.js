@@ -23,4 +23,7 @@ export const saleFormSchema = z.object({
     .union([z.string(), z.number()])
     .nullable()
     .optional(),
+  paymentStatus: z.enum(["Unpaid", "Paid"], {
+    error: "validation.requiredPaymentStatus",
+  }),
 });

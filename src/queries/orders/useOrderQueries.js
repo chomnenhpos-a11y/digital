@@ -70,15 +70,18 @@ export function useCreateOrderMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    retry: false,
     mutationFn: async ({
       shop_code,
       setting_id,
       delivery_provider_id,
+      paymentStatus,
       items,
       subtotal,
       delivery,
       customerInfo,
     }) => {
+      const requestedPaymentStatus = paymentStatus ?? customerInfo?.paymentStatus;
       const payload = {
         shop_code: shop_code || "",
 
@@ -90,6 +93,9 @@ export function useCreateOrderMutation() {
 
         customerAddress:
           customerInfo?.address || "",
+
+        paymentStatus:
+          requestedPaymentStatus ?? "Unpaid",
 
         deliveryFee:
           Number(delivery) || 0,
@@ -121,14 +127,33 @@ export function useCreateOrderMutation() {
           payload
         );
 
-      return response?.data || response;
+      const createdOrder = response?.data?.data ?? response?.data ?? response;
+
+      if (
+        createdOrder?.id &&
+        requestedPaymentStatus != null &&
+        createdOrder.paymentStatus !== requestedPaymentStatus
+      ) {
+        try {
+          const savedOrder = await orderService.updatePaymentStatus(
+            createdOrder.id,
+            requestedPaymentStatus,
+          );
+
+          return { ...createdOrder, ...savedOrder };
+        } catch (error) {
+          // The order already exists: callers must not retry checkout as a new sale.
+          error.createdOrder = createdOrder;
+          throw error;
+        }
+      }
+
+      return createdOrder;
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: orderKeys.lists(),
-      });
-    },
+    onSettled: () => queryClient.invalidateQueries({
+      queryKey: orderKeys.all,
+    }),
   });
 }
 

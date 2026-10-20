@@ -349,21 +349,6 @@ export default function ProductsForm({ onSubmit, initialData }) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">
-            {t('products.status')}
-          </label>
-          <select
-            {...register("status")}
-            className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
-          >
-            <option value="0">{t('products.activeStatus')}</option>
-            <option value="1">{t('products.inactiveStatus')}</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
           <div className="flex items-center gap-2 mb-1">
             <label className="text-xs font-semibold text-gray-600">
               {t('products.discountLabel')}
@@ -401,6 +386,21 @@ export default function ProductsForm({ onSubmit, initialData }) {
             readOnly
             className="w-full px-3 py-2 text-sm bg-[#fcfafb] text-gray-600 rounded-lg outline-none cursor-not-allowed"
           />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">
+            {t('products.status')}
+          </label>
+          <select
+            {...register("status")}
+            className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
+          >
+            <option value="0">{t('products.activeStatus')}</option>
+            <option value="1">{t('products.inactiveStatus')}</option>
+          </select>
         </div>
       </div>
 
