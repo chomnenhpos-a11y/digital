@@ -168,7 +168,7 @@ export default function AdminSlides() {
         {/* 2. Removed `disabled={isLimitReached}` so onClick can fire and show SweetAlert */}
         <button
           onClick={handleAddClick}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors shadow-sm ${
+          className={`flex w-fit items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors shadow-sm ${
             isLimitReached
               ? "bg-slate-200 text-slate-500 hover:bg-slate-300 cursor-pointer"
               : "bg-[#9d1159] text-white hover:bg-[#9d1159]"

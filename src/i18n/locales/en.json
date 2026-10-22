@@ -171,6 +171,8 @@
       "stockMin": "Stock quantity must be 0 or greater.",
       "priceMin": "Price must be 0 or greater.",
       "discountPriceMin": "Discount price must be 0 or greater.",
+      "discountPercentMin": "Discount percentage must be 0 or greater.",
+      "discountPercentMax": "Discount percentage cannot be greater than 100.",
       "salePriceMin": "Sale price must be 0 or greater.",
       "descriptionRequired": "Product description is required.",
       "discountExceedsPrice": "Discount price cannot be greater than the original price."
@@ -523,6 +525,13 @@
     "outOfStock": "Out of Stock",
     "stock": "Stock",
     "save": "Save",
+    "specialDiscount": "Special discount",
+    "specialDiscountSubtitle": "Extra discount for staff or special customer",
+    "specialDiscountApplied": "Special discount",
+    "apply": "Apply",
+    "removeDiscount": "Remove",
+    "newPrice": "New price",
+    "discountTooLarge": "Discount cannot exceed the price.",
     "orderSuccess": "Order Placed Successfully!🎉"
   },
   "settings": {
@@ -744,7 +753,9 @@
     "categoryLabel": "Category",
     "stockLabel": "Stock",
     "originalPriceLabel": "Sale Price ($)",
-    "discountLabel": "Discount ($)",
+    "discountLabel": "Discount",
+    "discountPercentPlaceholder": "Discount %",
+    "discountEqualLabel": "Equal to",
     "salePriceLabel": "Price after Discount ($)",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Product description...",
@@ -767,6 +778,8 @@
     "supportedImageFormats": "Supports JPG, PNG, WEBP — Max 5MB/image",
     "updateProductBtn": "Update Product",
     "saveProductBtn": "Save Product",
+    "updatingProduct": "Updating...",
+    "savingProduct": "Saving...",
     "selectCategory": "Select Category",
     "searchCategoryPlaceholder": "Search category..."
   },

@@ -216,6 +216,32 @@ test("POS checkout sends the sale to createPOSOrder with the selected statuses a
   assert.equal(http.put.mock.callCount(), 0);
 });
 
+test("POS checkout sends the effective unit price per item", async () => {
+  await createPOSOrderMutation().mutationFn({
+    shop_code: "test-shop",
+    delivery: 0,
+    items: [
+      // discounted by a special staff/customer price
+      { id: 7, quantity: 2, salePrice: 500, specialPrice: 450 },
+      // product sale price without a special discount
+      { id: 8, quantity: 1, salePrice: 100, specialPrice: null },
+      // no price information — the backend prices it itself
+      { id: 9, quantity: 1 },
+    ],
+    customerInfo: { phone: "+85512345678", address: "Phnom Penh" },
+  });
+
+  assert.equal(http.post.mock.callCount(), 1);
+  assert.deepEqual(
+    http.post.mock.calls[0].arguments[1].items,
+    [
+      { productId: 7, quantity: 2, price: 450 },
+      { productId: 8, quantity: 1, price: 100 },
+      { productId: 9, quantity: 1 },
+    ],
+  );
+});
+
 test("POS checkout still saves the requested statuses when creation defaults them", async () => {
   createOverrides = { status: "Pending", paymentStatus: "Unpaid" };
 

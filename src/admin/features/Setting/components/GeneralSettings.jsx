@@ -18,7 +18,6 @@ const TABS = [
     labelKey: "settings.tabShopIdentity",
     labelFallback: "Shop Identity",
     icon: Store,
-    // Fields that belong to this tab (for error routing)
     fields: ["shop_name", "phone", "bio_shop", "address", "logo"],
   },
   {
@@ -115,17 +114,13 @@ const GeneralSettings = () => {
   } = useGeneralSetting();
 
 
-  // errors and handleSubmit come from the shared methods object
   const { errors, isDirty } = methods.formState;
   const handleSubmit = methods.handleSubmit;
 
   const [activeTab, setActiveTab] = useState(0);
-  // Track tabs that had errors after the last submit attempt
   const [errorTabs, setErrorTabs] = useState(new Set());
-  // Trigger focus on first invalid field after tab switch
   const [focusOnMount, setFocusOnMount] = useState(false);
 
-  // After switching to the error tab, focus the first invalid field
   useEffect(() => {
     if (!focusOnMount) return;
     setFocusOnMount(false);

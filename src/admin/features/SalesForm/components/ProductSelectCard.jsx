@@ -2,6 +2,7 @@ import React from "react";
 import { IoGift } from "react-icons/io5";
 import { useTranslation } from "react-i18next";
 import { Image as ImageIcon, } from "lucide-react";
+import Badge from "../../../../client/components/common/Badge";
 export default function ProductSelectCard({ product, onSelect }) {
   const { t } = useTranslation();
 
@@ -15,6 +16,15 @@ export default function ProductSelectCard({ product, onSelect }) {
   const salePrice = Number(product?.salePrice ?? 0);
   const price = Number(product?.price ?? 0);
   const discountPrice = Number(product?.discountPrice ?? 0);
+  const hasDiscount =
+    discountPrice > 0 && price > 0 && salePrice < price;
+  const discountPercentage = hasDiscount
+    ? Math.round((discountPrice / price) * 100)
+    : 0;
+
+  // Hide badges that would read "-0%" — tiny discounts still show as
+  // the "Save $x" row below, just without a meaningless 0% pill.
+  const showDiscountBadge = hasDiscount && discountPercentage > 0;
 
   const handleSelect = () => {
     if (isOutOfStock) {
@@ -33,8 +43,18 @@ export default function ProductSelectCard({ product, onSelect }) {
           : "border-slate-200 hover:shadow-sm hover:border-[#870d4c]/50 cursor-pointer"
       }`}
     >
-      <div>
-        <div className="h-32 -mx-3 -mt-3 mb-2.5 rounded-t-xl overflow-hidden flex items-center justify-center bg-white text-slate-400 font-bold">
+      <div className="overflow-hidden"> 
+        <div className="h-32 -mx-3 -mt-3 mb-2.5 rounded-t-xl overflow-hidden relative flex items-center justify-center bg-white text-slate-400 font-bold">
+          {showDiscountBadge && (
+            <Badge
+              variant="discount"
+              size="sm"
+              className="absolute top-3 left-4 z-10 rounded px-1.5 py-0.5 font-bold shadow-md"
+            >
+              -{discountPercentage}%
+            </Badge>
+          )}
+
           {product?.image ? (
             <img
               src={product.image}

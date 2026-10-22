@@ -29,6 +29,7 @@ export default function AdminProducts() {
     paginatedProducts,
     totalPages,
     isLoading: isProductsLoading,
+    isSubmitting,
     isDeleting,
     deletingProductId,
     setCurrentPage,
@@ -151,7 +152,6 @@ export default function AdminProducts() {
       header: t('products.salesStatus'),
       render: (row) => {
         const isActive = String(row.status) === "0";
-        console.log("row.status", row.status, isActive);
         return (
           <span
             className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
@@ -185,15 +185,6 @@ export default function AdminProducts() {
       align: "right",
       render: (row) => (
         <div className="flex items-center justify-end gap-3">
-          {/* <Link
-            to={`/print/sticker/${row.id}?type=product`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 bg-[#fcfafb] border border-slate-200 rounded-xl text-slate-500 hover:bg-slate-100 hover:border-slate-300 transition-all"
-            title="Print Barcode / Sticker (New Tab)"
-          >
-            <Printer size={18} />
-          </Link> */}
           <button
             onClick={() => handleEdit(row)}
             className="p-2 bg-[#fcfafb] border border-slate-200 rounded-xl text-amber-500 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-600 transition-all"
@@ -239,10 +230,14 @@ export default function AdminProducts() {
     <div className="space-y-6">
       <Modal
         isOpen={isModalOpen}
-        onClose={closeModal}
+        onClose={isSubmitting ? undefined : closeModal}
         title={editingProduct ? t('products.editProduct') : t('products.addProductTitle')}
       >
-        <ProductsForm initialData={editingProduct} onSubmit={handleSubmit} />
+        <ProductsForm
+          initialData={editingProduct}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
       </Modal>
 
 

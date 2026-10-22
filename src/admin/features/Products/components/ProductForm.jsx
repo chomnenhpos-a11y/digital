@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Search,
   RefreshCw,
+  Radio,
 } from "lucide-react";
 
 import { useForm } from "react-hook-form";
@@ -16,16 +17,27 @@ import { productSchema } from "../schemas/productSchema";
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
 import { normalizeProductMedia } from "../../../../utils/productMedia.js";
 import ProductMediaLinks from "./ProductMediaLinks.jsx";
+import {
+  compressImage,
+  compressMultipleImages,
+} from "../../../../utils/imageCompressor";
+import { DotCircleWithLabelDemo } from "../../../components/common/Loading.jsx";
 
-export default function ProductsForm({ onSubmit, initialData }) {
+export default function ProductsForm({
+  onSubmit,
+  initialData,
+  isSubmitting: isSubmittingProp,
+}) {
   const { t } = useTranslation();
   const { data: categories = [] } = useCategoriesQuery();
 
-  const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [discountType, setDiscountType] = useState("amount"); // "amount" | "percent"
   const fileInputRef = useRef(null);
   const replaceInputRef = useRef(null);
   const [replaceIndex, setReplaceIndex] = useState(null);
   const isEditing = !!initialData;
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
 
   const {
     register,
@@ -34,7 +46,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting: formIsSubmitting },
   } = useForm({
     resolver: zodResolver(productSchema),
 
@@ -43,8 +55,9 @@ export default function ProductsForm({ onSubmit, initialData }) {
       categoryId: "",
       stockQuantity: "",
       price: "",
-      status:"0",
+      status: "0",
       discountPrice: "",
+      discountPercent: "",
       salePrice: "",
       description: "",
       images: [],
@@ -55,8 +68,13 @@ export default function ProductsForm({ onSubmit, initialData }) {
   const name = watch("name");
   const price = watch("price");
   const discountPrice = watch("discountPrice");
+  const discountPercent = watch("discountPercent");
   const stockQuantity = watch("stockQuantity");
   const images = watch("images");
+
+  const isSubmitting = Boolean(
+    isSubmittingProp || formIsSubmitting || isSubmittingLocal,
+  );
 
   useEffect(() => {
     if (!initialData) {
@@ -65,16 +83,16 @@ export default function ProductsForm({ onSubmit, initialData }) {
         categoryId: "",
         stockQuantity: "",
         price: "",
-        status:"0",
+        status: "0",
         discountPrice: "",
+        discountPercent: "",
         salePrice: "",
         description: "",
         images: [],
         media: [],
       });
 
-      setDiscountPercentage(0);
-
+      setDiscountType("amount");
       return;
     }
 
@@ -95,6 +113,8 @@ export default function ProductsForm({ onSubmit, initialData }) {
       discountPrice:
         initialData.discountPrice ?? initialData.discount_price ?? 0,
 
+      discountPercent: "",
+
       salePrice: initialData.salePrice ?? initialData.sale_price ?? "",
 
       description: initialData.description || "",
@@ -105,29 +125,70 @@ export default function ProductsForm({ onSubmit, initialData }) {
     });
   }, [initialData, reset]);
 
-  useEffect(() => {
-    const currentPrice = Number(price);
-    const currentDiscount = Number(discountPrice);
+  // Effective discount in $$ amount, from whichever input mode is active
+  const effectiveDiscountAmount = useMemo(() => {
+    const currentPrice = Number(price) || 0;
 
-    if (currentPrice > 0 && currentDiscount > 0) {
-      setDiscountPercentage(
-        Math.min(Math.round((currentDiscount / currentPrice) * 100), 100),
-      );
-    } else {
-      setDiscountPercentage(0);
+    if (discountType === "percent") {
+      const pct = Math.min(Math.max(Number(discountPercent) || 0, 0), 100);
+      return (pct / 100) * currentPrice;
     }
-  }, [price, discountPrice]);
+
+    return Math.max(Number(discountPrice) || 0, 0);
+  }, [discountType, price, discountPrice, discountPercent]);
+
+  // Shown as (%) on the label
+  const discountPercentage = useMemo(() => {
+    const currentPrice = Number(price);
+
+    if (!(currentPrice > 0))
+      return discountType === "percent"
+        ? Math.min(Number(discountPercent) || 0, 100)
+        : 0;
+
+    return Math.min(
+      Math.round((effectiveDiscountAmount / currentPrice) * 100),
+      100,
+    );
+  }, [discountType, price, discountPercent, effectiveDiscountAmount]);
 
   const calculatedSalePrice = useMemo(() => {
     if (price === "") return "";
 
     const currentPrice = Number(price);
-    const currentDiscount = Number(discountPrice) || 0;
 
     if (currentPrice <= 0) return 0;
 
-    return Math.max(0, currentPrice - currentDiscount);
-  }, [price, discountPrice]);
+    return Math.max(0, currentPrice - effectiveDiscountAmount);
+  }, [price, effectiveDiscountAmount]);
+
+  const handleDiscountTypeChange = (type) => {
+    if (type === discountType) return;
+
+    const currentPrice = Number(price) || 0;
+
+    // Convert the current discount so switching modes keeps the sale price
+    if (type === "percent") {
+      const amount = Number(discountPrice) || 0;
+      const pct = currentPrice > 0 ? (amount / currentPrice) * 100 : 0;
+
+      setValue("discountPercent", String(+Math.min(pct, 100).toFixed(2)), {
+        shouldValidate: true,
+      });
+    } else {
+      const pct = Number(discountPercent) || 0;
+
+      setValue(
+        "discountPrice",
+        String(
+          +((Math.min(Math.max(pct, 0), 100) / 100) * currentPrice).toFixed(2),
+        ),
+        { shouldValidate: true },
+      );
+    }
+
+    setDiscountType(type);
+  };
 
   useEffect(() => {
     setValue("salePrice", calculatedSalePrice, {
@@ -135,42 +196,47 @@ export default function ProductsForm({ onSubmit, initialData }) {
     });
   }, [calculatedSalePrice, setValue]);
 
-  const handleImageAdd = (e) => {
+  const handleImageAdd = async (e) => {
     const incomingFiles = Array.from(e.target.files || []);
 
     if (!incomingFiles.length) return;
-
+    // អ្នកអាចទុកការត្រួតពិនិត្យ 5MB នេះ ឬលុបចេញក៏បាន ព្រោះយើងនឹង Compress វា
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
     const validFiles = incomingFiles.filter((file) => {
       if (file.size > MAX_FILE_SIZE) {
         alert(`${file.name} is larger than 5MB`);
         return false;
       }
-
       return true;
     });
-
     if (!validFiles.length) return;
-
-    const currentImages = watch("images") || [];
-
-    const newImages = [
-      ...currentImages,
-      ...validFiles.map((file) => ({
-        id: null,
-        url: URL.createObjectURL(file),
-        file,
-        isNew: true,
-      })),
-    ];
-
-    setValue("images", newImages, {
-      shouldValidate: true,
-    });
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    setIsCompressing(true);
+    try {
+      // ដំណើរការ Compress រូបភាពទាំងអស់ដែលជ្រើសរើស
+      const compressedFiles = await compressMultipleImages(validFiles);
+      const currentImages = watch("images") || [];
+      // ប្រើ compressedFiles ជំនួស validFiles
+      const newImages = [
+        ...currentImages,
+        ...compressedFiles.map((file) => ({
+          id: null,
+          url: URL.createObjectURL(file),
+          file,
+          isNew: true,
+        })),
+      ];
+      setValue("images", newImages, {
+        shouldValidate: true,
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Compression error:", error);
+      alert("មានបញ្ហាក្នុងការបង្រួមទំហំរូបភាព");
+    } finally {
+      // បិទ Loading វិញ
+      setIsCompressing(false);
     }
   };
 
@@ -182,7 +248,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
     }
   };
 
-  const handleImageReplace = (e) => {
+  const handleImageReplace = async (e) => {
     const file = e.target.files?.[0];
     if (!file || replaceIndex === null) return;
 
@@ -191,25 +257,31 @@ export default function ProductsForm({ onSubmit, initialData }) {
       alert(`${file.name} is larger than 5MB`);
       return;
     }
+    setIsCompressing(true);
 
-    const currentImages = [...(watch("images") || [])];
-    const oldImage = currentImages[replaceIndex];
-
-    if (oldImage?.isNew && oldImage?.url) {
-      URL.revokeObjectURL(oldImage.url);
+    try {
+      const compressedFile = await compressImage(file);
+      const currentImages = [...(watch("images") || [])];
+      const oldImage = currentImages[replaceIndex];
+      if (oldImage?.isNew && oldImage?.url) {
+        URL.revokeObjectURL(oldImage.url);
+      }
+      currentImages[replaceIndex] = {
+        id: null,
+        url: URL.createObjectURL(compressedFile),
+        file: compressedFile,
+        isNew: true,
+      };
+      setValue("images", currentImages, {
+        shouldValidate: true,
+      });
+      setReplaceIndex(null);
+    } catch (error) {
+      console.error("Replace compression error:", error);
+      alert("មានបញ្ហាក្នុងការបង្រួមទំហំរូបភាព");
+    } finally {
+      setIsCompressing(false);
     }
-
-    currentImages[replaceIndex] = {
-      id: null,
-      url: URL.createObjectURL(file),
-      file,
-      isNew: true,
-    };
-
-    setValue("images", currentImages, {
-      shouldValidate: true,
-    });
-    setReplaceIndex(null);
   };
 
   const removeImage = (index) => {
@@ -229,6 +301,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
   };
 
   const handleFormSubmit = async (data) => {
+    setIsSubmittingLocal(true);
     try {
       const payload = new FormData();
 
@@ -246,7 +319,18 @@ export default function ProductsForm({ onSubmit, initialData }) {
 
       payload.append("status", String(data.status || "0"));
 
-      payload.append("discount_price", String(data.discountPrice || 0));
+      // Backend always stores the discount as a fixed amount, so convert
+      // a percentage discount back to a $$ value before submitting.
+      const finalDiscountPrice =
+        discountType === "percent"
+          ? +(
+              (Math.min(Math.max(Number(data.discountPercent) || 0, 0), 100) /
+                100) *
+              (Number(data.price) || 0)
+            ).toFixed(2)
+          : Number(data.discountPrice) || 0;
+
+      payload.append("discount_price", String(finalDiscountPrice));
 
       payload.append("salePrice", String(data.salePrice || 0));
 
@@ -267,6 +351,8 @@ export default function ProductsForm({ onSubmit, initialData }) {
       await onSubmit(payload);
     } catch (error) {
       console.error("Failed to prepare product:", error);
+    } finally {
+      setIsSubmittingLocal(false);
     }
   };
 
@@ -277,23 +363,25 @@ export default function ProductsForm({ onSubmit, initialData }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
-            {t('products.productNameLabel')} {!isEditing && "*"}
+            {t("products.productNameLabel")} {!isEditing && "*"}
           </label>
 
           <input
             type="text"
             {...register("name")}
-            placeholder={t('products.productNamePlaceholder')}
+            placeholder={t("products.productNamePlaceholder")}
             className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
           />
 
           {errors.name && (
-            <p className="text-xs text-red-500 mt-1">{t(errors.name.message)}</p>
+            <p className="text-xs text-red-500 mt-1">
+              {t(errors.name.message)}
+            </p>
           )}
         </div>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
-            {t('products.categoryLabel')} {!isEditing && "*"}
+            {t("products.categoryLabel")} {!isEditing && "*"}
           </label>
 
           <SearchableCategorySelect
@@ -317,7 +405,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
-            {t('products.stockLabel')}
+            {t("products.stockLabel")}
           </label>
 
           <input
@@ -325,6 +413,11 @@ export default function ProductsForm({ onSubmit, initialData }) {
             {...register("stockQuantity")}
             min="0"
             placeholder="0"
+            onKeyDown={(e) => {
+              if (["e", "E", "+", "-", "."].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
             className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
           />
 
@@ -336,7 +429,7 @@ export default function ProductsForm({ onSubmit, initialData }) {
         </div>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
-            {t('products.originalPriceLabel')}
+            {t("products.originalPriceLabel")}
           </label>
 
           <input
@@ -345,46 +438,120 @@ export default function ProductsForm({ onSubmit, initialData }) {
             min="0"
             step="0.01"
             placeholder="0.00"
+            onKeyDown={(e) => {
+              if (["e", "E", "+", "-", "."].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
             className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
           />
 
           {errors.price && (
-            <p className="text-xs text-red-500 mt-1">{t(errors.price.message)}</p>
+            <p className="text-xs text-red-500 mt-1">
+              {t(errors.price.message)}
+            </p>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <label className="text-xs font-semibold text-gray-600">
-              {t('products.discountLabel')}
-            </label>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-semibold text-gray-600">
+                {t("products.discountLabel")}
+              </label>
 
-            <span className="text-xs text-red-600">
-              ({discountPercentage}%)
-            </span>
+              {discountPercentage > 0 && (
+                <span className="text-xs text-red-600">
+                  ({discountPercentage}%)
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-0.5 p-0.5 bg-gray-100 rounded-md">
+              <button
+                type="button"
+                onClick={() => handleDiscountTypeChange("percent")}
+                className={`px-2 py-1 text-xs font-semibold rounded transition-colors ${
+                  discountType === "percent"
+                    ? "bg-white text-[#870d4c] shadow-sm"
+                    : "text-gray-500 hover:text-[#870d4c]"
+                }`}
+              >
+                %
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDiscountTypeChange("amount")}
+                className={`px-2 py-1 text-xs font-semibold rounded transition-colors ${
+                  discountType === "amount"
+                    ? "bg-white text-[#870d4c] shadow-sm"
+                    : "text-gray-500 hover:text-[#870d4c]"
+                }`}
+              >
+                $
+              </button>
+            </div>
           </div>
+          <div>
+            {discountType === "percent" ? (
+              <input
+                type="number"
+                {...register("discountPercent")}
+                min="0"
+                max="100"
+                step="0.01"
+                onKeyDown={(e) => {
+                  if (["e", "E", "+", "-"].includes(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder={t(
+                  "products.discountPercentPlaceholder",
+                  "Discount %",
+                )}
+                className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
+              />
+            ) : (
+              <input
+                type="number"
+                {...register("discountPrice")}
+                min="0"
+                step="0.01"
+                onKeyDown={(e) => {
+                  if (["e", "E", "+", "-"].includes(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                placeholder="0.00"
+                className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
+              />
+            )}
 
-          <input
-            type="number"
-            {...register("discountPrice")}
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
-          />
+            {discountType === "percent" && effectiveDiscountAmount > 0 && (
+              <p className="text-[11px] text-gray-500 mt-1">
+                {t("products.discountEqualLabel", "Equal to")} ≈ $
+                {effectiveDiscountAmount.toFixed(2)}
+              </p>
+            )}
 
-          {errors.discountPrice && (
-            <p className="text-xs text-red-500 mt-1">
-              {t(errors.discountPrice.message)}
-            </p>
-          )}
+            {discountType === "percent"
+              ? errors.discountPercent && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {t(errors.discountPercent.message)}
+                  </p>
+                )
+              : errors.discountPrice && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {t(errors.discountPrice.message)}
+                  </p>
+                )}
+          </div>
         </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">
-            {t('products.salePriceLabel')}
+        <div className=" mt-4">
+          <label className="block text-xs font-semibold text-gray-600">
+            {t("products.salePriceLabel")}
           </label>
 
           <input
@@ -394,44 +561,47 @@ export default function ProductsForm({ onSubmit, initialData }) {
             className="w-full px-3 py-2 text-sm bg-[#fcfafb] text-gray-600 rounded-lg outline-none cursor-not-allowed"
           />
         </div>
+
       </div>
-      
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
-            {t('products.status')}
+            {t("products.status")}
           </label>
           <select
             {...register("status")}
             className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
           >
-            <option value="0">{t('products.activeStatus')}</option>
-            <option value="1">{t('products.inactiveStatus')}</option>
+            <option value="0">{t("products.activeStatus")}</option>
+            <option value="1">{t("products.inactiveStatus")}</option>
           </select>
         </div>
       </div>
 
       <div>
         <label className="block text-xs font-semibold text-gray-600 mb-1">
-          {t('products.descriptionLabel')}
+          {t("products.descriptionLabel")}
         </label>
 
         <textarea
           {...register("description")}
           rows="3"
-          placeholder={t('products.descriptionPlaceholder')}
+          placeholder={t("products.descriptionPlaceholder")}
           className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none resize-none focus:ring-2 focus:ring-gray-200"
         />
 
         {errors.description && (
-          <p className="text-xs text-red-500 ">{t(errors.description.message)}</p>
+          <p className="text-xs text-red-500 ">
+            {t(errors.description.message)}
+          </p>
         )}
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="block text-xs font-semibold text-gray-600">
-            {t('products.productImagesLabel')}
+            {t("products.productImagesLabel")}
             {totalImageCount > 0 && (
               <span className="ml-1 text-[#870d4c]">({totalImageCount})</span>
             )}
@@ -456,11 +626,17 @@ export default function ProductsForm({ onSubmit, initialData }) {
           />
 
           <label
-            htmlFor="product-image-upload"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#870d4c]/5 text-[#870d4c] hover:bg-[#870d4c]/10 cursor-pointer transition-colors"
+            htmlFor={
+              isCompressing || isSubmitting ? undefined : "product-image-upload"
+            }
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#870d4c]/5 text-[#870d4c] transition-colors ${
+              isCompressing || isSubmitting
+                ? "opacity-50 cursor-not-allowed pointer-events-none"
+                : "hover:bg-[#870d4c]/10 cursor-pointer"
+            }`}
           >
             <ImagePlus size={14} />
-            {t('products.addImage')}
+            {t("products.addImage")}
           </label>
         </div>
 
@@ -478,25 +654,27 @@ export default function ProductsForm({ onSubmit, initialData }) {
 
                 <button
                   type="button"
+                  disabled={isCompressing || isSubmitting}
                   onClick={() => removeImage(index)}
-                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md hover:bg-red-600 z-10"
-                  title={t('common.deleteImage')}
+                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                  title={t("common.deleteImage")}
                 >
                   <X size={11} strokeWidth={3} />
                 </button>
 
                 <button
                   type="button"
+                  disabled={isCompressing || isSubmitting}
                   onClick={() => handleImageReplaceClick(index)}
-                  className="absolute -top-2 -left-0 w-5 h-5 rounded-full bg-[#870d4c] text-white flex items-center justify-center shadow-md hover:bg-[#9d1159] z-10"
-                  title={t('common.changeImage')}
+                  className="absolute -top-2 -left-0 w-5 h-5 rounded-full bg-[#870d4c] text-white flex items-center justify-center shadow-md hover:bg-[#9d1159] disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                  title={t("common.changeImage")}
                 >
                   <RefreshCw size={11} strokeWidth={3} />
                 </button>
 
                 {image.isNew && (
                   <span className="absolute bottom-1 right-1 text-[9px] bg-green-500 text-white px-1 rounded">
-                    {t('common.new')}
+                    {t("common.new")}
                   </span>
                 )}
               </div>
@@ -509,25 +687,46 @@ export default function ProductsForm({ onSubmit, initialData }) {
           >
             <ImagePlus size={24} />
 
-            <p className="font-medium">{t('products.clickToAddImage')}</p>
+            <p className="font-medium">{t("products.clickToAddImage")}</p>
 
             <p className="mt-1 text-[10px]">
-              {t('products.supportedImageFormats')}
+              {t("products.supportedImageFormats")}
             </p>
           </label>
         )}
       </div>
 
-      <ProductMediaLinks control={control} register={register} errors={errors} />
+      <ProductMediaLinks
+        control={control}
+        register={register}
+        errors={errors}
+      />
 
       <div className="flex justify-end pt-2">
         <button
           type="submit"
-          className="flex items-center gap-2 px-5 py-2 text-sm rounded-lg bg-[#9d1159] text-white hover:bg-[#9d1159] transition"
+          disabled={isCompressing || isSubmitting}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg bg-[#9d1159] text-white hover:bg-[#850b4a] transition disabled:opacity-60 disabled:cursor-not-allowed shadow-sm min-w-[140px]"
         >
-          <Save size={16} />
+          {isSubmitting ? (
+            <DotCircleWithLabelDemo
+              size="sm"
+              label={
+                isEditing
+                  ? t("products.updatingProduct", "Updating...")
+                  : t("products.savingProduct", "Saving...")
+              }
+              className="flex-row gap-2"
+            />
+          ) : (
+            <>
+              <Save size={16} />
 
-          {isEditing ? t('products.updateProductBtn') : t('products.saveProductBtn')}
+              {isEditing
+                ? t("products.updateProductBtn")
+                : t("products.saveProductBtn")}
+            </>
+          )}
         </button>
       </div>
     </form>
@@ -579,7 +778,9 @@ function SearchableCategorySelect({ categories, value, onChange }) {
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className={selectedCategory ? "text-gray-900" : "text-gray-500"}>
-          {selectedCategory ? selectedCategory.name : t('products.selectCategory')}
+          {selectedCategory
+            ? selectedCategory.name
+            : t("products.selectCategory")}
         </span>
 
         <ChevronDown
@@ -601,7 +802,7 @@ function SearchableCategorySelect({ categories, value, onChange }) {
             <input
               type="text"
               className="w-full pl-8 pr-3 py-1.5 text-sm bg-[#fcfafb] rounded-md outline-none"
-              placeholder={t('products.searchCategoryPlaceholder')}
+              placeholder={t("products.searchCategoryPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onClick={(e) => e.stopPropagation()}
@@ -614,7 +815,7 @@ function SearchableCategorySelect({ categories, value, onChange }) {
               className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50"
               onClick={() => handleSelect("")}
             >
-              {t('products.selectCategory')}
+              {t("products.selectCategory")}
             </div>
 
             {filteredCategories.length > 0 ? (
@@ -633,7 +834,7 @@ function SearchableCategorySelect({ categories, value, onChange }) {
               ))
             ) : (
               <div className="px-3 py-4 text-sm text-gray-500 text-center">
-                {t('common.noResultsFor')} "{search}"
+                {t("common.noResultsFor")} "{search}"
               </div>
             )}
           </div>

@@ -105,6 +105,11 @@ export default function DeliveryProviderForm({ onSubmit, initialData }) {
             type="number"
             step="0.01"
             {...register("shipping_fee")}
+             onKeyDown={(e) => {
+              if (["e", "E", "+", "-", "."].includes(e.key)) {
+                e.preventDefault();
+              }
+            }}
             placeholder="2.50"
             className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
           />

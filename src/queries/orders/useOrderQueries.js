@@ -126,14 +126,30 @@ function useOrderCreationMutation(createOrder) {
           null,
 
         items: (items || []).map(
-          (item) => ({
-            productId: Number(
-              item.productId || item.id
-            ),
-            quantity: Number(
-              item.quantity
-            ),
-          })
+          (item) => {
+            const basePrice =
+              Number(item?.salePrice ?? item?.price ?? 0) || 0;
+
+            return {
+              productId: Number(
+                item.productId || item.id
+              ),
+              quantity: Number(
+                item.quantity
+              ),
+
+              // Send the exact unit price shown in the cart (product sale
+              // price, minus any special staff/customer discount) so the
+              // backend total matches the UI. Only when the price is known —
+              // otherwise let the backend price the item itself.
+              ...(basePrice > 0 && {
+                price:
+                  item.specialPrice != null
+                    ? Number(item.specialPrice) || 0
+                    : basePrice,
+              }),
+            };
+          }
         ),
       };
 

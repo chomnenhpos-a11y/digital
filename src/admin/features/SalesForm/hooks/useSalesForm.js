@@ -189,6 +189,45 @@ export default function useSalesForm() {
     );
   };
 
+  const handleSetSpecialDiscount = (id, specialDiscount) => {
+    setCart((previousCart) =>
+      previousCart.map((item) => {
+        if (Number(item.id) !== Number(id)) {
+          return item;
+        }
+
+        const basePrice =
+          Number(item?.salePrice ?? item?.price ?? 0) || 0;
+
+        if (!specialDiscount) {
+          return {
+            ...item,
+            specialDiscount: null,
+            specialPrice: null,
+          };
+        }
+
+        const type =
+          specialDiscount.type === "amount" ? "amount" : "percent";
+
+        const rawValue = Math.max(0, Number(specialDiscount.value) || 0);
+        const value =
+          type === "percent"
+            ? Math.min(rawValue, 100)
+            : Math.min(rawValue, basePrice);
+
+        const amount =
+          type === "percent" ? (value / 100) * basePrice : value;
+
+        return {
+          ...item,
+          specialDiscount: { type, value },
+          specialPrice: +Math.max(0, basePrice - amount).toFixed(2),
+        };
+      })
+    );
+  };
+
   const handleRemoveItem = (id) => {
     setCart((previousCart) =>
       previousCart.filter(
@@ -199,11 +238,13 @@ export default function useSalesForm() {
 
   const subtotal = useMemo(() => {
     return cart.reduce((total, item) => {
-      const price = Number(
-        item?.salePrice ??
-        item?.price ??
-        0
-      );
+      const basePrice =
+        Number(item?.salePrice ?? item?.price ?? 0) || 0;
+
+      const price =
+        item.specialPrice != null
+          ? Number(item.specialPrice) || 0
+          : basePrice;
 
       const quantity =
         Number(item?.quantity) || 0;
@@ -218,6 +259,11 @@ export default function useSalesForm() {
       .toLowerCase();
 
     return products.filter((product) => {
+      // Hide products marked inactive (status === 1) — they are not sellable
+      if (String(product?.status) === "1") {
+        return false;
+      }
+
       const productName = String(
         product?.name || ""
       ).toLowerCase();
@@ -410,6 +456,7 @@ export default function useSalesForm() {
     handleAddToCart,
     handleUpdateQuantity,
     handleRemoveItem,
+    handleSetSpecialDiscount,
 
     handleCheckout,
 

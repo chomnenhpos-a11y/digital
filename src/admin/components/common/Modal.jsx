@@ -2,7 +2,13 @@ import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-export default function Modal({ isOpen, onClose, title, children }) {
+export default function Modal({ isOpen, onClose, title, children, size = "md" }) {
+  const maxWidths = {
+    sm: "max-w-sm",
+    md: "max-w-2xl",
+    lg: "max-w-4xl",
+  };
+
   const [mounted, setMounted] = useState(isOpen);
   const [active, setActive] = useState(false);
 
@@ -67,7 +73,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
           rounded-2xl
           shadow-2xl
           w-full
-          max-w-2xl
+          ${maxWidths[size]}
           max-h-[88vh]
           overflow-hidden
           flex flex-col

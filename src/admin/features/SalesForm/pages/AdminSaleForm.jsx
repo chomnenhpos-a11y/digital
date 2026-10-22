@@ -35,6 +35,7 @@ export default function AdminSaleForm() {
     handleAddToCart,
     handleUpdateQuantity,
     handleRemoveItem,
+    handleSetSpecialDiscount,
     handleCheckout,
     subtotal,
     INITIAL_CUSTOMER,
@@ -254,6 +255,7 @@ export default function AdminSaleForm() {
               cart={cart}
               onUpdateQuantity={handleUpdateQuantity}
               onRemoveItem={handleRemoveItem}
+              onSetSpecialDiscount={handleSetSpecialDiscount}
             />
           </div>
 

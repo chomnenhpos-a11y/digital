@@ -186,10 +186,15 @@ export function useProducts({ shopCode } = {}) {
     ? Math.round(((editingProduct.oldPrice - editingProduct.price) / editingProduct.oldPrice) * 100)
     : 0
 
+  const isSubmitting = createMutation.isPending || updateMutation.isPending
+
   return {
     // state
     products,
     isLoading,
+    isSubmitting,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
     search,
     filters,
     sortOrder,

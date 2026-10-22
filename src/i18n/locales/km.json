@@ -171,6 +171,8 @@
       "stockMin": "ចំនួនស្តុកត្រូវតែមាន 0 ឬច្រើនជាងនេះ។",
       "priceMin": "តម្លៃត្រូវតែមាន 0 ឬច្រើនជាងនេះ។",
       "discountPriceMin": "តម្លៃបញ្ចុះត្រូវតែមាន 0 ឬច្រើនជាងនេះ។",
+      "discountPercentMin": "ភាគរយបញ្ចុះត្រូវតែមាន 0 ឬច្រើនជាងនេះ។",
+      "discountPercentMax": "ភាគរយបញ្ចុះមិនអាចធំជាង 100 បានទេ។",
       "salePriceMin": "តម្លៃលក់ត្រូវតែមាន 0 ឬច្រើនជាងនេះ។",
       "descriptionRequired": "សូមបញ្ចូលការពិពណ៌នាផលិតផល។",
       "discountExceedsPrice": "តម្លៃបញ្ចុះមិនអាចធំជាងតម្លៃដើមបានទេ។"
@@ -523,6 +525,13 @@
     "outOfStock": "អស់ពីស្តុក",
     "stock": "ស្តុក",
     "save": "សន្សំ",
+    "specialDiscount": "បញ្ចុះតម្លៃពិសេស",
+    "specialDiscountSubtitle": "បញ្ចុះបន្ថែមសម្រាប់បុគ្គលិក ឬអតិថិជនពិសេស",
+    "specialDiscountApplied": "បញ្ចុះតម្លៃពិសេស",
+    "apply": "អនុវត្ត",
+    "removeDiscount": "លុបចេញ",
+    "newPrice": "តម្លៃថ្មី",
+    "discountTooLarge": "ការបញ្ចុះមិនអាចធំជាងតម្លៃបានទេ។",
     "orderSuccess": "បង្កើតការបញ្ជាទិញជោគជ័យ!🎉"
   },
   "settings": {
@@ -745,7 +754,9 @@
     "categoryLabel": "ប្រភេទ",
     "stockLabel": "ស្តុក",
     "originalPriceLabel": "តម្លៃលក់ ($)",
-    "discountLabel": "បញ្ចុះតម្លៃ ($)",
+    "discountLabel": "បញ្ចុះតម្លៃ",
+    "discountPercentPlaceholder": "បញ្ចុះ (%)",
+    "discountEqualLabel": "ស្មើនឹង",
     "salePriceLabel": "តម្លៃលក់ក្រោយពីការបញ្ចុះ ($)",
     "descriptionLabel": "ការពិពណ៌នា",
     "descriptionPlaceholder": "ការពិពណ៌នាផលិតផល...",
@@ -768,6 +779,8 @@
     "supportedImageFormats": "គាំទ្រ JPG, PNG, WEBP — Max 5MB/image",
     "updateProductBtn": "ធ្វើបច្ចុប្បន្នភាពផលិតផល",
     "saveProductBtn": "រក្សាទុកផលិតផល",
+    "updatingProduct": "កំពុងធ្វើបច្ចុប្បន្នភាព...",
+    "savingProduct": "កំពុងរក្សាទុក...",
     "selectCategory": "ជ្រើសរើសប្រភេទ",
     "searchCategoryPlaceholder": "ស្វែងរកប្រភេទ..."
   },

@@ -38,6 +38,16 @@ export const productSchema = z.object({
       message: "validation.product.discountPriceMin",
     }),
 
+  discountPercent: z.coerce
+    .number()
+    .min(0, {
+      message: "validation.product.discountPercentMin",
+    })
+    .max(100, {
+      message: "validation.product.discountPercentMax",
+    })
+    .optional(),
+
   salePrice: z.coerce
     .number()
     .min(0, {
