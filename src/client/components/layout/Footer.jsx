@@ -162,9 +162,28 @@ export default function Footer() {
 
       <div className="border-t border-slate-200 pt-4 pb-2">
         <Container className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4 text-center sm:text-left">
-          <p>
-            {t('footer.copyright', { year: new Date().getFullYear() })} {" "}
-            <span className="font-medium text-slate-700">CHOMNENH DIGITAL</span>
+          <p className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1.5">
+            <span>
+              {t('footer.copyright', { year: new Date().getFullYear() })}
+            </span>
+            <a
+              href="https://www.facebook.com/share/1CcNFUiYWy/?mibextid=wwXIfr"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Chomnenh Digital"
+              title="Chomnenh Digital"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 py-1 pl-1 pr-2.5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-white hover:shadow"
+            >
+              <img
+                src="/images/chomnenh.png"
+                alt="Chomnenh Digital logo"
+                loading="lazy"
+                className="w-[18px] h-[18px] rounded-[5px] object-cover shadow-[0_0_0_1px_rgba(15,23,42,0.06)]"
+              />
+              <span className="text-[11px] font-bold tracking-tight text-blue-700">
+                Chomnenh <span className="text-[#eab308]">Digital</span>
+              </span>
+            </a>
           </p>
           <div className="flex gap-6">
             <a href="https://www.facebook.com/share/1CcNFUiYWy/?mibextid=wwXIfr" className="hover:text-black transition-colors">
