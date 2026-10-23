@@ -876,7 +876,8 @@
     "termsOfService": "Terms of Service",
     "contact": "Contact",
     "phnomPenh": "Phnom Penh, Cambodia",
-    "copyright": "© {{year}} All Rights Reserved. Developed by",
+    "copyright": "© {{year}} All Rights Reserved.",
+    "developedBy": "Developed by",
     "privacy": "Privacy",
     "terms": "Terms"
   },
