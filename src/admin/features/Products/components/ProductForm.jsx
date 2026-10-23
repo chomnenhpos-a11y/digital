@@ -139,27 +139,28 @@ export default function ProductsForm({
 
   // Shown as (%) on the label
   const discountPercentage = useMemo(() => {
-    const currentPrice = Number(price);
+    const currentPrice = Number(price) || 0;
 
-    if (!(currentPrice > 0))
+    if (currentPrice <= 0) {
       return discountType === "percent"
-        ? Math.min(Number(discountPercent) || 0, 100)
+        ? Math.min(Math.max(Number(discountPercent) || 0, 0), 100)
         : 0;
+    }
 
     return Math.min(
-      Math.round((effectiveDiscountAmount / currentPrice) * 100),
+      Math.max((effectiveDiscountAmount / currentPrice) * 100, 0),
       100,
-    );
+    ).toFixed(2);
   }, [discountType, price, discountPercent, effectiveDiscountAmount]);
 
   const calculatedSalePrice = useMemo(() => {
     if (price === "") return "";
-
     const currentPrice = Number(price);
-
-    if (currentPrice <= 0) return 0;
-
-    return Math.max(0, currentPrice - effectiveDiscountAmount);
+    if (currentPrice <= 0) return "0.00";
+    return Math.max(
+      0,
+      currentPrice - effectiveDiscountAmount,
+    ).toFixed(2);
   }, [price, effectiveDiscountAmount]);
 
   const handleDiscountTypeChange = (type) => {
@@ -278,7 +279,6 @@ export default function ProductsForm({
       setReplaceIndex(null);
     } catch (error) {
       console.error("Replace compression error:", error);
-      alert("មានបញ្ហាក្នុងការបង្រួមទំហំរូបភាព");
     } finally {
       setIsCompressing(false);
     }

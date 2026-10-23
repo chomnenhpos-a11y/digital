@@ -18,8 +18,7 @@ export default function ProductSelectCard({ product, onSelect }) {
   const discountPrice = Number(product?.discountPrice ?? 0);
   const hasDiscount =
     discountPrice > 0 && price > 0 && salePrice < price;
-  const discountPercentage = hasDiscount
-    ? Math.round((discountPrice / price) * 100)
+  const discountPercentage = hasDiscount ? ((price - salePrice) / price * 100)
     : 0;
 
   // Hide badges that would read "-0%" — tiny discounts still show as
@@ -51,7 +50,7 @@ export default function ProductSelectCard({ product, onSelect }) {
               size="sm"
               className="absolute top-3 left-4 z-10 rounded px-1.5 py-0.5 font-bold shadow-md"
             >
-              -{discountPercentage}%
+              - {discountPercentage.toFixed(2)}%
             </Badge>
           )}
 

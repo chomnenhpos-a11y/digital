@@ -200,12 +200,9 @@ export default function ProductDetail() {
   const originalPrice =
     numSalePrice > 0 && numPrice > numSalePrice ? numPrice : null;
 
-  const discountPercent = Number(
-    discount ||
-      (originalPrice
-        ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
-        : 0),
-  );
+  const discountPercent = originalPrice > 0
+        ? (((originalPrice - displayPrice) / originalPrice) * 100)
+        .toFixed(2):null;
 
   const savingsAmount = originalPrice
     ? originalPrice - displayPrice

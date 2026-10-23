@@ -54,10 +54,11 @@ export default function ProductCard({ product = {}, index = 0 }) {
   const originalPrice =
     numSalePrice > 0 && numPrice > numSalePrice ? numPrice : null;
 
-  const discountPricePercent = originalPrice
-    ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
-    : null;
-
+  const discountPricePercent =
+    originalPrice > 0
+      ? (((originalPrice - displayPrice) / originalPrice) * 100).toFixed(2)
+      : null;
+      
   const savingsAmount = originalPrice
     ? originalPrice - displayPrice
     : cashback || 0;
