@@ -27,17 +27,15 @@ const ALL_PRODUCTS_ID = "ALL_PRODUCTS";
 const ALL_CATEGORIES_ID = "ALL_CATEGORIES";
 
 function BrowseOtherCategories({ categories, activeCategory, onSelect, t }) {
-  if (categories.length === 0) return null;
-
   return (
     <nav
       aria-label={t("home.browseOtherCategories")}
-      className="rounded-xl border border-slate-200 bg-slate-50/70 p-2.5"
+      className="rounded-xl border border-slate-200 bg-slate-50/70 p-2"
     >
       <h3 className="mb-1.5 text-xs font-semibold text-slate-700">
         {t("home.browseOtherCategories")}
       </h3>
-      <div className="flex flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain pb-1 no-scrollbar scroll-smooth">
+      <div className="flex flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain  no-scrollbar scroll-smooth">
         <button
           type="button"
           aria-pressed={activeCategory === ALL_PRODUCTS_ID}
@@ -164,6 +162,23 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
     shop_code,
   });
 
+  const [viewedCategories, setViewedCategories] = useState(() => new Set());
+  const markCategoryViewed = useCallback((categoryId) => {
+    if (categoryId === ALL_PRODUCTS_ID) return;
+    const normalizedId = String(categoryId);
+    setViewedCategories((current) => {
+      if (current.has(normalizedId)) return current;
+      return new Set(current).add(normalizedId);
+    });
+  }, []);
+  const unviewedCategories = useMemo(
+    () =>
+      categories.filter(
+        (category) => !viewedCategories.has(String(category.id))
+      ),
+    [categories, viewedCategories]
+  );
+
   const {
     searchItem = "",
     priceRange = "all",
@@ -254,6 +269,9 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
       : tabsDesktop.find((item) => String(item.id) === String(tab))?.id ?? tab;
 
     setDesktopActiveTab(selectedTab);
+    if (selectedTab !== ALL_CATEGORIES_ID) {
+      markCategoryViewed(selectedTab);
+    }
 
     if (selectedTab === ALL_CATEGORIES_ID) {
       setTimeout(() => {
@@ -423,6 +441,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
   const handleMobileTabChange = useCallback(
     (tabId) => {
       setMobileActiveTab(tabId);
+      markCategoryViewed(tabId);
       isManualScrolling.current = true;
       if (scrollEndTimer.current) clearTimeout(scrollEndTimer.current);
 
@@ -465,7 +484,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
         isManualScrolling.current = false;
       }, 850);
     },
-    [totalStickyOffset, allProductsRef]
+    [totalStickyOffset, allProductsRef, markCategoryViewed]
   );
 
   // Scrollspy on mobile: IntersectionObserver detects currently visible category section
@@ -490,6 +509,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
         if (allRect.top > totalStickyOffset + 35) {
           if (categories.length > 0) {
             setMobileActiveTab(String(categories[0].id));
+            markCategoryViewed(categories[0].id);
             return;
           }
         }
@@ -511,6 +531,9 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
         if (renderedCategories.length > 0) {
           setMobileActiveTab(
             String(renderedCategories[renderedCategories.length - 1].id)
+          );
+          markCategoryViewed(
+            renderedCategories[renderedCategories.length - 1].id
           );
           return;
         }
@@ -536,12 +559,14 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
 
         if (activeSection) {
           setMobileActiveTab(activeSection.catId);
+          markCategoryViewed(activeSection.catId);
         } else {
           intersecting.sort(
             (a, b) =>
               Math.abs(a.top - readingLine) - Math.abs(b.top - readingLine)
           );
           setMobileActiveTab(intersecting[0].catId);
+          markCategoryViewed(intersecting[0].catId);
         }
       }
     };
@@ -564,6 +589,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
         if (allRect.top > totalStickyOffset + 35) {
           if (categories.length > 0) {
             setMobileActiveTab(String(categories[0].id));
+            markCategoryViewed(categories[0].id);
             return;
           }
         }
@@ -583,6 +609,9 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
           if (renderedCategories.length > 0) {
             setMobileActiveTab(
               String(renderedCategories[renderedCategories.length - 1].id)
+            );
+            markCategoryViewed(
+              renderedCategories[renderedCategories.length - 1].id
             );
           }
         }
@@ -604,6 +633,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
     totalStickyOffset,
     allProductsRef,
     isDesktop,
+    markCategoryViewed,
   ]);
 
   // Keep the desktop category chips in sync with the section at the reading line.
@@ -654,6 +684,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
             : closest
         );
 
+      markCategoryViewed(activeSection.category.id);
       setDesktopActiveTab((current) =>
         String(current) === String(activeSection.category.id)
           ? current
@@ -673,7 +704,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
     updateActiveCategory();
 
     return () => observer.disconnect();
-  }, [categories, isDesktop, isProductLoading]);
+  }, [categories, isDesktop, isProductLoading, markCategoryViewed]);
 
   if (isDesktop) {
     return (
@@ -783,7 +814,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
                       )}
 
                       <BrowseOtherCategories
-                        categories={categories}
+                        categories={unviewedCategories}
                         activeCategory={String(desktopActiveTab)}
                         onSelect={handleDesktopTabChange}
                         t={t}
@@ -844,7 +875,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
                     </div>
                   )}
                   <BrowseOtherCategories
-                    categories={categories}
+                    categories={unviewedCategories}
                     activeCategory={String(desktopActiveTab)}
                     onSelect={handleDesktopTabChange}
                     t={t}
@@ -967,7 +998,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
                   )}
 
                   <BrowseOtherCategories
-                    categories={categories}
+                    categories={unviewedCategories}
                     activeCategory={mobileActiveTab}
                     onSelect={handleMobileTabChange}
                     t={t}
