@@ -884,6 +884,7 @@
   "home": {
     "all": "All",
     "searchByCategory": "Search products by category",
+    "browseOtherCategories": "Browse Other Categories",
     "bestSelling": "Best Selling Products",
     "newArrivals": "New Arrivals",
     "categoryProducts": "Category: {{category}}",

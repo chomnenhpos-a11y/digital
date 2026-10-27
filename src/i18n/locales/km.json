@@ -885,6 +885,7 @@
   "home": {
     "all": "ទាំងអស់",
     "searchByCategory": "ស្វែងរកទំនិញតាមប្រភេទ",
+    "browseOtherCategories": "រកមើលប្រភេទទំនិញផ្សេងទៀត",
     "bestSelling": "ទំនិញលក់ដាច់បំផុត",
     "newArrivals": "ទំនិញពេញថ្មី",
     "categoryProducts": "ទំនិញប្រភេទ: {{category}}",

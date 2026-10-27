@@ -21,11 +21,103 @@ import { useProductsQuery } from "../../../../queries/products/useProductQueries
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
 import { useTranslation } from "react-i18next";
 
-const PAGE_SIZE = 8;
 // Mobile "All Products" section: show 2 rows (4 cards on a 2-col grid) by default
 const MOBILE_PAGE_SIZE = 4;
 const ALL_PRODUCTS_ID = "ALL_PRODUCTS";
 const ALL_CATEGORIES_ID = "ALL_CATEGORIES";
+
+function BrowseOtherCategories({ categories, activeCategory, onSelect, t }) {
+  if (categories.length === 0) return null;
+
+  return (
+    <nav
+      aria-label={t("home.browseOtherCategories")}
+      className="rounded-xl border border-slate-200 bg-slate-50/70 p-2.5"
+    >
+      <h3 className="mb-1.5 text-xs font-semibold text-slate-700">
+        {t("home.browseOtherCategories")}
+      </h3>
+      <div className="flex flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain pb-1 no-scrollbar scroll-smooth">
+        <button
+          type="button"
+          aria-pressed={activeCategory === ALL_PRODUCTS_ID}
+          onClick={() => onSelect(ALL_PRODUCTS_ID)}
+          className={`group inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border py-1 pl-1 pr-3 text-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 ${
+            activeCategory === ALL_PRODUCTS_ID
+              ? "border-red-900 bg-red-900 text-white shadow-md shadow-red-900/20"
+              : "border-red-100 bg-red-50/70 text-slate-700 hover:border-red-200 hover:bg-red-100 hover:text-red-950"
+          }`}
+        >
+          <span
+            className={`relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border ${
+              activeCategory === ALL_PRODUCTS_ID
+                ? "border-white/20 bg-white/20"
+                : "border-slate-200 bg-white"
+            }`}
+          >
+            <Icon
+              icon="mdi:view-grid-outline"
+              className={
+                activeCategory === ALL_PRODUCTS_ID
+                  ? "text-white"
+                  : "text-red-900"
+              }
+              height="1.1em"
+              aria-hidden="true"
+            />
+          </span>
+          <span>{t("home.allProducts", "All Products")}</span>
+        </button>
+
+        {categories.map((category) => {
+          const categoryId = String(category.id);
+          const isActive = categoryId === activeCategory;
+
+          return (
+            <button
+              key={categoryId}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => onSelect(categoryId)}
+              className={`group inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border py-1 pl-1 pr-3 text-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 ${
+                isActive
+                  ? "border-red-900 bg-red-900 text-white shadow-md shadow-red-900/20"
+                  : "border-red-100 bg-red-50/70 text-slate-700 hover:border-red-200 hover:bg-red-100 hover:text-red-950"
+              }`}
+            >
+              <span
+                className={`relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border ${
+                  isActive
+                    ? "border-white/20 bg-white/20"
+                    : "border-slate-200 bg-white"
+                }`}
+              >
+                <Icon
+                  icon="mdi:tag-outline"
+                  className={isActive ? "text-white" : "text-red-900"}
+                  height="1.1em"
+                  aria-hidden="true"
+                />
+                {category.image ? (
+                  <img
+                    src={category.image}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 z-10 h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : null}
+              </span>
+              <span className="max-w-40 truncate">{category.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
 
 /**
  * Custom hook to detect if screen is desktop (>= 768px, Tailwind md: breakpoint)
@@ -109,12 +201,10 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
    * - FilterTabs under "Search by Category" (non-sticky)
    * - Categories first, All Products at the last
    * - Clicking category tab filters the single product list
-   * - Pagination with PAGE_SIZE = 8 and Load More bouncy button
+   * - Products grouped into category sections
    * ======================================================================= */
   const [desktopActiveTab, setDesktopActiveTab] = useState(ALL_CATEGORIES_ID);
-  const [visibleCountDesktop, setVisibleCountDesktop] = useState(PAGE_SIZE);
-
-  const isCategoryFilteredDesktop = desktopActiveTab !== ALL_CATEGORIES_ID;
+  const [visibleCountByCategory, setVisibleCountByCategory] = useState({});
 
   // Categories first, All Products at the last
   const tabsDesktop = useMemo(() => {
@@ -140,12 +230,6 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
 
     return productsWithBadges
       .filter((product) => {
-        if (desktopActiveTab === ALL_CATEGORIES_ID) {
-          return true;
-        }
-        return Number(product.categoryId) === Number(desktopActiveTab);
-      })
-      .filter((product) => {
         const query = searchItem.trim().toLowerCase();
         if (!query) return true;
         return (
@@ -157,31 +241,21 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
       .filter((product) =>
         matchPriceRange(product.salePrice ?? product.price ?? 0)
       );
-  }, [productsWithBadges, desktopActiveTab, searchItem, matchPriceRange]);
-
-  const visibleProductsDesktop = useMemo(() => {
-    return filteredProductsDesktop.slice(0, visibleCountDesktop);
-  }, [filteredProductsDesktop, visibleCountDesktop]);
+  }, [productsWithBadges, searchItem, matchPriceRange]);
 
   useEffect(() => {
-    setVisibleCountDesktop(PAGE_SIZE);
     setVisibleCountMobile(MOBILE_PAGE_SIZE);
-  }, [desktopActiveTab, searchItem, priceRange]);
-
-  const hasMoreProductsDesktop =
-    visibleCountDesktop < filteredProductsDesktop.length;
-
-  const handleLoadMoreDesktop = () => {
-    setVisibleCountDesktop((prev) =>
-      Math.min(prev + PAGE_SIZE, filteredProductsDesktop.length)
-    );
-  };
+    setVisibleCountByCategory({});
+  }, [searchItem, priceRange]);
 
   const handleDesktopTabChange = (tab) => {
-    setDesktopActiveTab(tab);
-    setVisibleCountDesktop(PAGE_SIZE);
+    const selectedTab = tab === ALL_CATEGORIES_ID
+      ? tab
+      : tabsDesktop.find((item) => String(item.id) === String(tab))?.id ?? tab;
 
-    if (tab === ALL_CATEGORIES_ID) {
+    setDesktopActiveTab(selectedTab);
+
+    if (selectedTab === ALL_CATEGORIES_ID) {
       setTimeout(() => {
         if (!allProductsRef?.current) return;
         const headerOffset = 100;
@@ -189,6 +263,17 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
           allProductsRef.current.getBoundingClientRect().top;
         window.scrollTo({
           top: elementPosition + window.pageYOffset - headerOffset,
+          behavior: "smooth",
+        });
+      }, 50);
+    } else {
+      setTimeout(() => {
+        const target = sectionRefs.current.get(String(selectedTab));
+        if (!target) return;
+        const targetPosition =
+          target.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({
+          top: Math.max(0, targetPosition - 100),
           behavior: "smooth",
         });
       }, 50);
@@ -333,27 +418,6 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
 
     return map;
   }, [categories, filteredProductsMobile]);
-
-  // Mobile Category Navigation Tabs: Categories first, All Products at the LAST
-  const tabsMobile = useMemo(() => {
-    const list = categories.map((category) => {
-      return {
-        id: String(category.id),
-        name: category.name,
-        image: category.image || null,
-      };
-    });
-    // Place All Products at the LAST
-    list.unshift({
-      id: ALL_PRODUCTS_ID,
-      name: t("home.allProducts", "All Products"),
-      image: null,
-      isAll: true,
-    });
-
-
-    return list;
-  }, [categories, filteredProductsMobile.length, productsByCategory, t]);
 
   // Smooth scroll to category section when tab is clicked on mobile
   const handleMobileTabChange = useCallback(
@@ -541,10 +605,80 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
     allProductsRef,
     isDesktop,
   ]);
+
+  // Keep the desktop category chips in sync with the section at the reading line.
+  useEffect(() => {
+    if (
+      !isDesktop ||
+      isProductLoading ||
+      typeof IntersectionObserver === "undefined"
+    ) {
+      return;
+    }
+
+    const updateActiveCategory = () => {
+      const readingLine = 120;
+      const allProductsSection = sectionRefs.current.get(ALL_PRODUCTS_ID);
+      const allProductsRect = allProductsSection?.getBoundingClientRect();
+
+      if (
+        allProductsRect &&
+        allProductsRect.top <= readingLine &&
+        allProductsRect.bottom > readingLine
+      ) {
+        setDesktopActiveTab(ALL_PRODUCTS_ID);
+        return;
+      }
+
+      const categorySections = categories
+        .map((category) => ({
+          category,
+          element: sectionRefs.current.get(String(category.id)),
+        }))
+        .filter(({ element }) => element)
+        .map(({ category, element }) => ({
+          category,
+          rect: element.getBoundingClientRect(),
+        }));
+
+      if (categorySections.length === 0) return;
+
+      const activeSection =
+        categorySections.find(
+          ({ rect }) => rect.top <= readingLine && rect.bottom > readingLine
+        ) ||
+        categorySections.reduce((closest, candidate) =>
+          Math.abs(candidate.rect.top - readingLine) <
+          Math.abs(closest.rect.top - readingLine)
+            ? candidate
+            : closest
+        );
+
+      setDesktopActiveTab((current) =>
+        String(current) === String(activeSection.category.id)
+          ? current
+          : activeSection.category.id
+      );
+    };
+
+    const observer = new IntersectionObserver(updateActiveCategory, {
+      root: null,
+      rootMargin: "-120px 0px -65% 0px",
+      threshold: [0, 0.1],
+    });
+
+    sectionRefs.current.forEach((element) => {
+      if (element) observer.observe(element);
+    });
+    updateActiveCategory();
+
+    return () => observer.disconnect();
+  }, [categories, isDesktop, isProductLoading]);
+
   if (isDesktop) {
     return (
       <div className="space-y-5">
-        <div>
+        {/* <div>
           <h2 className="flex items-center gap-2 text-xl mt-3 md:mt-0 font-bold text-slate-800 leading-khmer">
             <Icon
               icon="arcticons:circle-search"
@@ -566,62 +700,158 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
               onChange={handleDesktopTabChange}
             />
           )}
-        </div>
-
+        </div> */}
         <section ref={allProductsRef} className="scroll-mt-24">
-          <SectionHeader
-            icon="ant-design:product-outlined"
-            iconHeight="1.5em"
-            title={
-              isCategoryFilteredDesktop
-                ? t("home.categoryProducts", {
-                    category:
-                      tabsDesktop.find((t) => t.id === desktopActiveTab)
-                        ?.name || desktopActiveTab,
-                  })
-                : isSearching
-                ? t("home.searchResults", {
-                    count: filteredProductsDesktop.length,
-                  })
-                : t("home.allProducts")
-            }
-          />
-
           {isProductLoading ? (
             <ProductSkeletonGrid count={8} />
           ) : (
-            <>
-              <ProductGrid products={visibleProductsDesktop} />
+            filteredProductsDesktop.length === 0 ? (
+              <div className="py-10 text-center text-sm text-slate-400">
+                {t("home.noProducts")}
+              </div>
+            ) : (
+              <div className="space-y-10">
+                {categories.map((category) => {
+                  const categoryId = String(category.id);
+                  const categoryProducts = filteredProductsDesktop.filter(
+                    (product) => String(product.categoryId) === categoryId
+                  );
 
-              {hasMoreProductsDesktop && (
-                <div className="flex justify-center pt-5">
-                  <button
-                    type="button"
-                    onClick={handleLoadMoreDesktop}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-800 text-white bg-red-700 px-4 py-2 text-sm font-medium shadow-sm transition-all duration-400 animate-bounce hover:border-red-800 hover:bg-red-900 hover:shadow active:scale-[0.98]"
-                  >
-                    <Icon
-                      icon="material-symbols:expand-more"
-                      height="1.3em"
-                    />
-                    {t("home.loadMore")}
-                  </button>
-                </div>
-              )}
+                  if (isSearching && categoryProducts.length === 0) {
+                    return null;
+                  }
 
-              {!hasMoreProductsDesktop &&
-                filteredProductsDesktop.length > 0 && (
-                  <div className="py-4 text-center text-sm text-slate-400">
-                    {t("home.showingAll")}
-                  </div>
-                )}
+                  const visibleCategoryCount =
+                    visibleCountByCategory[categoryId] ?? MOBILE_PAGE_SIZE;
+                  const visibleCategoryProducts = categoryProducts.slice(
+                    0,
+                    visibleCategoryCount
+                  );
+                  const hasMoreCategoryProducts =
+                    visibleCategoryCount < categoryProducts.length;
 
-              {!visibleProductsDesktop.length && (
-                <div className="py-10 text-center text-sm text-slate-400">
-                  {t("home.noProducts")}
-                </div>
-              )}
-            </>
+                  return (
+                    <section
+                      key={category.id}
+                      id={`category-section-${category.id}`}
+                      data-category-id={categoryId}
+                      ref={(element) => {
+                        if (element) sectionRefs.current.set(categoryId, element);
+                        else sectionRefs.current.delete(categoryId);
+                      }}
+                      style={{ scrollMarginTop: "6rem" }}
+                      className="space-y-4 pt-2"
+                    >
+                      <SectionHeader
+                        icon="ant-design:product-outlined"
+                        iconHeight="1.35em"
+                        title={category.name}
+                      />
+
+                      {categoryProducts.length > 0 ? (
+                        <>
+                          <ProductGrid products={visibleCategoryProducts} />
+                          {hasMoreCategoryProducts && (
+                            <div className="flex justify-center pt-3">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setVisibleCountByCategory((current) => ({
+                                    ...current,
+                                    [categoryId]: Math.min(
+                                      (current[categoryId] ?? MOBILE_PAGE_SIZE) +
+                                        MOBILE_PAGE_SIZE,
+                                      categoryProducts.length
+                                    ),
+                                  }))
+                                }
+                                className="inline-flex min-h-10 w-fit min-w-32 items-center justify-center gap-1.5 rounded-xl border border-red-800 bg-red-700 px-4 py-2 text-xs font-medium text-white shadow-sm transition-all hover:border-red-800 hover:bg-red-900 hover:shadow active:scale-[0.98]"
+                              >
+                                <Icon
+                                  icon="material-symbols:expand-more"
+                                  height="1.3em"
+                                />
+                                {t("home.loadMore")}
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-8 text-center text-sm text-slate-400">
+                          {t("home.noProducts", "No products available")}
+                        </div>
+                      )}
+
+                      <BrowseOtherCategories
+                        categories={categories}
+                        activeCategory={String(desktopActiveTab)}
+                        onSelect={handleDesktopTabChange}
+                        t={t}
+                      />
+                    </section>
+                  );
+                })}
+
+                <section
+                  key="all-products"
+                  id="category-section-all-products"
+                  data-category-id={ALL_PRODUCTS_ID}
+                  ref={(element) => {
+                    if (element) {
+                      sectionRefs.current.set(ALL_PRODUCTS_ID, element);
+                    } else {
+                      sectionRefs.current.delete(ALL_PRODUCTS_ID);
+                    }
+                  }}
+                  style={{ scrollMarginTop: "6rem" }}
+                  className="space-y-4 pt-2"
+                >
+                  <SectionHeader
+                    icon="ant-design:product-outlined"
+                    iconHeight="1.35em"
+                    title={t("home.allProducts", "All Products")}
+                    subtitle={`${filteredProductsDesktop.length} ${t("navigation.products", "Products")}`}
+                  />
+                  <ProductGrid
+                    products={filteredProductsDesktop.slice(
+                      0,
+                      visibleCountByCategory.allProducts ?? MOBILE_PAGE_SIZE
+                    )}
+                  />
+                  {(visibleCountByCategory.allProducts ?? MOBILE_PAGE_SIZE) <
+                    filteredProductsDesktop.length && (
+                    <div className="flex justify-center pt-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVisibleCountByCategory((current) => ({
+                            ...current,
+                            allProducts: Math.min(
+                              (current.allProducts ?? MOBILE_PAGE_SIZE) +
+                                MOBILE_PAGE_SIZE,
+                              filteredProductsDesktop.length
+                            ),
+                          }))
+                        }
+                        className="inline-flex min-h-10 w-fit min-w-32 items-center justify-center gap-1.5 rounded-xl border border-red-800 bg-red-700 px-4 py-2 text-xs font-medium text-white shadow-sm transition-all hover:border-red-800 hover:bg-red-900 hover:shadow active:scale-[0.98]"
+                      >
+                        <Icon
+                          icon="material-symbols:expand-more"
+                          height="1.3em"
+                        />
+                        {t("home.loadMore")}
+                      </button>
+                    </div>
+                  )}
+                  <BrowseOtherCategories
+                    categories={categories}
+                    activeCategory={String(desktopActiveTab)}
+                    onSelect={handleDesktopTabChange}
+                    t={t}
+                  />
+                </section>
+              </div>
+            )
           )}
         </section>
       </div>
@@ -636,41 +866,12 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
         id="category-sticky-nav"
         ref={navRef}
         style={{ top: `${headerHeight}px` }}
-        className={`sticky z-40 bg-white/95 backdrop-blur-md -mx-4 px-4 py-2.5 transition-all duration-200 ${
+        className={`sticky z-40 bg-white/95 backdrop-blur-md -mx-4 transition-all duration-200 ${ // px-4 py-2.5
           isStuckMobile
             ? "border-b border-slate-200/80 shadow-md shadow-slate-900/5"
             : "border-b border-transparent shadow-none"
         }`}
       >
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="flex items-center gap-2 text-base font-bold text-slate-800 leading-khmer">
-            <Icon
-              icon="arcticons:circle-search"
-              height="1.4em"
-              style={{ color: "#d1a500" }}
-              aria-hidden="true"
-            />
-            {t("home.searchByCategory")}
-          </h2>
-
-          {isSearching && (
-            <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-              {t("home.searchResults", {
-                count: filteredProductsMobile.length,
-              })}
-            </span>
-          )}
-        </div>
-
-        {isCategoriesPending ? (
-          <FilterTabsSkeleton count={6} />
-        ) : (
-          <FilterTabs
-            tabs={tabsMobile}
-            activeTab={mobileActiveTab}
-            onChange={handleMobileTabChange}
-          />
-        )}
       </div>
 
       {/* Product Categories Vertical Sections on Mobile */}
@@ -697,6 +898,14 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
               const catId = String(category.id);
               const categoryProducts =
                 productsByCategory.get(catId) || [];
+              const visibleCategoryCount =
+                visibleCountByCategory[catId] ?? MOBILE_PAGE_SIZE;
+              const visibleCategoryProducts = categoryProducts.slice(
+                0,
+                visibleCategoryCount
+              );
+              const hasMoreCategoryProducts =
+                visibleCategoryCount < categoryProducts.length;
 
               if (isSearching && categoryProducts.length === 0) {
                 return null;
@@ -723,12 +932,46 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
                   />
 
                   {categoryProducts.length > 0 ? (
-                    <ProductGrid products={categoryProducts} />
+                    <>
+                      <ProductGrid products={visibleCategoryProducts} />
+
+                      {hasMoreCategoryProducts && (
+                        <div className="flex justify-center pt-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setVisibleCountByCategory((current) => ({
+                                ...current,
+                                [catId]: Math.min(
+                                  (current[catId] ?? MOBILE_PAGE_SIZE) +
+                                    MOBILE_PAGE_SIZE,
+                                  categoryProducts.length
+                                ),
+                              }))
+                            }
+                            className="flex min-h-10 w-fit min-w-32 items-center justify-center gap-1.5 rounded-xl border border-red-800 bg-red-700 px-4 py-2 text-xs font-medium text-white shadow-sm transition-all hover:border-red-800 hover:bg-red-900 hover:shadow active:scale-[0.98]"
+                          >
+                            <Icon
+                              icon="material-symbols:expand-more"
+                              height="1.3em"
+                            />
+                            {t("home.loadMore")}
+                          </button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="py-8 px-4 bg-slate-50/60 rounded-2xl border border-dashed border-slate-200 text-center text-sm text-slate-400">
                       {t("home.noProducts", "No products available")}
                     </div>
                   )}
+
+                  <BrowseOtherCategories
+                    categories={categories}
+                    activeCategory={mobileActiveTab}
+                    onSelect={handleMobileTabChange}
+                    t={t}
+                  />
                 </section>
               );
             })}
@@ -767,7 +1010,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
                     <button
                       type="button"
                       onClick={handleLoadMoreMobile}
-                      className="flex w-[55%] animate-bounce transform ease-in-out items-center justify-center gap-2 rounded-xl border border-red-800 bg-red-700 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all duration-[2s] hover:border-red-800 hover:bg-red-900 hover:shadow active:scale-[0.98]"
+                      className="flex min-h-10 w-fit min-w-32 animate-bounce transform items-center justify-center gap-1.5 rounded-xl border border-red-800 bg-red-700 px-4 py-2 text-xs font-medium text-white shadow-sm transition-all duration-[2s] ease-in-out hover:border-red-800 hover:bg-red-900 hover:shadow active:scale-[0.98]"
                     >
                       <Icon
                         icon="material-symbols:expand-more"
