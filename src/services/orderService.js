@@ -59,6 +59,26 @@ export const orderService = {
     }
   },
 
+  getProductSales: async ({ startDate, endDate } = {}, config = {}) => {
+    try {
+      const response = await axiosClient.post(
+        API_ENDPOINTS.ORDERS.GET_PRODUCT_SALES(),
+        { startDate, endDate },
+        config
+      );
+      return response.data;
+    } catch (error) {
+      if (error.message !== 'canceled' && error.name !== 'CanceledError') {
+        console.error('Order API Error [getProductSales]:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+        });
+      }
+      throw error;
+    }
+  },
+
   updateOrder: async (id, orderData) => {
     try {
       const response = await axiosClient.put(

@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Download } from 'lucide-react';
+import { FileSpreadsheet, FileText } from 'lucide-react';
 import Swal from '../../../../lib/alert';
 import { filterOrdersByMonth } from '../utils/orderExport/monthlyOrderFilter';
 import { exportOrdersToExcel } from '../utils/orderExport/exportOrdersExcel';
 import { exportOrdersToPDF } from '../utils/orderExport/exportOrdersPDF';
 import { useOrdersQuery } from '../../../../queries/orders/useOrderQueries';
+import { useAuth } from '../../../../hooks/useAuth';
+import { useSettingsQuery } from '../../../../queries/settings/useSettingQueries';
 
 export default function OrderExportActions() {
   const { data: rawOrders = [] } = useOrdersQuery();
   const [selectedMonth, setSelectedMonth] = useState('');
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  const { user } = useAuth();
+  const shopCode = user?.shop?.code || user?.shop_code || '';
+  const { data: settings } = useSettingsQuery(shopCode);
 
   useEffect(() => {
     const now = new Date();
@@ -28,10 +35,10 @@ export default function OrderExportActions() {
       });
       return;
     }
-    exportOrdersToExcel(filtered, selectedMonth);
+    exportOrdersToExcel(filtered, selectedMonth, settings);
   };
 
-  const handlePDFExport = () => {
+  const handlePDFExport = async () => {
     if (!selectedMonth || !rawOrders) return;
     const filtered = filterOrdersByMonth(rawOrders, selectedMonth);
     if (filtered.length === 0) {
@@ -42,7 +49,14 @@ export default function OrderExportActions() {
       });
       return;
     }
-    exportOrdersToPDF(filtered, selectedMonth);
+    setIsExportingPDF(true);
+    try {
+      await exportOrdersToPDF(filtered, selectedMonth, settings);
+    } catch (err) {
+      console.error('PDF Export error:', err);
+    } finally {
+      setIsExportingPDF(false);
+    }
   };
 
   const maxMonth = () => {
@@ -63,18 +77,21 @@ export default function OrderExportActions() {
         className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm text-slate-700 outline-none focus:border-[#870d4c] bg-[#fcfafb] cursor-pointer hover:bg-slate-100 transition-colors"
       />
       <button
+        type="button"
         onClick={handleExcelExport}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-sm font-medium transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-sm font-medium transition-colors cursor-pointer"
       >
-        <Download size={14} />
+        <FileSpreadsheet size={14} />
         Excel
       </button>
       <button
+        type="button"
+        disabled={isExportingPDF}
         onClick={handlePDFExport}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-50 border border-red-200 rounded-lg text-sm font-medium transition-colors cursor-pointer"
       >
-        <Download size={14} />
-        PDF
+        <FileText size={14} className={isExportingPDF ? 'animate-pulse' : ''} />
+        {isExportingPDF ? '...' : 'PDF'}
       </button>
     </div>
   );

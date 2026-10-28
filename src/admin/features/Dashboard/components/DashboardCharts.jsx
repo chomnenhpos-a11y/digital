@@ -29,6 +29,7 @@ import {
 
 import { useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
+import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
 import { getCategoryDisplayName } from "../../Categories/utils/categoryUtils";
 
 const EMPTY_DATA = [];
@@ -50,6 +51,7 @@ export default function DashboardCharts() {
   const { t, i18n } = useTranslation();
   const { data: orders = EMPTY_DATA } = useOrdersQuery();
   const { data: products = EMPTY_DATA } = useProductsQuery();
+  const { data: categories = EMPTY_DATA } = useCategoriesQuery();
 
   const barChartData = useMemo(() => {
     const now = new Date();
@@ -108,10 +110,26 @@ export default function DashboardCharts() {
   const pieChartData = useMemo(() => {
     const stockByCategory = new Map();
 
+    // Build a category lookup map for fast resolution
+    const categoryMap = new Map();
+    for (const cat of categories) {
+      if (cat?.id != null) {
+        categoryMap.set(String(cat.id), cat);
+      }
+    }
+
     for (const product of products) {
-      const category = getCategoryDisplayName(product, i18n.language) || "Other";
-      const quantity = Number(product.stockQuantity ?? 0);
-      if (!Number.isFinite(quantity)) continue;
+      const catId = product.categoryId ?? product.category_id;
+      const matchedCat = catId != null ? categoryMap.get(String(catId)) : null;
+
+      // Resolve the Category display name (strictly the category, never the product name)
+      const category =
+        getCategoryDisplayName(matchedCat, i18n.language) ||
+        getCategoryDisplayName(product, i18n.language) ||
+        t("common.other", { defaultValue: "Other" });
+
+      const quantity = Number(product.stockQuantity ?? product.stock ?? 0);
+      if (!Number.isFinite(quantity) || quantity <= 0) continue;
 
       if (!stockByCategory.has(category)) {
         stockByCategory.set(category, {
@@ -127,7 +145,7 @@ export default function DashboardCharts() {
       ...item,
       fill: COLORS[index % COLORS.length],
     }));
-  }, [products, i18n.language]);
+  }, [products, categories, i18n.language, t]);
 
   const pieChartConfig = {
     value: {

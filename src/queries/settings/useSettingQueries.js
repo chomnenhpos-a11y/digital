@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { settingService } from '../../services/settingService';
 import { settingKeys } from './settingKeys';
 
-export function useSettingsQuery(shopCode) {
+export function useSettingsQuery(shopCode, options = {}) {
   return useQuery({
     queryKey: settingKeys.byShopCode(shopCode),
     queryFn: ({ signal }) => settingService.getByShopCode(shopCode, { signal }),
@@ -11,6 +11,12 @@ export function useSettingsQuery(shopCode) {
       return Array.isArray(rawData) ? rawData[0] || {} : rawData;
     },
     enabled: !!shopCode,
+    retry: (failureCount, error) => {
+      // Do not retry 404 (nonexistent shop) so error state resolves immediately
+      if (error?.response?.status === 404) return false;
+      return failureCount < 1;
+    },
+    ...options,
   });
 }
 

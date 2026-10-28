@@ -130,7 +130,7 @@ function useIsDesktop() {
   });
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") return;  
     const media = window.matchMedia("(min-width: 768px)");
     const handler = (e) => setIsDesktop(e.matches);
 

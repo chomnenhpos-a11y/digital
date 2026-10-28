@@ -180,6 +180,7 @@ export function useOrders(viewMode) {
 
   return {
     orders: filteredOrders,
+    allOrders: orders,
     paginatedOrders,
     search,
     setSearch: handleSearchChange,

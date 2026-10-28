@@ -8,7 +8,8 @@ import {
   Share2,
   Flame,
 } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
+import { buildPreservedShopPath } from "../../cart/utils/staffReferral";
 import Swal from "../../../../lib/alert";
 
 import Badge from "../../../components/common/Badge";
@@ -22,6 +23,7 @@ export default function ProductCard({ product = {}, index = 0 }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { shop_code } = useParams();
+  const location = useLocation();
 
   const {
     id,
@@ -129,7 +131,7 @@ export default function ProductCard({ product = {}, index = 0 }) {
     <div
       data-aos="fade-up"
       data-aos-delay={Math.min(index % 4, 3) * 100}
-      onClick={() => navigate(`/${shop_code}/products/${id}`)}
+      onClick={() => navigate(buildPreservedShopPath(`/${shop_code}/products/${id}`, location.search))}
       className="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer"
     >
       <div
@@ -210,7 +212,7 @@ export default function ProductCard({ product = {}, index = 0 }) {
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 flex items-center justify-center z-20 pointer-events-none group-hover/image:pointer-events-auto">
           <div className="flex flex-col items-center">
             <Link
-              to={`/${shop_code}/products/${id}`}
+              to={buildPreservedShopPath(`/${shop_code}/products/${id}`, location.search)}
               className="translate-y-4 group-hover/image:translate-y-0 transition-all duration-300 flex items-center gap-2 px-5 py-2.5 bg-white/90 backdrop-blur-sm text-gray-900 font-semibold text-sm rounded-full shadow-xl hover:bg-red-600 hover:text-white pointer-events-auto"
             >
               <Eye size={18} />

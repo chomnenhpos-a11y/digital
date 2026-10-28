@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
         CREATE: 'api/orders',
         UPDATE: (id) => `api/orders?id=${id}`,
         DELETE: (id) => `api/orders?id=${id}`,
+        GET_PRODUCT_SALES: () => `api/orders?type=product-sales`,
     },
     POS:{
         CREATE: '/api/orders?type=pos',

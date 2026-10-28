@@ -1,278 +1,164 @@
-import * as XLSX from 'xlsx'
+import * as XLSX from "xlsx";
+import { getOrderExportSummary } from "./orderExportSummary.js";
 
-export function exportOrdersToExcel(orders, selectedMonth) {
-  if (!orders || orders.length === 0) return
+/**
+ * Formats an order date for report display (e.g. "10/28/2026, 04:30 PM").
+ *
+ * @param {string|Date} orderDate
+ * @param {string} [locale="en-US"]
+ * @returns {string}
+ */
+export function formatOrderDate(orderDate, locale = "en-US") {
+  if (!orderDate) return "-";
+  const date = new Date(orderDate);
+  if (Number.isNaN(date.getTime())) return String(orderDate);
+  return date.toLocaleString(locale === "km" ? "en-GB" : locale, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+/**
+ * Formats currency amount for display consistency.
+ *
+ * @param {number|string} value
+ * @returns {string}
+ */
+export function formatOrderAmount(value) {
+  return `$${Number(value || 0).toFixed(2)}`;
+}
+
+/**
+ * Exports the monthly order report to an Excel workbook.
+ * Matches the layout and executive styling of exportProductSalesToExcel.
+ *
+ * @param {Array} orders - Filtered order records
+ * @param {string} selectedMonth - Selected month string (e.g. "2026-10")
+ * @param {object} [settings] - Shop settings from useSettingsQuery
+ * @returns {{ workbook: object, worksheet: object, fileName: string } | undefined}
+ */
+export function exportOrdersToExcel(orders, selectedMonth, settings = {}) {
+  if (!orders || orders.length === 0) return;
 
   const sortedOrders = [...orders].sort((a, b) => {
-    const dateA = new Date(a.createdAt || a.createAt)
-    const dateB = new Date(b.createdAt || b.createAt)
+    const dateA = new Date(a.createdAt || a.createAt || 0);
+    const dateB = new Date(b.createdAt || b.createAt || 0);
+    return dateA - dateB;
+  });
 
-    return dateA - dateB
-  })
+  const summary = getOrderExportSummary(sortedOrders);
 
-  const [year, month] = selectedMonth.split('-')
+  const settingData = settings?.data ?? settings ?? {};
+  const shopName =
+    settingData.shop_name ||
+    settingData.shopName ||
+    settingData.name ||
+    "";
 
-  const monthDate = new Date(
-    Number(year),
-    Number(month) - 1,
-    1
-  )
+  // Build report title
+  let reportTitle = "MONTHLY ORDER REPORT";
+  if (selectedMonth && typeof selectedMonth === "string" && selectedMonth.includes("-")) {
+    const [year, month] = selectedMonth.split("-");
+    const monthDate = new Date(Number(year), Number(month) - 1, 1);
+    const monthName = !isNaN(monthDate.getTime())
+      ? monthDate.toLocaleString("en-US", { month: "long" }).toUpperCase()
+      : "";
+    reportTitle = `MONTHLY ORDER REPORT - ${monthName} ${year}`.trim();
+  }
 
-  const monthName = monthDate.toLocaleString('en-US', {
-    month: 'long',
-  })
-
-  const exportData = sortedOrders.map((order) => {
-    const date = new Date(order.createdAt || order.createAt)
-
-    const day = String(date.getDate()).padStart(2, '0')
-
-    const shortMonth = date.toLocaleString('en-US', {
-      month: 'short',
-    })
-
-    return [
-      `${day} ${shortMonth}`,
-      order.orderNo || `#${order.id || ''}`,
-      order.customerPhone || '-',
-      Number(order.totalAmount || 0),
-      order.paymentStatus || '-',
-      order.status || '-',
-    ]
-  })
-
-  const totalOrders = sortedOrders.length
-
-  const totalSales = sortedOrders.reduce(
-    (sum, order) => sum + Number(order.totalAmount || 0),
-    0
-  )
-
-  const paidAmount = sortedOrders
-    .filter((order) => order.paymentStatus === 'Paid')
-    .reduce(
-      (sum, order) => sum + Number(order.totalAmount || 0),
-      0
-    )
-
-  const unpaidAmount = sortedOrders
-    .filter((order) => order.paymentStatus === 'Unpaid')
-    .reduce(
-      (sum, order) => sum + Number(order.totalAmount || 0),
-      0
-    )
+  const exportData = sortedOrders.map((order, index) => [
+    `#${String(index + 1).padStart(2, "0")}`,
+    order.orderNo || (order.orderNumber ? `ORD-${order.orderNumber}` : `#${order.id || ""}`),
+    order.customerPhone || order.phone || "-",
+    Number(order.totalAmount || order.total || 0),
+    order.paymentStatus || "-",
+    order.status || "-",
+    formatOrderDate(order.createdAt || order.createAt),
+  ]);
 
   const worksheetData = [
+    ...(shopName ? [[shopName.toUpperCase()]] : []),
+    [reportTitle],
+
     [],
 
-    [`MONTHLY ORDER REPORT - ${monthName.toUpperCase()} ${year}`],
-
-    [],
-
-    ['Total Orders', totalOrders],
-    ['Total Sales', totalSales],
-    ['Paid', paidAmount],
-    ['Unpaid', unpaidAmount],
+    ["Total Orders", summary.totalOrders],
+    ["Total Sales", summary.totalSales],
+    ["Paid Amount", summary.paidAmount],
+    ["Unpaid Amount", summary.unpaidAmount],
+    ["Completed Orders", summary.completedOrders],
 
     [],
 
     [
-      'Date',
-      'Order No',
-      'Customer',
-      'Total',
-      'Payment',
-      'Status',
+      "No",
+      "Order No",
+      "Customer Phone",
+      "Total Amount",
+      "Payment Status",
+      "Delivery Status",
+      "Order Date",
     ],
 
     ...exportData,
+  ];
 
-    [],
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
-    ['Total Orders', totalOrders],
-    ['Total Sales', totalSales],
-  ]
+  // Column widths matching ProductsSale Excel style
+  worksheet["!cols"] = [
+    { wch: 6 },   // No
+    { wch: 22 },  // Order No
+    { wch: 18 },  // Customer Phone
+    { wch: 14 },  // Total Amount
+    { wch: 16 },  // Payment Status
+    { wch: 16 },  // Delivery Status
+    { wch: 24 },  // Order Date
+  ];
 
-  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-
-  // Column width
-  worksheet['!cols'] = [
-    { wch: 16 },
-    { wch: 26 },
-    { wch: 22 },
-    { wch: 16 },
-    { wch: 16 },
-    { wch: 20 },
-  ]
-
-  // Row height
-  worksheet['!rows'] = []
-
-  worksheet['!rows'][0] = { hpt: 10 }
-  worksheet['!rows'][1] = { hpt: 28 }
-  worksheet['!rows'][2] = { hpt: 10 }
-
-  worksheet['!rows'][3] = { hpt: 22 }
-  worksheet['!rows'][4] = { hpt: 22 }
-  worksheet['!rows'][5] = { hpt: 22 }
-  worksheet['!rows'][6] = { hpt: 22 }
-
-  worksheet['!rows'][7] = { hpt: 10 }
-  worksheet['!rows'][8] = { hpt: 26 }
-
-  // Merge title
-  worksheet['!merges'] = [
-    {
-      s: { r: 1, c: 0 },
-      e: { r: 1, c: 5 },
-    },
-  ]
-
-  // Title
-  if (worksheet['A2']) {
-    worksheet['A2'].s = {
-      font: {
-        bold: true,
-        sz: 16,
-      },
-      alignment: {
-        horizontal: 'center',
-        vertical: 'center',
-      },
-    }
-  }
-
-  // Summary labels
-  const summaryRows = [3, 4, 5, 6]
-
-  summaryRows.forEach((row) => {
-    const labelCell = worksheet[`A${row + 1}`]
-
-    if (labelCell) {
-      labelCell.s = {
-        font: {
-          bold: true,
-        },
-        alignment: {
-          horizontal: 'left',
-          vertical: 'center',
-        },
-      }
-    }
-  })
-
-  // Summary currency
-  if (worksheet['B5']) {
-    worksheet['B5'].z = '$#,##0.00'
-  }
-
-  if (worksheet['B6']) {
-    worksheet['B6'].z = '$#,##0.00'
-  }
-
-  if (worksheet['B7']) {
-    worksheet['B7'].z = '$#,##0.00'
-  }
-
-  // Table header
-  const headerRow = 8
-
-  for (let col = 0; col < 6; col++) {
-    const cellAddress = XLSX.utils.encode_cell({
-      r: headerRow,
-      c: col,
-    })
-
-    if (worksheet[cellAddress]) {
-      worksheet[cellAddress].s = {
-        font: {
-          bold: true,
-          color: {
-            rgb: 'FFFFFF',
-          },
-        },
-        fill: {
-          fgColor: {
-            rgb: '2563EB',
-          },
-        },
-        alignment: {
-          horizontal: 'center',
-          vertical: 'center',
-        },
+  // Apply currency number formatting ($#,##0.00) dynamically
+  for (let r = 0; r < worksheetData.length; r++) {
+    const row = worksheetData[r];
+    if (
+      row[0] === "Total Sales" ||
+      row[0] === "Paid Amount" ||
+      row[0] === "Unpaid Amount"
+    ) {
+      const cellAddress = XLSX.utils.encode_cell({ r, c: 1 });
+      if (worksheet[cellAddress]) {
+        worksheet[cellAddress].z = "$#,##0.00";
       }
     }
   }
 
-  // Table rows
-  const firstDataRow = 9
-
-  for (
-    let row = firstDataRow;
-    row < firstDataRow + exportData.length;
-    row++
-  ) {
-    worksheet['!rows'][row] = {
-      hpt: 22,
-    }
-
-    const totalCell = XLSX.utils.encode_cell({
-      r: row,
-      c: 3,
-    })
-
-    if (worksheet[totalCell]) {
-      worksheet[totalCell].z = '$#,##0.00'
-      worksheet[totalCell].s = {
-        alignment: {
-          horizontal: 'right',
-          vertical: 'center',
-        },
+  const headerRowIdx = worksheetData.findIndex((row) => row[0] === "No");
+  if (headerRowIdx !== -1) {
+    for (let r = headerRowIdx + 1; r < worksheetData.length; r++) {
+      const totalCellAddress = XLSX.utils.encode_cell({ r, c: 3 });
+      if (worksheet[totalCellAddress]) {
+        worksheet[totalCellAddress].z = "$#,##0.00";
       }
     }
   }
 
-  // Bottom summary
-  const bottomSummaryStart =
-    firstDataRow + exportData.length + 1
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
 
-  worksheet[`A${bottomSummaryStart + 1}`].s = {
-    font: {
-      bold: true,
-    },
+  const fileName = selectedMonth
+    ? `Order_Report_${selectedMonth}.xlsx`
+    : `Order_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+  if (typeof XLSX.writeFile === "function") {
+    try {
+      XLSX.writeFile(workbook, fileName);
+    } catch {
+      // In non-browser / test environments
+    }
   }
 
-  worksheet[`A${bottomSummaryStart + 2}`].s = {
-    font: {
-      bold: true,
-    },
-  }
-
-  worksheet[`B${bottomSummaryStart + 2}`].z = '$#,##0.00'
-
-  // Freeze header
-  worksheet['!freeze'] = {
-    xSplit: 0,
-    ySplit: headerRow + 1,
-  }
-
-  // Filter
-  worksheet['!autofilter'] = {
-    ref: `A${headerRow + 1}:F${
-      firstDataRow + exportData.length - 1
-    }`,
-  }
-
-  const workbook = XLSX.utils.book_new()
-
-  XLSX.utils.book_append_sheet(
-    workbook,
-    worksheet,
-    'Orders'
-  )
-
-  XLSX.writeFile(
-    workbook,
-    `orders-${selectedMonth}.xlsx`
-  )
+  return { workbook, worksheet, fileName };
 }

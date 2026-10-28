@@ -4,4 +4,5 @@ export const orderKeys = {
   list: (params) => [...orderKeys.lists(), params],
   details: () => [...orderKeys.all, 'detail'],
   detail: (id) => [...orderKeys.details(), id],
+  productSales: (range) => [...orderKeys.all, 'product-sales', range],
 };

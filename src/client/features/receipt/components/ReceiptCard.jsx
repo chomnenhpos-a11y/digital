@@ -109,7 +109,7 @@ export default function ReceiptCard({ order, settings, settingsLoading }) {
                 {t("order.seller")}:
               </td>
               <td className="py-1 font-mono text-slate-900 text-right align-middle">
-                {order.seller.name}
+                {order?.seller?.name || order?.seller?.sellerName || "—"}
               </td>
             </tr>
             {order?.customerName && (

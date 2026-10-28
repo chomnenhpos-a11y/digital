@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   PlusCircle,
   ClipboardList,
+  BadgeDollarSign,
   Users,
   Layers,
   Image,
@@ -162,6 +163,12 @@ export default function AdminSidebar({ sidebarState, setSidebarState, requestedV
             path: "/admin/orders",
             icon: ClipboardList,
             routeKey: "orders",
+          },
+          {
+            label: t("navigation.productSales"),
+            path: "/admin/product-sales",
+            icon: BadgeDollarSign,
+            routeKey: "productSales",
           },
           {
             label: t("navigation.saleForm"),

@@ -47,15 +47,19 @@ export default function CartDrawer() {
     setDeliveryMethod,
     deliveryFee,
     setDeliveryFee,
+    saleBy,
     errors,
     validateOrderForm,
     resetForm,
-  } = useClientOrder();
+  } = useClientOrder({ shopCode: shop_code });
 
   const hasItems = cartItems.length > 0;
   const grandTotal = cartTotal + (hasItems ? deliveryFee : 0);
 
-  const handleCreateOrder = async (formattedPhone) => {
+  const handleCreateOrder = async (formattedPhone, validatedSaleBy) => {
+    const resolvedSaleBy =
+      validatedSaleBy !== undefined ? validatedSaleBy : (saleBy ?? null);
+
     const payload = {
       shop_code,
       setting_id: settingId,
@@ -63,12 +67,14 @@ export default function CartDrawer() {
       items: cartItems,
       subtotal: cartTotal,
       delivery: deliveryFee,
+      saleBy: resolvedSaleBy,
       customerInfo: {
         name: customerName,
         phone: formattedPhone,
         address,
         note,
         deliveryMethod,
+        saleBy: resolvedSaleBy,
       },
     };
 
@@ -93,7 +99,7 @@ export default function CartDrawer() {
   };
 
   const handleOrder = async () => {
-    const { isValid, formattedPhone } = validateOrderForm();
+    const { isValid, formattedPhone, saleBy: validatedSaleBy } = validateOrderForm();
 
     if (!isValid) return;
 
@@ -118,7 +124,7 @@ export default function CartDrawer() {
     }
 
     try {
-      const newOrder = await handleCreateOrder(formattedPhone);
+      const newOrder = await handleCreateOrder(formattedPhone, validatedSaleBy);
       const orderData = newOrder?.data ?? newOrder;
 
       if (!orderData?.id || !orderData?.orderNo) {
@@ -269,4 +275,3 @@ export default function CartDrawer() {
     </>
   );
 }
-

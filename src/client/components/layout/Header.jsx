@@ -16,6 +16,7 @@ import { useCart } from "../../../context/CartContext";
 import { Link, useNavigate, useLocation, useParams } from "react-router-dom";
 import { usePublicSettingsQuery } from "../../../queries/settings/useSettingQueries";
 import { useProductsQuery } from "../../../queries/products/useProductQueries";
+import { buildPreservedShopPath } from "../../features/cart/utils/staffReferral";
 import LanguageSwitcher from "../../../components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 import { getCategoryDisplayName } from "../../../admin/features/Categories/utils/categoryUtils";
@@ -49,7 +50,9 @@ export default function Header() {
   const { data: products = [], isPending: isProductsPending } = useProductsQuery({ shop_code });
 
   const shopRoute = settingData?.shop_code || shop_code;
-  const shopPath = shopRoute ? `/${encodeURIComponent(shopRoute)}` : "/";
+  const shopPath = shopRoute
+    ? buildPreservedShopPath(`/${encodeURIComponent(shopRoute)}`, location.search)
+    : "/";
   const [imgError, setImgError] = useState(false);
   const [requestedViewMode, setRequestedViewMode] = useState(getSavedViewMode);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -168,13 +171,13 @@ export default function Header() {
   const handleSelectProduct = (productId) => {
     setIsDropdownOpen(false);
     resetMobileSearch();
-    navigate(`/${shop_code}/products/${productId}`);
+    navigate(buildPreservedShopPath(`/${shop_code}/products/${productId}`, location.search));
   };
 
   const handleViewAllResults = () => {
     setIsDropdownOpen(false);
     if (!location.pathname.startsWith(`/${shop_code}`) || location.pathname.includes('/products/')) {
-      navigate(`/${shop_code}`);
+      navigate(buildPreservedShopPath(`/${shop_code}`, location.search));
     } else {
       window.scrollTo({ top: 400, behavior: 'smooth' });
     }

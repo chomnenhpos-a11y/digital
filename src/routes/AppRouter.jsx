@@ -2,6 +2,7 @@ import React from 'react'
 import { Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import RoleRoute from './RoleRoute'
+import ShopRouteGuard from './ShopRouteGuard'
 import ErrorBoundary from '../components/ErrorBoundary'
 import NotFoundPage from '../components/NotFoundPage'
 import Home from "../client/features/home/pages/Home"
@@ -18,6 +19,7 @@ import GlobalResetPassword from "../global/feature/auth/GlobalResetPassword"
 import AdminLayout from '../admin/components/layout/AdminLayout'
 import AdminCategories from '../admin/features/Categories/pages/AdminCategories'
 import AdminSaleForm from '../admin/features/SalesForm/pages/AdminSaleForm'
+import AdminProductsSale from '../admin/features/ProductsSale/pages/AdminProductsSale.jsx'
 import AdminOrders from '../admin/features/Order/pages/AdminOrders'
 import AdminProducts from '../admin/features/Products/pages/AdminProducts'
 import AdminSlides from '../admin/features/Slides/pages/AdminSlides'
@@ -46,9 +48,12 @@ export const appRoutes = (
     <Route path="/reset-password" element={<GlobalResetPassword />} />
     <Route path="/signup" element={<Navigate to="/register" replace />} />
 
-    {/* Existing Digital E-Commerce (Moved to /:shop_code) */}
-    <Route path="/:shop_code" element={<Home />} />
-    <Route path="/:shop_code/products/:id" element={<ProductDetail />} />
+    {/* Existing Digital E-Commerce (Moved to /:shop_code with shop validation) */}
+    <Route path="/:shop_code" element={<ShopRouteGuard />}>
+      <Route index element={<Home />} />
+      <Route path="products/:id" element={<ProductDetail />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Route>
     <Route path="/print-receipt/:orderId" element={<Receipt />} />
 
     {/* Dedicated Print Routes (Protected, Outside Dashboard Layout) */}
@@ -88,6 +93,7 @@ export const appRoutes = (
       <Route element={<AdminLayout />}>
         {/* Pages accessible by ALL roles (including 'user') */}
         <Route path="orders" element={<Safe name="orders"><AdminOrders /></Safe>} />
+        <Route path="product-sales" element={<Safe name="product-sales"><AdminProductsSale /></Safe>} />
         <Route path="sale-form" element={<Safe name="sale-form"><AdminSaleForm /></Safe>} />
         <Route path="qr-code" element={<Safe name="qr-code"><AdminQRCode /></Safe>} />
 

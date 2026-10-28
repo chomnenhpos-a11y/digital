@@ -23,4 +23,6 @@ export const clientOrderSchema = (t) =>
       .refine((val) => val !== undefined && val !== null, {
         message: t("validation.requiredDelivery"),
       }),
+
+    saleBy: z.number().int().positive().nullable().optional(),
   })

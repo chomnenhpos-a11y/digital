@@ -75,13 +75,15 @@
     "noResults": "គ្មានលទ្ធផល",
     "noData": "គ្មានទិន្នន័យ",
     "scrollToTop": "រមូរទៅលើ",
-    "noProductsFound": "រកមិនឃើញផលិតផលទេ"
+    "noProductsFound": "រកមិនឃើញផលិតផលទេ",
+    "orders": "ការបញ្ជាទិញ"
   },
   "navigation": {
     "home": "ទំព័រដើម",
     "dashboard": "ផ្ទាំងគ្រប់គ្រង",
     "products": "ផលិតផល",
     "orders": "ការបញ្ជាទិញ",
+    "productSales": "របាយការណ៍លក់ផលិតផល",
     "saleForm": "ទម្រង់លក់",
     "categories": "ប្រភេទ",
     "promotions": "ការផ្សព្វផ្សាយ",
@@ -318,6 +320,7 @@
     "heroFeature3": "បច្ចេកវិទ្យាទំនើប"
   },
   "dashboard": {
+    "topSellers": "ផលិតផលលក់ដាច់បំផុត",
     "statusPending": "រង់ចាំ",
     "statusPickedUp": "បានយកទំនិញ",
     "statusDelivering": "កំពុងដឹក",
@@ -446,6 +449,11 @@
     "orderInfoTitle": "ព័ត៌មានការបញ្ជាទិញ",
     "statusTitle": "ស្ថានភាព",
     "statusPendingTitle": "រង់ចាំ",
+    "pendingActionRequired": "ត្រូវការដំណើរការ",
+    "allOrdersProcessed": "រួចរាល់ទាំងអស់",
+    "inTransitNote": "កំពុងដឹកជញ្ជូន",
+    "readyForPickup": "រួចរាល់សម្រាប់ការទទួល",
+    "cancelledOrders": "បានបោះបង់",
     "statusPickupTitle": "បានយកទំនិញ",
     "statusDeliveringTitle": "កំពុងដឹក",
     "statusCompletedTitle": "បានបញ្ចប់",
@@ -469,7 +477,12 @@
     "downloadingReceipt": "កំពុងទាញយកវិក្កយបត្រ...",
     "successTitle": "ជោគជ័យ",
     "errorTitle": "មានបញ្ហា",
-    "seller": "អ្នកលក់"
+    "seller": "អ្នកលក់",
+    "searchByProductName": "ស្វែងរកតាមឈ្មោះផលិតផល...",
+    "selectSeller": "ជ្រើសរើសអ្នកលក់",
+    "selectAllSellers": "អ្នកលក់ទាំងអស់",
+    "selectGroup": "ជ្រើសរើសក្រុម",
+    "selectAllGroups": "ក្រុមទាំងអស់"
   },
   "category": {
     "title": "ប្រភេទ",
@@ -649,7 +662,6 @@
     "leaveWithoutSaving": "ចាកចេញដោយមិនរក្សាទុក",
     "continueEditing": "បន្តកែប្រែ",
     "verifySuccessMsg": "ផ្ទៀងផ្ទាត់បានជោគជ័យ។ សូមចុច 'រក្សាទុកការផ្លាស់ប្តូរ' ដើម្បីបញ្ចប់។"
-
   },
   "promotions": {
     "bgColor": "ពណ៌ (Background)",
@@ -950,5 +962,44 @@
     "sendImagesPlural": "ផ្ញើ {{count}} រូបភាព",
     "share": "ចែករំលែកផលិតផល",
     "unshare": "ដកការជ្រើសរើស"
+  },
+  "productsSale": {
+    "title": "របាយការណ៍លក់ផលិតផល",
+    "subtitle": "វិភាគ និងតាមដានដំណើរការនៃការលក់ផលិតផលរបស់អ្នក។",
+    "excel": "Excel",
+    "pdf": "PDF",
+    "viewTable": "តារាង",
+    "viewCard": "កាត",
+    "switchToCard": "ប្តូរទៅទិដ្ឋភាពកាត",
+    "switchToTable": "ប្តូរទៅទិដ្ឋភាពតារាង",
+    "noDataTitle": "គ្មានទិន្នន័យ",
+    "noDataMessage": "រកមិនឃើញទិន្នន័យការលក់ផលិតផលសម្រាប់ចន្លោះពេលដែលបានជ្រើសរើសនោះទេ។",
+    "errorLoading": "មិនអាចផ្ទុករបាយការណ៍លក់ផលិតផលបានទេ។ សូមសាកល្បងកំណត់កាលបរិច្ឆេទឡើងវិញ។",
+    "emptyMessage": "រកមិនឃើញទិន្នន័យការលក់ផលិតផលសម្រាប់ចន្លោះពេលដែលបានជ្រើសរើសនោះទេ។",
+    "totalSales": "ការលក់សរុប",
+    "productsSold": "ផលិតផលបានលក់",
+    "topSeller": "អ្នកលក់ឆ្នើម",
+    "topProduct": "ផលិតផលលក់ដាច់បំផុត",
+    "unitsSold": "ឯកតាបានលក់",
+    "itemsInWindow": "មុខទំនិញក្នុងចន្លោះពេលនេះ",
+    "ofSales": "នៃការលក់",
+    "noSellerData": "គ្មានទិន្នន័យអ្នកលក់ក្នុងចន្លោះពេលនេះ",
+    "noProductData": "គ្មានទិន្នន័យផលិតផលក្នុងចន្លោះពេលនេះ",
+    "no": "#ល.រ",
+    "productName": "ឈ្មោះផលិតផល",
+    "quantity": "បរិមាណ",
+    "price": "តម្លៃ",
+    "totalPrice": "តម្លៃសរុប",
+    "saleDate": "កាលបរិច្ឆេទលក់",
+    "orderNo": "លេខបញ្ជាទិញ",
+    "seller": "អ្នកលក់",
+    "selectSeller": "ជ្រើសរើសអ្នកលក់",
+    "allSellers": "អ្នកលក់ទាំងអស់",
+    "selectGroup": "ជ្រើសរើសក្រុម",
+    "allGroups": "ក្រុមទាំងអស់",
+    "searchPlaceholder": "ស្វែងរកតាមឈ្មោះផលិតផល...",
+    "from": "ចាប់ពីថ្ងៃ",
+    "to": "ដល់ថ្ងៃ",
+    "reset": "កំណត់ឡើងវិញ"
   }
 }

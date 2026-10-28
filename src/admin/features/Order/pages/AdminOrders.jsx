@@ -11,6 +11,7 @@ import DataTableSkeleton from '../../../components/common/DataTableSkeleton'
 import DataCardSkeletonGrid from '../../../components/common/DataCardSkeleton'
 import { PackageOpen, LayoutGrid, List, PackageX } from 'lucide-react'
 import OrderExportActions from '../components/OrderExportActions'
+import OrderStatsCards from '../components/OrderStatsCards'
 
 import { useOrders } from '../hooks/useOrders'
 
@@ -19,6 +20,7 @@ export default function AdminOrders() {
   const [viewMode, setViewMode] = useState('list')
   const {
     orders,
+    allOrders,
     paginatedOrders,
     search,
     setSearch,
@@ -98,6 +100,14 @@ export default function AdminOrders() {
           </div>
         </div>
       </div>
+
+      {/* KPI Summary StateCards */}
+      <OrderStatsCards
+        orders={allOrders}
+        isLoading={isLoading}
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+      />
 
       <OrderFilterBar
         search={search}

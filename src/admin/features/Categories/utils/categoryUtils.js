@@ -1,14 +1,6 @@
 import i18n from 'i18next';
 
 /**
- * Returns the localized category display name based on the current or provided language.
- * - When language is Khmer ('km'), prioritizes `name_local` (falling back to `name`).
- * - When language is English ('en') or other, prioritizes `name` (falling back to `name_local`).
- *
- * Accepts either:
- * - A category object: `{ name, name_local }`
- * - A product object: `{ categoryName, categoryNameLocal, category: { ... } }`
- * - A plain string
  *
  * @param {Object|string} item - Category object, product object, or string
  * @param {string} [lang] - Optional language code (defaults to i18n active language)
@@ -21,22 +13,46 @@ export function getCategoryDisplayName(item, lang) {
   const currentLang = lang || i18n.resolvedLanguage || i18n.language || 'en';
   const isKhmer = typeof currentLang === 'string' && currentLang.startsWith('km');
 
-  // Handle category object or product object with category info
-  const enName = (
-    item.name ??
-    item.categoryName ??
-    item.category?.name ??
-    ''
-  ).trim();
+  // Check if item is a product object containing category fields
+  const isProduct = Boolean(
+    item.categoryName ||
+    item.categoryNameLocal ||
+    item.category ||
+    item.categoryId != null ||
+    item.category_id != null
+  );
 
-  const localName = (
-    item.name_local ??
-    item.nameLocal ??
-    item.categoryNameLocal ??
-    item.category?.name_local ??
-    item.category?.nameLocal ??
-    ''
-  ).trim();
+  let enName = '';
+  let localName = '';
+
+  if (isProduct) {
+    // For a product object, strictly read the category fields, NEVER item.name (which is product name)
+    enName = (
+      item.categoryName ??
+      item.category?.name ??
+      ''
+    ).trim();
+
+    localName = (
+      item.categoryNameLocal ??
+      item.category_name_local ??
+      item.category?.name_local ??
+      item.category?.nameLocal ??
+      ''
+    ).trim();
+  } else {
+    // For a category object, read its direct name and name_local
+    enName = (
+      item.name ??
+      ''
+    ).trim();
+
+    localName = (
+      item.name_local ??
+      item.nameLocal ??
+      ''
+    ).trim();
+  }
 
   if (isKhmer) {
     return localName || enName || '';

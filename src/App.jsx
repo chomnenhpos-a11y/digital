@@ -9,8 +9,11 @@ import { AdminAuthProvider } from "./context/AdminAuthContext";
 import { appRoutes } from "./routes/AppRouter";
 import ScrollToTop from "./client/components/common/ScrollToTop";
 import ProductShareBar from "./client/components/common/ProductShareBar";
+import useStaffReferral from "./client/features/cart/hooks/useStaffReferral";
 
 const RootLayout = () => {
+  useStaffReferral();
+
   return (
     <div className="w-full">
       <ProductShareProvider>

@@ -89,12 +89,20 @@ function useOrderCreationMutation(createOrder) {
       subtotal,
       delivery,
       customerInfo,
+      saleBy,
     }) => {
       const requestedPaymentStatus = paymentStatus ?? customerInfo?.paymentStatus;
       const requestedStatuses = {
         ...(customerInfo?.status != null && { status: customerInfo.status }),
         ...(requestedPaymentStatus != null && { paymentStatus: requestedPaymentStatus }),
       };
+      const resolvedSaleBy =
+        saleBy != null
+          ? Number(saleBy) || null
+          : customerInfo?.saleBy != null
+          ? Number(customerInfo.saleBy) || null
+          : null;
+
       const payload = {
         shop_code: shop_code || "",
 
@@ -125,6 +133,8 @@ function useOrderCreationMutation(createOrder) {
           ) ||
           null,
 
+        ...(resolvedSaleBy != null && { saleBy: resolvedSaleBy }),
+
         items: (items || []).map(
           (item) => {
             const basePrice =
@@ -137,11 +147,6 @@ function useOrderCreationMutation(createOrder) {
               quantity: Number(
                 item.quantity
               ),
-
-              // Send the exact unit price shown in the cart (product sale
-              // price, minus any special staff/customer discount) so the
-              // backend total matches the UI. Only when the price is known —
-              // otherwise let the backend price the item itself.
               ...(basePrice > 0 && {
                 price:
                   item.specialPrice != null

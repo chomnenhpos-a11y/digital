@@ -28,6 +28,21 @@ const colorStyles = {
     text: "text-[#c92a7e]",
     border: "border-l-[#c92a7e]",
   },
+  rose: {
+    bg: "bg-rose-50",
+    text: "text-rose-600",
+    border: "border-l-rose-500",
+  },
+  red: {
+    bg: "bg-rose-50",
+    text: "text-rose-600",
+    border: "border-l-rose-500",
+  },
+  indigo: {
+    bg: "bg-indigo-50",
+    text: "text-indigo-600",
+    border: "border-l-indigo-500",
+  },
 };
 
 export default function StatsCard({
@@ -38,19 +53,22 @@ export default function StatsCard({
   color = "blue",
   warning,
   note,
-  link
+  link,
+  onClick,
+  isActive = false,
+  className = "",
 }) {
   const { t } = useTranslation();
   const style = colorStyles[color] || colorStyles.blue;
   const cardContent = (
     <>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-md font-semibold text-slate-500 uppercase tracking-wider">
+        <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider truncate">
           {title}
         </p>
         {Icon && (
           <div
-            className={`w-9 h-9 rounded-lg flex items-center justify-center ${style.bg}`}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ml-2 ${style.bg}`}
           >
             <Icon size={18} className={style.text} />
           </div>
@@ -73,23 +91,30 @@ export default function StatsCard({
         </p>
       ) : note ? (
         <p
-          className={`text-xs ${warning ? "text-amber-600" : "text-slate-400"}`}
+          className={`text-xs ${warning ? "text-amber-600" : "text-slate-400"} truncate`}
         >
           {note}
         </p>
       ) : null}
     </>
   );
+  const interactiveClasses = onClick
+    ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 select-none"
+    : "";
+  const activeClasses = isActive ? "ring-2 ring-[#870d4c] shadow-sm" : "";
+
   return link ? (
     <Link
       to={link}
-      className={`block bg-white border border-slate-200 border-l-4 ${style.border} rounded-2xl p-5 cursor-pointer hover:shadow-md transition-shadow`}
+      onClick={onClick}
+      className={`block bg-white border border-slate-200 border-l-4 ${style.border} rounded-2xl p-4 sm:p-5 hover:shadow-md transition-shadow ${activeClasses} ${className}`}
     >
       {cardContent}
     </Link>
   ) : (
     <div
-      className={`bg-white border border-slate-200 border-l-4 ${style.border} rounded-2xl p-5`}
+      onClick={onClick}
+      className={`bg-white border border-slate-200 border-l-4 ${style.border} rounded-2xl p-4 sm:p-5 ${interactiveClasses} ${activeClasses} ${className}`}
     >
       {cardContent}
     </div>
