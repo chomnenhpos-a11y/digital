@@ -71,7 +71,6 @@ export default function ProductMediaGuides({ media }) {
               aria-label={label}
               onClick={(event) => {
                 if (isFacebook) {
-                  // Facebook auto-opens external link in new tab, does not display modal
                   return;
                 }
 
@@ -84,7 +83,7 @@ export default function ProductMediaGuides({ media }) {
                   });
                 }
               }}
-              className="group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:scale-105 hover:border-[#9d1159]/40 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9d1159] sm:h-14 sm:w-14"
+              className="group relative flex h-12 w-12 ml-0.5 mb-0.5 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:scale-105 hover:border-[#9d1159]/40 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9d1159] sm:h-14 sm:w-14"
             >
               <span
                 className="flex h-8 w-8 items-center justify-center rounded-xl transition-colors sm:h-9 sm:w-9"
