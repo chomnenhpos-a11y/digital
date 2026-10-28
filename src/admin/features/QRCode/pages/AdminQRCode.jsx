@@ -52,12 +52,26 @@ export default function AdminQRCode() {
   const [roundLogoUrl, setRoundLogoUrl] = useState("");
   const [design, setDesign] = useState(DEFAULT_DESIGN);
   const qrRef = useRef(null);
-  const shopUrl = shopCode ? `${window.location.origin}/${shopCode}` : "";
+  const generateStaffLink = (shopCode, staffId, name) => {
+    if (!shopCode) return "";
+    const url = new URL(
+      `/${encodeURIComponent(shopCode)}`,
+      window.location.origin
+    );
+
+    if (staffId) {
+      const staffReff = `${staffId}${name ? name.trim() : ""}`;
+      url.searchParams.set("staff_reff", staffReff);
+    }
+
+    return url.toString();
+  };
+
+  const shopUrl = generateStaffLink(shopCode, user?.id, user?.name);
   const contrast = contrastRatio(design.foreground, design.background);
   const hasEnoughContrast =
     contrast >= 4.5 &&
     relativeLuminance(design.foreground) < relativeLuminance(design.background);
-
   useEffect(() => {
     if (!logoShopUrl) {
       setRoundLogoUrl("");

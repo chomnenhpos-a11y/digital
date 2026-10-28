@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 
 /**
- * Dynamically updates browser tab icon and title based on shop code and settings.
- * Ensures routes like /print/receipt/:id and /print/sticker/:id reflect the active shop branding.
  *
  * @param {string|null|undefined} shopCode
  * @param {object|null|undefined} settings
