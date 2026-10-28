@@ -18,6 +18,7 @@ import { usePublicSettingsQuery } from "../../../queries/settings/useSettingQuer
 import { useProductsQuery } from "../../../queries/products/useProductQueries";
 import LanguageSwitcher from "../../../components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import { getCategoryDisplayName } from "../../../admin/features/Categories/utils/categoryUtils";
 import ViewModeSelector from "../common/ViewModeSelector";
 
 const VIEW_MODE_STORAGE_KEY = "client-view-mode";
@@ -37,7 +38,7 @@ function getSavedViewMode() {
 }
 
 export default function Header() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { searchItem, setSearchItem, priceRange, setPriceRange } = useSearch();
@@ -74,7 +75,9 @@ export default function Header() {
     return products.filter((product) => {
       const matchName = (product.name || "").toLowerCase().includes(query);
       const matchSku = (product.sku || "").toLowerCase().includes(query);
-      const matchCat = (product.categoryName || "").toLowerCase().includes(query);
+      const matchCat =
+        (product.categoryName || "").toLowerCase().includes(query) ||
+        (product.categoryNameLocal || "").toLowerCase().includes(query);
       return matchName || matchSku || matchCat;
     });
   }, [products, searchItem]);
@@ -276,7 +279,7 @@ export default function Header() {
                       </h4>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[10px] sm:text-xs text-slate-400 font-medium truncate">
-                          {product.categoryName || t('product.general')}
+                          {getCategoryDisplayName(product, i18n.language) || t('product.general')}
                         </span>
                         {!hasStock && (
                           <span className="text-[9px] font-bold text-red-500 bg-red-100 px-1.5 py-0.5 rounded">

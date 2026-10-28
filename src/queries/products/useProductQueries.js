@@ -43,6 +43,8 @@ const mapProduct = (item, categories = []) => {
     description: item.description || '',
     categoryId: item.categoryId || item.category_id,
     categoryName: item.categoryName || matchedCategory?.name || '',
+    categoryNameLocal: item.categoryNameLocal || item.category_name_local || matchedCategory?.name_local || matchedCategory?.nameLocal || '',
+    category: matchedCategory || item.category || null,
     createdAt: item.createdAt,
     status: item.status,
   };

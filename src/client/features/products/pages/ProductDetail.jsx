@@ -29,9 +29,10 @@ import { useBestSellers } from "../../../../hooks/useBestSellers";
 import RecommendedProducts from "../components/RecommendedProducts";
 import ProductMediaGuides from "../components/ProductMediaGuides.jsx";
 import { useTranslation } from "react-i18next";
+import { getCategoryDisplayName } from "../../../../admin/features/Categories/utils/categoryUtils";
 
 export default function ProductDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { shop_code, id } = useParams();
 
   const { addToCart, setIsCartOpen } = useCart();
@@ -289,9 +290,9 @@ export default function ProductDetail() {
             {t('product.goBack')}
           </Link>
 
-          {categoryName && (
+          {getCategoryDisplayName(product, i18n.language) && (
             <span className="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-md">
-              {t('product.category')} <strong className="text-slate-800">{categoryName}</strong>
+              {t('product.category')} <strong className="text-slate-800">{getCategoryDisplayName(product, i18n.language)}</strong>
             </span>
           )}
         </div>

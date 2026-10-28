@@ -19,6 +19,7 @@ export default function AdminCategories() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
 
   const {
+    search,
     filters,
     sortOrder,
     currentPage,
@@ -56,7 +57,7 @@ export default function AdminCategories() {
           {row.image ? (
             <img
               src={row.image}
-              alt={row.name}
+              alt={row.name_local || row.name || 'Category'}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -70,6 +71,11 @@ export default function AdminCategories() {
     {
       header: t('category.nameLabel'),
       accessor: 'name',
+    },
+    {
+       header: t('category.nameLocalLabel'),
+       accessor: 'name_local',
+       render: (row) => row.name_local || '—'
     },
     {
       header: 'Slug',
@@ -179,7 +185,7 @@ export default function AdminCategories() {
               <input
                 type="text"
                 placeholder={t('category.searchPlaceholder')}
-                value={filters.search || ''}
+                value={search}
                 onChange={(e) => updateFilter('search', e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#870d4c]/30"
               />

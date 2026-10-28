@@ -88,11 +88,6 @@ export function unavailableBestSellers(issues: BestSellerIssue[]): BestSellerRes
   return { status: "unavailable", issues: [...new Set(issues)], rankings: [] };
 }
 
-/**
- * Card badges for the selected paid-orders-only rule, with no date limit.
- * Counts are observed lower bounds: 20 observed paid orders establish the badge
- * even if other history is unavailable. This does not establish a global ranking.
- */
 export function calculatePaidOrderBadges<Order, Item>({
   orders,
   adapter,

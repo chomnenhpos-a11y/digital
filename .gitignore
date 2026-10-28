@@ -25,3 +25,20 @@ dist-ssr
 # ENV SECURE    
 .env
 .env.local
+
+.observatory/manifest.json
+.observatory/ai-sessions.json
+.observatory/sessions/
+.observatory/progress.json
+.observatory/report.json
+.observatory/test-results.json
+.observatory/test-history.jsonl
+.observatory/pytest-report.json
+.observatory/*.corrupted
+
+
+# --- snapshot-collector: user-local (project init) ---
+.observatory/snapshots/data/
+/tmp/snapshot-*.json
+**/snapshot-collected-*.json
+# --- end snapshot-collector ---

@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import { productSchema } from "../schemas/productSchema";
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
+import { getCategoryDisplayName } from "../../Categories/utils/categoryUtils";
 import { normalizeProductMedia } from "../../../../utils/productMedia.js";
 import ProductMediaLinks from "./ProductMediaLinks.jsx";
 import {
@@ -737,7 +738,7 @@ function SearchableCategorySelect({ categories, value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -758,9 +759,14 @@ function SearchableCategorySelect({ categories, value, onChange }) {
     (category) => String(category.id) === String(value),
   );
 
-  const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredCategories = categories.filter((category) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (category.name || "").toLowerCase().includes(q) ||
+      (category.name_local || "").toLowerCase().includes(q)
+    );
+  });
 
   const handleSelect = (categoryId) => {
     onChange(String(categoryId));
@@ -779,7 +785,7 @@ function SearchableCategorySelect({ categories, value, onChange }) {
       >
         <span className={selectedCategory ? "text-gray-900" : "text-gray-500"}>
           {selectedCategory
-            ? selectedCategory.name
+            ? getCategoryDisplayName(selectedCategory, i18n.language)
             : t("products.selectCategory")}
         </span>
 
@@ -819,19 +825,30 @@ function SearchableCategorySelect({ categories, value, onChange }) {
             </div>
 
             {filteredCategories.length > 0 ? (
-              filteredCategories.map((category) => (
-                <div
-                  key={category.id}
-                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 ${
-                    String(value) === String(category.id)
-                      ? "bg-[#870d4c]/5 text-[#870d4c] font-medium"
-                      : "text-gray-700"
-                  }`}
-                  onClick={() => handleSelect(category.id)}
-                >
-                  {category.name}
-                </div>
-              ))
+              filteredCategories.map((category) => {
+                const displayName = getCategoryDisplayName(category, i18n.language);
+                const secondaryName = i18n.language?.startsWith("km")
+                  ? category.name
+                  : category.name_local;
+                return (
+                  <div
+                    key={category.id}
+                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex items-center justify-between ${
+                      String(value) === String(category.id)
+                        ? "bg-[#870d4c]/5 text-[#870d4c] font-medium"
+                        : "text-gray-700"
+                    }`}
+                    onClick={() => handleSelect(category.id)}
+                  >
+                    <span>{displayName}</span>
+                    {secondaryName && secondaryName !== displayName && (
+                      <span className="text-xs text-slate-400 font-normal">
+                        {secondaryName}
+                      </span>
+                    )}
+                  </div>
+                );
+              })
             ) : (
               <div className="px-3 py-4 text-sm text-gray-500 text-center">
                 {t("common.noResultsFor")} "{search}"

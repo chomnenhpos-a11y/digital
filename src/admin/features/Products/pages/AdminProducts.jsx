@@ -13,10 +13,11 @@ import PageHeader from "../../../components/common/PageHeader";
 import FilterBar from "../../../components/common/FilterBar";
 import Pagination from "../../../components/common/Pagination";
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
+import { getCategoryDisplayName } from "../../Categories/utils/categoryUtils";
 import { useTranslation } from "react-i18next";
 
 export default function AdminProducts() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: categories = [], isPending: isCategoriesPending } = useCategoriesQuery();
 
   const {
@@ -82,7 +83,14 @@ export default function AdminProducts() {
 
     {
       header: t('products.category'),
-      accessor: "categoryName",
+      render: (row) => (
+        <span className="text-sm text-slate-700">
+          {getCategoryDisplayName(
+            { name: row.categoryName, name_local: row.categoryNameLocal },
+            i18n.language
+          ) || "—"}
+        </span>
+      ),
     },
 
     {
@@ -214,7 +222,12 @@ export default function AdminProducts() {
   const productFilters = [
     {
       key: "category",
-      options: [t('common.all'), ...categories.map((c) => c.name)],
+      options: [
+        t('common.all'),
+        ...categories
+          .map((c) => getCategoryDisplayName(c, i18n.language))
+          .filter(Boolean),
+      ],
       searchable: true,
     },
   ];

@@ -489,7 +489,13 @@
     "saveBtn": "Save Category",
     "addSuccess": "Category added successfully",
     "updateSuccess": "Category updated successfully",
-    "deleteInUseError": "Cannot delete category because products are currently using it"
+    "deleteInUseError": "Cannot delete category because products are currently using it",
+    "nameLocalLabel": "KH-Category",
+    "name_localPlaceholder": "e.g., គ្រឿងតុបតែងខ្លួន",
+    "nameRequired": "Category name is required.",
+    "nameLocalRequired": "Local category name is required.",
+    "slugRequired": "Slug is required.",
+    "descRequired": "Description is required."
   },
   "delivery": {
     "nameRequired": "Provider name is required.",

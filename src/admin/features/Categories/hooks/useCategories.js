@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 const ITEMS_PER_PAGE = 5
 
 export function useCategories() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { data: categories = [], isLoading: isCategoriesLoading } = useCategoriesQuery()
   const createMutation = useCreateCategoryMutation()
   const updateMutation = useUpdateCategoryMutation()
@@ -24,9 +24,12 @@ export function useCategories() {
   // ── Filter & Sort
   const filteredCategories = (categories || [])
     .filter((category) => {
-      const matchSearch = category.name
-        .toLowerCase()
-        .includes(search.toLowerCase())
+      const q = search.trim().toLowerCase()
+      const matchSearch =
+        !q ||
+        (category.name || '').toLowerCase().includes(q) ||
+        (category.name_local || '').toLowerCase().includes(q) ||
+        (category.slug || '').toLowerCase().includes(q)
 
       const matchStatus =
         filters.status === '' ||
@@ -37,8 +40,11 @@ export function useCategories() {
     })
     .sort((a, b) => {
       if (sortOrder === 'Newest First' || sortOrder === 'newest' || sortOrder === '') return b.id - a.id
-      if (sortOrder === 'A → Z' || sortOrder === 'asc') return a.name.localeCompare(b.name)
-      return b.name.localeCompare(a.name) // 'Z → A' or 'desc'
+      const isKhmer = (i18n?.resolvedLanguage || i18n?.language || '').startsWith('km')
+      const nameA = (isKhmer ? (a.name_local || a.name) : (a.name || a.name_local)) || ''
+      const nameB = (isKhmer ? (b.name_local || b.name) : (b.name || b.name_local)) || ''
+      if (sortOrder === 'A → Z' || sortOrder === 'asc') return nameA.localeCompare(nameB, isKhmer ? 'km' : 'en')
+      return nameB.localeCompare(nameA, isKhmer ? 'km' : 'en') // 'Z → A' or 'desc'
     })
 
   // ── Pagination─────
@@ -64,10 +70,20 @@ export function useCategories() {
     setCurrentPage(1)
   }
 
+  const updateFilter = (key, value) => {
+    if (key === 'search') {
+      setSearch(value)
+      setCurrentPage(1)
+    } else {
+      handleFilterChange(key, value)
+    }
+  }
+
   const handleSubmit = async (data) => {
     try {
       const payload = new FormData()
       payload.append('name', data.name)
+      payload.append('name_local', data.name_local)
       payload.append('slug', data.slug)
       if (data.description) {
         payload.append('description', data.description)
@@ -186,7 +202,8 @@ export function useCategories() {
     openAddModal,
     closeModal,
     setEditingCategory,
-    setIsModalOpen
+    setIsModalOpen,
+    updateFilter
   }
 }
 

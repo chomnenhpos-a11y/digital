@@ -7,6 +7,7 @@ import { useProductsQuery } from "../../../../queries/products/useProductQueries
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
 
 import { useAuth } from "../../../../hooks/useAuth";
+import { getCategoryDisplayName } from "../../Categories/utils/categoryUtils";
 
 const INITIAL_CUSTOMER = {
   name: "",
@@ -18,7 +19,7 @@ const INITIAL_CUSTOMER = {
 };
 
 export default function useSalesForm() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
 
   const shopCode =
@@ -56,7 +57,7 @@ export default function useSalesForm() {
     const uniqueCategoryNames = [
       ...new Set(
         categories
-          .map((category) => category?.name)
+          .map((category) => getCategoryDisplayName(category, i18n?.language))
           .filter(Boolean)
       ),
     ];
@@ -71,7 +72,7 @@ export default function useSalesForm() {
         searchable: true,
       },
     ];
-  }, [categories, t]);
+  }, [categories, t, i18n?.language]);
 
   const handleFilterChange = (key, value) => {
     setFilters((previousFilters) => ({
@@ -279,7 +280,9 @@ export default function useSalesForm() {
       const matchesCategory =
         !filters.category ||
         filters.category === t("common.all") ||
-        productCategory === filters.category;
+        productCategory === filters.category ||
+        product?.categoryNameLocal === filters.category ||
+        getCategoryDisplayName(product, i18n?.language) === filters.category;
 
       return matchesSearch && matchesCategory;
     });
@@ -288,6 +291,7 @@ export default function useSalesForm() {
     search,
     filters.category,
     t,
+    i18n?.language,
   ]);
 
   const handleCheckout = async ({ customerInfo }) => {

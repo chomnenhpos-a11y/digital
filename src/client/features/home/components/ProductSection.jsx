@@ -20,6 +20,7 @@ import { useBestSellers } from "../../../../hooks/useBestSellers";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
 import { useCategoriesQuery } from "../../../../queries/categories/useCategoryQueries";
 import { useTranslation } from "react-i18next";
+import { getCategoryDisplayName } from "../../../../admin/features/Categories/utils/categoryUtils";
 
 // Mobile "All Products" section: show 2 rows (4 cards on a 2-col grid) by default
 const MOBILE_PAGE_SIZE = 4;
@@ -108,7 +109,7 @@ function BrowseOtherCategories({ categories, activeCategory, onSelect, t }) {
                   />
                 ) : null}
               </span>
-              <span className="max-w-40 truncate">{category.name}</span>
+              <span className="max-w-40 truncate">{getCategoryDisplayName(category)}</span>
             </button>
           );
         })}
@@ -141,7 +142,7 @@ function useIsDesktop() {
 }
 
 export default function ProductSection({ allProductsRef, bestSellerRules }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { shop_code } = useParams();
   const isDesktop = useIsDesktop();
 
@@ -232,11 +233,11 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
       },
       ...categories.map((category) => ({
         id: category.id,
-        name: category.name,
+        name: getCategoryDisplayName(category, i18n.language),
         image: category.image || null,
       })),
     ];
-  }, [categories, t]);
+  }, [categories, t, i18n.language]);
 
   const filteredProductsDesktop = useMemo(() => {
     if (!productsWithBadges.length) {
@@ -250,7 +251,8 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
         return (
           (product.name || "").toLowerCase().includes(query) ||
           (product.sku || "").toLowerCase().includes(query) ||
-          (product.categoryName || "").toLowerCase().includes(query)
+          (product.categoryName || "").toLowerCase().includes(query) ||
+          (product.categoryNameLocal || "").toLowerCase().includes(query)
         );
       })
       .filter((product) =>
@@ -394,7 +396,8 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
         return (
           (product.name || "").toLowerCase().includes(query) ||
           (product.sku || "").toLowerCase().includes(query) ||
-          (product.categoryName || "").toLowerCase().includes(query)
+          (product.categoryName || "").toLowerCase().includes(query) ||
+          (product.categoryNameLocal || "").toLowerCase().includes(query)
         );
       })
       .filter((product) =>
@@ -776,7 +779,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
                       <SectionHeader
                         icon="ant-design:product-outlined"
                         iconHeight="1.35em"
-                        title={category.name}
+                        title={getCategoryDisplayName(category, i18n.language)}
                       />
 
                       {categoryProducts.length > 0 ? (
@@ -959,7 +962,7 @@ export default function ProductSection({ allProductsRef, bestSellerRules }) {
                   <SectionHeader
                     icon="ant-design:product-outlined"
                     iconHeight="1.35em"
-                    title={category.name}
+                    title={getCategoryDisplayName(category, i18n.language)}
                   />
 
                   {categoryProducts.length > 0 ? (

@@ -29,6 +29,7 @@ import {
 
 import { useOrdersQuery } from "../../../../queries/orders/useOrderQueries";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
+import { getCategoryDisplayName } from "../../Categories/utils/categoryUtils";
 
 const EMPTY_DATA = [];
 const COLORS = [
@@ -46,7 +47,7 @@ const moneyFormatter = new Intl.NumberFormat("en-US", {
 });
 
 export default function DashboardCharts() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: orders = EMPTY_DATA } = useOrdersQuery();
   const { data: products = EMPTY_DATA } = useProductsQuery();
 
@@ -108,7 +109,7 @@ export default function DashboardCharts() {
     const stockByCategory = new Map();
 
     for (const product of products) {
-      const category = product.categoryName || "Other";
+      const category = getCategoryDisplayName(product, i18n.language) || "Other";
       const quantity = Number(product.stockQuantity ?? 0);
       if (!Number.isFinite(quantity)) continue;
 
@@ -126,7 +127,7 @@ export default function DashboardCharts() {
       ...item,
       fill: COLORS[index % COLORS.length],
     }));
-  }, [products]);
+  }, [products, i18n.language]);
 
   const pieChartConfig = {
     value: {

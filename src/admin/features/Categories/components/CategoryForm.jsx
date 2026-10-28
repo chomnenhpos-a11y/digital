@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Save, Image as ImageIcon, Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { categorySchema } from "../schemas/categorySchema";
+import { getCategorySchema, categorySchema } from "../schemas/categorySchema";
 import { useTranslation } from "react-i18next";
 
 export default function CategoryForm({ onSubmit, initialData }) {
   const { t } = useTranslation();
+  const schema = useMemo(() => getCategorySchema(t), [t]);
   const {
     register,
     handleSubmit,
@@ -15,9 +16,10 @@ export default function CategoryForm({ onSubmit, initialData }) {
     setValue,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(categorySchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: "",
+      name_local: "",
       slug: "",
       image: "",
       description: "",
@@ -31,6 +33,7 @@ export default function CategoryForm({ onSubmit, initialData }) {
     if (initialData) {
       reset({
         name: initialData.name || "",
+        name_local: initialData.name_local || initialData.nameLocal || "",
         slug: initialData.slug || "",
         image: initialData.image || "",
         description: initialData.description || "",
@@ -41,6 +44,7 @@ export default function CategoryForm({ onSubmit, initialData }) {
     } else {
       reset({
         name: "",
+        name_local: "",
         slug: "",
         image: "",
         description: "",
@@ -94,8 +98,22 @@ export default function CategoryForm({ onSubmit, initialData }) {
             <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
           )}
         </div>
-
         <div>
+          <label className="text-sm font-semibold text-slate-700 flex items-center justify-between mb-1">
+            {t('category.nameLocalLabel')} {!isEditing && "*"}
+          </label>
+          <input
+            type="text"
+            {...register("name_local")}
+            placeholder={t('category.name_localPlaceholder')}
+            className="w-full px-3 py-2 text-sm bg-[#fcfafb] rounded-lg outline-none focus:ring-2 focus:ring-gray-200"
+          />
+          {errors.name_local && (
+            <p className="text-xs text-red-500 mt-1">{errors.name_local.message}</p>
+          )}
+        </div>
+      </div>
+      <div className=" w-full ">
           <label className="text-sm font-semibold text-slate-700 flex items-center justify-between mb-1">
             Slug {!isEditing && "*"}
           </label>
@@ -109,7 +127,6 @@ export default function CategoryForm({ onSubmit, initialData }) {
             <p className="text-xs text-red-500 mt-1">{errors.slug.message}</p>
           )}
         </div>
-      </div>
 
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-700 block">

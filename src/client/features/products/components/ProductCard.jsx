@@ -16,9 +16,10 @@ import ProductPrice from "./ProductPrice";
 import { useProductShareContext } from "../../../../context/ProductShareContext";
 import { useCart } from "../../../../context/CartContext";
 import { useTranslation } from "react-i18next";
+import { getCategoryDisplayName } from "../../../../admin/features/Categories/utils/categoryUtils";
 
 export default function ProductCard({ product = {}, index = 0 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { shop_code } = useParams();
 
@@ -224,7 +225,7 @@ export default function ProductCard({ product = {}, index = 0 }) {
         {/* Category + Stock */}
         <div className="flex items-center justify-between gap-2">
           <span className="text-[10px] sm:text-[11px] text-gray-400 font-medium uppercase tracking-wider truncate flex-1">
-            {categoryName || t('product.general')}
+            {getCategoryDisplayName(product, i18n.language) || t('product.general')}
           </span>
 
           <Badge

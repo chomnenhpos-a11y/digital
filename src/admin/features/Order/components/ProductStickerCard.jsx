@@ -1,8 +1,11 @@
 import React from "react";
 import Barcode from "react-barcode";
 import { Tag, ShoppingBag } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { getCategoryDisplayName } from "../../Categories/utils/categoryUtils";
 
 export default function ProductStickerCard({ product, settings, design }) {
+  const { i18n } = useTranslation();
   const shopName = settings?.shop_name || settings?.shopName || "Store";
   const rawLogo = settings?.logo;
   const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
@@ -74,7 +77,7 @@ export default function ProductStickerCard({ product, settings, design }) {
             </h1>
 
             <span className="mt-1 block text-[11px] font-semibold text-slate-500">
-              {product?.categoryName || "Product Tag"}
+              {getCategoryDisplayName(product, i18n.language) || "Product Tag"}
             </span>
           </div>
         </div>

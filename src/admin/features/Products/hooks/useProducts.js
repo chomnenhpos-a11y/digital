@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useProductsQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation } from '../../../../queries/products/useProductQueries'
 import Swal from '../../../../lib/alert'
 import { useTranslation } from 'react-i18next'
+import { getCategoryDisplayName } from '../../Categories/utils/categoryUtils'
 
 const ITEMS_PER_PAGE = 5
 
@@ -12,7 +13,7 @@ export function getStockStatus(stock) {
 }
 
 export function useProducts({ shopCode } = {}) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { data: products = [], isPending: isLoading } = useProductsQuery(
     { shop_code: shopCode }
   )
@@ -36,7 +37,9 @@ export function useProducts({ shopCode } = {}) {
         const matchCategory =
           !filters.category ||
           filters.category === t('common.all') ||
-          product.categoryName === filters.category
+          product.categoryName === filters.category ||
+          product.categoryNameLocal === filters.category ||
+          getCategoryDisplayName(product, i18n?.language) === filters.category
 
         // Using stockQuantity as mapped in ProductContext
         const matchStatus =
@@ -51,7 +54,7 @@ export function useProducts({ shopCode } = {}) {
         if (sortOrder === 'A → Z' || sortOrder === 'asc') return a.name.localeCompare(b.name)
         return b.name.localeCompare(a.name)
       })
-  }, [products, search, filters, sortOrder, t])
+  }, [products, search, filters, sortOrder, t, i18n?.language])
 
   // ── Pagination (Memoized) ──────────────────────────────────────────────────
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
