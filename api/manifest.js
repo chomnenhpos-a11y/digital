@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   }
 
   const apiDomain = "https://onlineapi.chomnenhapp.com";
-  let shopName = `Chomnenh - ${shop_code}`;
+  let shopName = shop_code;
   let logoUrl = '/images/chomnenh.png'; 
 
   try {
@@ -16,19 +16,31 @@ export default async function handler(req, res) {
     if (apiResponse.ok) {
       const result = await apiResponse.json();
       if (result.success && result.data) {
-        const setting = result.data;
+        const setting = (result.data.shop && typeof result.data.shop === 'object')
+          ? result.data.shop
+          : (result.data.setting || result.data);
         
         if (setting.shop_name) {
           shopName = setting.shop_name;
         }
         if (setting.logo) {
-          logoUrl = `${apiDomain}${setting.logo}`;
+          const logoPath = setting.logo;
+          logoUrl = logoPath.startsWith('http')
+            ? logoPath
+            : `${apiDomain}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
         }
       }
     }
   } catch (error) {
     console.error("Manifest: មិនអាចទាញទិន្នន័យពី API:", error);
   }
+
+  const getMimeType = (url) => {
+    if (/\.jpe?g$/i.test(url)) return "image/jpeg";
+    if (/\.webp$/i.test(url)) return "image/webp";
+    if (/\.svg$/i.test(url)) return "image/svg+xml";
+    return "image/png";
+  };
 
   const manifest = {
     id: `/${shop_code}/`,
@@ -43,13 +55,13 @@ export default async function handler(req, res) {
       {
         src: logoUrl,
         sizes: "192x192",
-        type: "image/png", 
+        type: getMimeType(logoUrl),
         purpose: "any maskable"
       },
       {
         src: logoUrl,
         sizes: "512x512",
-        type: "image/png",
+        type: getMimeType(logoUrl),
         purpose: "any maskable"
       }
     ]

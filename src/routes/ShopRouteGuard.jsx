@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, useLocation, Outlet } from 'react-router-dom';
 import { usePublicSettingsQuery } from '../queries/settings/useSettingQueries';
+import { useDynamicShopBranding } from '../hooks/useDynamicShopBranding';
 import NotFoundPage from '../components/NotFoundPage';
 import ShopLoadingSkeleton from '../client/components/common/ShopLoadingSkeleton';
 import {
@@ -40,6 +41,9 @@ export default function ShopRouteGuard() {
     isLoading,
     isError,
   } = usePublicSettingsQuery(cleanShopCode, { staffReff });
+
+  // Top-level hook call: Must be called before any conditional early returns
+  useDynamicShopBranding(cleanShopCode, settingData);
 
   // 1. Missing or invalid route parameter.
   if (!cleanShopCode) {

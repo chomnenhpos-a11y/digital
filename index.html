@@ -5,6 +5,12 @@
     <link rel="icon" type="image/png" href="/images/chomnenh.png" />
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Chomnenh Digital" />
+    <link rel="apple-touch-icon" href="/images/chomnenh.png" />
+
     <title>Chomnenh Digital</title>
     <meta name="description" content="Full-featured e-commerce storefront and store management admin dashboard with product catalog, cart, QR payment, order tracking, and receipt generation." />
     <meta property="og:title" content="Chomnenh Digital" />
@@ -75,6 +81,7 @@
           }
 
           if (activeShopCode) {
+            const cacheKey = 'shop_branding_' + activeShopCode;
             const manifestUrl = `/api/manifest?shop_code=${encodeURIComponent(activeShopCode)}`;
 
             let manifestLink = document.querySelector('link[rel="manifest"]');
@@ -84,7 +91,6 @@
               head.appendChild(manifestLink);
             }
             manifestLink.href = manifestUrl;
-            appleTitle.content = activeShopCode;
 
             let baseUrl = '%VITE_API_URL%';
             if (!baseUrl || baseUrl.startsWith('%')) {
@@ -162,25 +168,57 @@
 
             const applyBranding = (data) => {
               if (!data) return;
-              const shopName = data.shop_name || data.shopName || activeShopCode;
+              const shop = (data.shop && typeof data.shop === 'object') ? data.shop : data;
+              const shopName = shop.shop_name || shop.shopName || shop.name || activeShopCode;
+              
               if (shopName) {
                 document.title = String(shopName);
-                appleTitle.content = String(shopName);
+                if (appleTitle) {
+                  appleTitle.content = String(shopName);
+                }
               }
 
-              if (data.logo) {
-                const logoPath = data.logo;
+              const logoPath = shop.logo;
+              if (logoPath) {
                 const logoUrl = logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
                 setRoundedIcon(logoUrl);
               }
+
+              // Cache branding locally for instant access on install / reload
+              try {
+                localStorage.setItem(cacheKey, JSON.stringify({
+                  shop_name: shopName,
+                  logo: logoPath || null
+                }));
+              } catch (e) {}
             };
+
+            // 1. Try reading instantly from local cache (0ms instant retrieval)
+            try {
+              const cachedStr = localStorage.getItem(cacheKey);
+              if (cachedStr) {
+                const cachedData = JSON.parse(cachedStr);
+                if (cachedData && (cachedData.shop_name || cachedData.logo)) {
+                  applyBranding(cachedData);
+                }
+              }
+            } catch (e) {}
+
+            // Set temporary title if neither cache nor title is ready yet
+            if (!appleTitle.content) {
+              appleTitle.content = activeShopCode;
+            }
 
             const settingsObj = overrideSettings && typeof overrideSettings === 'object'
               ? (overrideSettings.data || overrideSettings)
               : null;
 
-            if (settingsObj && (settingsObj.shop_name || settingsObj.shopName || settingsObj.logo)) {
-              applyBranding(settingsObj);
+            const targetSettings = (settingsObj && settingsObj.shop && typeof settingsObj.shop === 'object')
+              ? settingsObj.shop
+              : settingsObj;
+
+            if (targetSettings && (targetSettings.shop_name || targetSettings.shopName || targetSettings.logo)) {
+              applyBranding(targetSettings);
             } else {
               const settingsParams = new URLSearchParams({ shop_code: activeShopCode });
               if (activeStaffReff) {

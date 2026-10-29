@@ -16,13 +16,21 @@ export default async function handler(req, res) {
     if (apiResponse.ok) {
       const result = await apiResponse.json();
       
-      if (result.data && result.data.setting) {
-        const setting = result.data.setting;
-        if (setting.shop_code === shopCode) {
-          shopName = setting.shop_name;
+      if (result.data) {
+        const setting = (result.data.shop && typeof result.data.shop === 'object')
+          ? result.data.shop
+          : (result.data.setting || result.data);
+
+        if (setting.shop_code === shopCode || !setting.shop_code) {
+          if (setting.shop_name) {
+            shopName = setting.shop_name;
+          }
           
           if (setting.logo) {
-            logoUrl = `${apiDomain}${setting.logo}`;
+            const logoPath = setting.logo;
+            logoUrl = logoPath.startsWith('http')
+              ? logoPath
+              : `${apiDomain}${logoPath.startsWith('/') ? '' : '/'}${logoPath}`;
           }
           
           if (setting.bio_shop) {

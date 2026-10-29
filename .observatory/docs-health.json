@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-10-29T06:36:47.588Z",
+  "generated_at": "2026-10-29T07:07:59.705Z",
   "overall_score": 50,
   "checks": [
     {
@@ -19,8 +19,8 @@
           "src/App.jsx",
           "src/main.jsx",
           "api/telegram/send.js",
-          "src/api/axiosClient.js",
-          "src/api/endpoints.js"
+          "src/config/bestSellers.ts",
+          "src/config/env.js"
         ]
       }
     },
