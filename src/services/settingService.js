@@ -17,12 +17,27 @@ export const settingService = {
     }
   },
 
+  /**
+   * Fetches public shop settings.
+   *
+   * New response follows `setting.md`: `data: { shop, sharedBy }`. When a
+   * staff referral token (staff_reff) is provided together with the shop code,
+   * the backend resolves the shared staff into `data.sharedBy` — the client
+   * uses it as the order's sell-by (saleBy) attribution.
+   *
+   * @param {string} shopCode
+   * @param {object} [config]
+   * @param {string} [config.staffReff] - Raw staff_reff token from the shared link
+   */
   getByShopCode: async (shopCode, config = {}) => {
-    const { signal, ...restConfig } = config;
+    const { signal, staffReff, ...restConfig } = config;
     try {
       // Use public client — no auth token needed for public shop settings
       const response = await publicAxiosClient.get(API_ENDPOINTS.SETTINGS.GET_ALL, {
-        params: { shop_code: shopCode },
+        params: {
+          shop_code: shopCode,
+          ...(staffReff && { staff_reff: staffReff }),
+        },
         signal,
         ...restConfig,
       });
@@ -36,6 +51,24 @@ export const settingService = {
         error.response?.status,
         error.response?.data || error.message
       );
+      throw error;
+    }
+  },
+
+  getShareLink: async (config = {}) => {
+    const { signal, ...restConfig } = config;
+    try{
+      const response = await axiosClient.get(
+        API_ENDPOINTS.SETTINGS.SHARE_LINK,
+        { signal, ...restConfig },
+      );
+      return response.data;
+    }catch(error){
+      console.error("Setting API Error [getShareLink]:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
       throw error;
     }
   },

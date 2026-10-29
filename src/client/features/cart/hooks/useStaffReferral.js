@@ -14,13 +14,15 @@ import {
  * Custom hook that monitors route transitions and ensures staff_reff
  * query parameters are captured, preserved, and restored across shop routes.
  *
- * Attribution rules:
- * - A referral in the URL is only captured when it is well-formed
- *   (`{staff_id}{staff_code}`, never the bare numeric ID).
+ * Attribution rules (see `setting.md`):
+ * - The shared link follows the strict format `{shop_code}?staff_reff={staff_reff}`
+ *   where staff_reff is the Base64 `staff_{id}` token (e.g. "c3RhZmZfOTM").
+ * - A referral in the URL is only captured when it is a well-formed token;
+ *   anything else clears any previous attribution.
  * - A captured referral is scoped to the shop it was validated on; it is
  *   restored back into the URL (after a user clears it) ONLY while the
  *   customer keeps shopping on that same shop, so the order keeps its
- *   original sale-by attribution.
+ *   original sell-by attribution.
  * - A referral captured on another shop is never applied to a different shop.
  */
 export function useStaffReferral() {
@@ -41,17 +43,19 @@ export function useStaffReferral() {
 
       if (searchParams.has("staff_reff")) {
         const staffReff = searchParams.get("staff_reff");
-        const staffId = extractStaffId(staffReff);
 
-        if (staffId !== null && isWellFormedStaffReff(staffReff)) {
+        if (isWellFormedStaffReff(staffReff)) {
           sessionStorage.setItem(REFERRAL_RAW_KEY, staffReff);
-          sessionStorage.setItem(REFERRAL_STORAGE_KEY, String(staffId));
+          sessionStorage.setItem(
+            REFERRAL_STORAGE_KEY,
+            String(extractStaffId(staffReff)),
+          );
           if (shopCode) {
             sessionStorage.setItem(REFERRAL_SHOP_KEY, shopCode);
           }
         } else {
-          // Explicit invalid, empty, or bare-numeric referral in URL clears
-          // any previous attribution: the staff code did not match.
+          // Invalid or non-token referral in URL clears any previous
+          // attribution: the staff code did not match the shared format.
           clearStaffReferral();
         }
       } else {

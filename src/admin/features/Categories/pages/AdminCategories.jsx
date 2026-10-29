@@ -44,8 +44,25 @@ export default function AdminCategories() {
   const categoryFilters = [
     {
       key: 'status',
-      options: [t('common.all'), 'Active', 'Inactive'],
-      defaultValue: t('common.all')
+      label: t('category.status') || t('common.status') || 'Status',
+      options: [
+        { label: t('common.all'), value: 'All' },
+        { label: t('common.statusActive'), value: 'Active' },
+        { label: t('common.statusInactive'), value: 'Inactive' },
+      ],
+      defaultValue: 'All'
+    },
+  ]
+
+  const sortFilters = [
+    {
+      key: 'sort',
+      label: t('common.sort') || 'Sort',
+      options: [
+        { label: t('common.sortNewest'), value: t('common.sortNewest') },
+        { label: t('common.sortAZ'), value: t('common.sortAZ') },
+        { label: t('common.sortZA'), value: t('common.sortZA') },
+      ],
     },
   ]
 
@@ -162,7 +179,7 @@ export default function AdminCategories() {
         />
       </div>
 
-      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm space-y-4 relative z-5">
         <div className="flex items-center justify-between gap-4">
           {/* Desktop Filters Layout: Status -- Sort */}
           <div className="hidden md:flex flex-wrap items-center gap-4">
@@ -173,7 +190,7 @@ export default function AdminCategories() {
             />
 
             <FilterBar
-              filters={[{ key: 'sort', options: [t('common.sortNewest'), t('common.sortAZ'), t('common.sortZA')] }]}
+              filters={sortFilters}
               values={{ sort: sortOrder }}
               onChange={(key, value) => handleSortChange({ target: { value } })}
             />
@@ -224,22 +241,24 @@ export default function AdminCategories() {
         <div
           className={`grid transition-all duration-300 ease-in-out md:hidden ${
             showAdvancedFilters
-              ? "grid-rows-[1fr] opacity-100"
-              : "grid-rows-[0fr] opacity-0 !mt-0"
+              ? "grid-rows-[1fr] opacity-100 overflow-visible"
+              : "grid-rows-[0fr] opacity-0 overflow-hidden !mt-0"
           }`}
         >
-          <div className="overflow-hidden">
-            <div className="flex flex-nowrap overflow-x-auto justify-between items-center gap-4 p-4 bg-[#fcfafb] border border-slate-200 rounded-xl">
+          <div className={showAdvancedFilters ? "overflow-visible" : "overflow-hidden"}>
+            <div className="flex flex-wrap items-center gap-3 p-3 bg-[#fcfafb] border border-slate-200 rounded-xl">
               <FilterBar
                 filters={categoryFilters}
                 values={filters}
                 onChange={handleFilterChange}
+                className="flex flex-wrap items-center gap-3 flex-1 min-w-[130px]"
               />
 
               <FilterBar
-                filters={[{ key: 'sort', options: [t('common.sortNewest'), t('common.sortAZ'), t('common.sortZA')] }]}
+                filters={sortFilters}
                 values={{ sort: sortOrder }}
                 onChange={(key, value) => handleSortChange({ target: { value } })}
+                className="flex flex-wrap items-center gap-3 flex-1 min-w-[130px]"
               />
             </div>
           </div>

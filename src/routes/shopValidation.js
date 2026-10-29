@@ -1,4 +1,4 @@
-import { extractStaffId } from '../client/features/cart/utils/staffReferral.js';
+import { decodeStaffReff } from '../client/features/cart/utils/staffReffToken.js';
 
 /**
  * Sanitizes and normalizes a shop code from a URL parameter.
@@ -41,29 +41,33 @@ export function isValidShopData(settingData, requestedShopCode, isError = false)
 }
 
 /**
- * Validates a staff referral parameter if present in the URL.
+ * Validates a staff referral parameter for the shop route guard.
+ *
+ * The shared link MUST follow the sample format (see `setting.md`):
+ *
+ *   {shop_code}?staff_reff={staff_reff}
+ *
+ * where staff_reff is the Base64 token encoding `staff_{staff_id}`
+ * (e.g. "c3RhZmZfOTY" -> staff 96).
  *
  * Rules:
- * 1. If staff_reff parameter is absent, returns true (normal shopping without referral).
+ * 1. If staff_reff parameter is ABSENT -> invalid (false): the storefront is
+ *    only reachable through a shared link in the sample format.
  * 2. If staff_reff parameter is present but empty or whitespace only -> invalid (false).
- * 3. If staff_reff parameter is malformed (no leading numeric ID, bare numeric ID
- *    without the staff code, <= 0) -> invalid (false).
- * 4. If backend staff data provides the shop's staff records ({ id, name }),
- *    the ENTIRE staff_reff value must match the backend record 100% exactly:
- *    `staff_reff === `${staff.id}${staff.name}``. Any differing character,
- *    letter, or number (or a staff member of ANOTHER shop) -> invalid (false).
- *    A bare numeric ID (e.g. "93") can never pass this full match.
- * 5. If the backend only provides an ID list (legacy) without names, the numeric
- *    ID must at least belong to that shop's list.
+ * 3. If staff_reff is present and NOT a Base64 `staff_{id}` token
+ *    (e.g. legacy "96KimSan", bare "96", random text) -> invalid (false).
+ * 4. A well-formed token must also belong to the shop: when the backend staff
+ *    data exposes the shop's staff records, the decoded staff ID must exist
+ *    in that list — a staff of ANOTHER shop -> invalid (false).
  *
  * @param {string|null|undefined} rawStaffReff - The raw staff_reff query value from URL
  * @param {object|null|undefined} settingData - The shop settings data
- * @returns {boolean} True if valid or absent, false if invalid/malformed or staff does not belong to shop
+ * @returns {boolean} True only when a well-formed shop-scoped token is provided
  */
 export function isValidStaffReferralParam(rawStaffReff, settingData = null) {
-  // If the parameter was not passed at all, normal shopping is allowed
+  // The shared-link format is mandatory: no parameter at all is invalid
   if (rawStaffReff === undefined || rawStaffReff === null) {
-    return true;
+    return false;
   }
 
   // If present but empty or whitespace-only
@@ -71,32 +75,21 @@ export function isValidStaffReferralParam(rawStaffReff, settingData = null) {
     return false;
   }
 
-  const cleaned = rawStaffReff.trim();
-
-  // Extract numeric ID prefix (e.g. '93KimSan' -> 93)
-  const staffId = extractStaffId(cleaned);
+  // Only the Base64 `staff_{id}` token format is accepted
+  // (see `setting.md` — c3RhZmZfOTM -> staff 93).
+  const staffId = decodeStaffReff(rawStaffReff.trim());
   if (staffId === null) {
     return false;
   }
 
-  // Exactly matching the backend is required: a referrer must never be
-  // confirmed from its numeric ID alone (e.g. "93").
-  const nameSuffix = cleaned.slice(String(staffId).length);
-  if (!nameSuffix) {
-    return false;
-  }
-
-  // If the shop settings expose staff records, verify full + exact membership
+  // Membership check: the token's staff must belong to this shop
   const shopStaffData = getShopStaffData(settingData);
   if (shopStaffData) {
-    // Full { id, name } staff records -> require an exact 100% match
     if (shopStaffData.named) {
       return shopStaffData.list.some(
         (staff) => String(staff.id) === String(staffId) && staff.name != null
-          && cleaned === `${staff.id}${String(staff.name).trim()}`
       );
     }
-    // Legacy staff_ids list without names -> the ID must belong to the shop
     return shopStaffData.list.some((id) => Number(id) === staffId);
   }
 

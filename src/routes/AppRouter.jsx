@@ -93,7 +93,6 @@ export const appRoutes = (
       <Route element={<AdminLayout />}>
         {/* Pages accessible by ALL roles (including 'user') */}
         <Route path="orders" element={<Safe name="orders"><AdminOrders /></Safe>} />
-        <Route path="product-sales" element={<Safe name="product-sales"><AdminProductsSale /></Safe>} />
         <Route path="sale-form" element={<Safe name="sale-form"><AdminSaleForm /></Safe>} />
         <Route path="qr-code" element={<Safe name="qr-code"><AdminQRCode /></Safe>} />
 
@@ -118,6 +117,9 @@ export const appRoutes = (
         </Route>
         <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.settings} fallback="/admin" />}>
           <Route path="settings" element={<Safe name="settings"><AdminSettings /></Safe>} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={ADMIN_ROUTE_ACCESS.productSales} fallback="/admin" />}>
+          <Route path="product-sales" element={<Safe name="product-sales"><AdminProductsSale /></Safe>} />
         </Route>
       </Route>
       {/* Admin 404 — full screen (no sidebar), still auth-protected */}

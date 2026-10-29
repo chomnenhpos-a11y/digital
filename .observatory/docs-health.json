@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-10-28T10:02:18.178Z",
+  "generated_at": "2026-10-29T04:05:27.154Z",
   "overall_score": 50,
   "checks": [
     {
@@ -8,7 +8,7 @@
       "description": "代码源文件中的 business_doc_id 标注覆盖率（多语言启发式）",
       "score": 0,
       "details": {
-        "total_modules": 240,
+        "total_modules": 244,
         "annotated_modules": 0,
         "missing": [
           "postcss.config.js",

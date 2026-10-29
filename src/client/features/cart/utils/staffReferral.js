@@ -1,3 +1,5 @@
+import { decodeStaffReff } from './staffReffToken.js';
+
 export const REFERRAL_STORAGE_KEY = "staff_reff_sale_by";
 export const REFERRAL_RAW_KEY = "staff_reff_raw";
 export const REFERRAL_SHOP_KEY = "staff_reff_shop_code";
@@ -38,14 +40,18 @@ export function isShopRoute(pathname) {
 }
 
 /**
- * Extracts only the leading numeric ID from a staff_reff parameter string.
+ * Extracts the staff ID from a staff_reff parameter value.
  *
- * Examples:
- * - "93KimSan" -> 93
- * - "78Dara" -> 78
- * - "12" -> 12
- * - "abcKimSan" -> null
+ * Only the current format is accepted — the Base64 token encoding
+ * `staff_{staff_id}` (see staffReffToken):
+ * - "c3RhZmZfOTM" (staff_93) -> 93
+ * - "93KimSan" (legacy format) -> null
+ * - "93" -> null
  * - null / undefined / "" -> null
+ *
+ * The extracted ID is only used to confirm the value is well-formed; order
+ * attribution always comes from the backend `sharedBy` in the settings
+ * response, never from the token content itself.
  *
  * @param {string | null | undefined} referralParam
  * @returns {number | null} - Extracted positive integer or null
@@ -55,27 +61,20 @@ export function extractStaffId(referralParam) {
     return null;
   }
 
-  const trimmed = referralParam.trim();
-  const match = trimmed.match(/^(\d+)/);
-  if (!match) {
-    return null;
-  }
-
-  const id = Number(match[1]);
-  return Number.isSafeInteger(id) && id > 0 ? id : null;
+  return decodeStaffReff(referralParam.trim());
 }
 
 /**
  * Checks whether a staff_reff parameter is well-formed.
  *
- * The backend referral format is `{staff_id}{staff_name}` (e.g. "93KimSan"),
- * built by the staff QR-link generator (AdminQRCode) from the backend
- * user record. A well-formed referral therefore requires BOTH:
- *  1. a leading positive numeric staff ID, and
- *  2. a non-empty trailing name/code part.
+ * Only the current format is accepted — the Base64 token encoding
+ * `staff_{staff_id}` (see `setting.md`):
+ *  "c3RhZmZfOTM" (staff_93) is well-formed.
  *
- * A bare numeric ID alone (e.g. "93") is NOT a valid referral —
- * it must never be captured or attributed without the staff code.
+ * Any other format is invalid — legacy `{staff_id}{staff_name}` values
+ * (e.g. "93KimSan") and bare numeric IDs (e.g. "93") are rejected, matching
+ * the strict shared-link format `{shop_code}?staff_reff={staff_reff}` enforced
+ * by the shop route guard.
  *
  * @param {string|null|undefined} referralParam
  * @returns {boolean}
@@ -85,19 +84,7 @@ export function isWellFormedStaffReff(referralParam) {
     return false;
   }
 
-  const trimmed = referralParam.trim();
-  if (!trimmed) {
-    return false;
-  }
-
-  const staffId = extractStaffId(trimmed);
-  if (staffId === null) {
-    return false;
-  }
-
-  // The remaining part after the numeric ID must not be empty,
-  // i.e. the value must be more than just the bare numeric ID.
-  return trimmed.slice(String(staffId).length).length > 0;
+  return decodeStaffReff(referralParam.trim()) !== null;
 }
 
 /**

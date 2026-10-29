@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { ReactQRCode as QRCode } from "@lglab/react-qr-code";
 import { useAuth } from "../../../../hooks/useAuth";
 import { useSettingsQuery } from "../../../../queries/settings/useSettingQueries";
-import { Copy, Download, Link as LinkIcon, QrCode as QrCodeIcon, RotateCcw } from "lucide-react";
+import { useQRCode } from "../hookd/useQRCode";
+import { Copy, Download, Link as LinkIcon, Loader2, QrCode as QrCodeIcon, RotateCcw } from "lucide-react";
 import Swal from "../../../../lib/alert";
 import { useTranslation } from "react-i18next";
 
@@ -52,22 +53,11 @@ export default function AdminQRCode() {
   const [roundLogoUrl, setRoundLogoUrl] = useState("");
   const [design, setDesign] = useState(DEFAULT_DESIGN);
   const qrRef = useRef(null);
-  const generateStaffLink = (shopCode, staffId, name) => {
-    if (!shopCode) return "";
-    const url = new URL(
-      `/${encodeURIComponent(shopCode)}`,
-      window.location.origin
-    );
 
-    if (staffId) {
-      const staffReff = `${staffId}${name ? name.trim() : ""}`;
-      url.searchParams.set("staff_reff", staffReff);
-    }
+  // QR code and link are generated from shop_code + staff_reff only
+  // (Base64 `staff_{id}` token, see setting.md).
+  const { shareUrl: shopUrl, isLoading: isShareLinkLoading } = useQRCode();
 
-    return url.toString();
-  };
-
-  const shopUrl = generateStaffLink(shopCode, user?.id, user?.name);
   const contrast = contrastRatio(design.foreground, design.background);
   const hasEnoughContrast =
     contrast >= 4.5 &&
@@ -312,7 +302,13 @@ export default function AdminQRCode() {
             </div>
             <label className="block text-xs font-bold uppercase tracking-wide text-slate-700" htmlFor="store-qr-url">URL</label>
             <div className="flex items-center overflow-hidden rounded-xl border border-slate-200 bg-[#fcfafb] focus-within:border-[#870d4c]">
-              <span className="border-r border-slate-200 px-4 py-3 text-slate-400"><LinkIcon size={18} /></span>
+              <span className="border-r border-slate-200 px-4 py-3 text-slate-400">
+                {isShareLinkLoading ? (
+                  <Loader2 size={18} className="animate-spin text-[#870d4c]" />
+                ) : (
+                  <LinkIcon size={18} />
+                )}
+              </span>
               <input id="store-qr-url" readOnly value={shopUrl} onFocus={(event) => event.target.select()} className="w-full min-w-0 bg-transparent px-4 py-3 text-sm text-slate-700 outline-none" />
             </div>
             <button type="button" onClick={copyToClipboard} className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">

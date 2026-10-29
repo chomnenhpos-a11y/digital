@@ -41,6 +41,7 @@ export const API_ENDPOINTS = {
         UPDATE: (id) => `api/settings?id=${id}`,
         FORGOT_PASSWORD: 'api/settings/forgot-password',
         RESET_PASSWORD: 'api/settings/reset-password',
+        SHARE_LINK: 'api/settings/share-link',
     },
     DELIVERY_PROVIDERS: {
         GET_ALL: 'api/delivery-providers',

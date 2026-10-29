@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const colorStyles = {
@@ -45,11 +46,22 @@ const colorStyles = {
   },
 };
 
+function getTrendMagnitude(trend, t) {
+  const abs = Math.abs(Number(trend) || 0);
+  if (abs === 0) return t('dashboard.noChange', { defaultValue: 'No change' });
+  if (abs <= 10) return t('dashboard.smallChange', { defaultValue: 'Small change' });
+  if (abs <= 30) return t('dashboard.moderateChange', { defaultValue: 'Moderate change' });
+  if (abs <= 100) return t('dashboard.largeChange', { defaultValue: 'Large change' });
+  return t('dashboard.veryLargeChange', { defaultValue: 'Very large change' });
+}
+
 export default function StatsCard({
   title,
   value,
   icon: Icon,
   trend,
+  invertTrendColor = false,
+  trendLabel,
   color = "blue",
   warning,
   note,
@@ -60,6 +72,37 @@ export default function StatsCard({
 }) {
   const { t } = useTranslation();
   const style = colorStyles[color] || colorStyles.blue;
+
+  const parsedTrend = trend !== undefined && trend !== null ? Number(trend) : null;
+  const numTrend = Number.isFinite(parsedTrend)
+    ? Math.max(-100, Math.min(100, parsedTrend))
+    : null;
+  const hasTrend = numTrend !== null;
+  const isPositive = numTrend !== null && numTrend > 0;
+  const isNegative = numTrend !== null && numTrend < 0;
+
+  const trendColorClass = invertTrendColor
+    ? isPositive
+      ? "text-red-500"
+      : isNegative
+        ? "text-emerald-600"
+        : "text-slate-500"
+    : isPositive
+      ? "text-emerald-600"
+      : isNegative
+        ? "text-red-500"
+        : "text-slate-500";
+
+  const formattedTrend = numTrend === null
+    ? ""
+    : Number.isInteger(numTrend)
+      ? String(numTrend)
+      : numTrend.toFixed(1);
+  const prefix = isPositive ? "+" : "";
+  const trendTitle = hasTrend
+    ? `${getTrendMagnitude(parsedTrend, t)} (${prefix}${formattedTrend}%${Math.abs(parsedTrend) > 100 ? ", display capped at 100%" : ""})`
+    : "";
+
   const cardContent = (
     <>
       <div className="flex items-center justify-between mb-3">
@@ -77,17 +120,20 @@ export default function StatsCard({
 
       <h3 className="text-2xl font-bold text-slate-800 mb-1">{value}</h3>
 
-      {trend !== undefined && trend !== null ? (
+      {hasTrend ? (
         <p
-          className={`text-xs font-semibold flex items-center gap-1 ${
-            Number(trend) >= 0 ? "text-emerald-600" : "text-red-500"
-          }`}
+          className={`text-xs font-semibold flex items-center gap-1.5 ${trendColorClass}`}
+          title={trendTitle}
         >
-          <span>
-            {Number(trend) >= 0 ? "+" : ""}
-            {trend}%
+          <span className="inline-flex items-center gap-1">
+            {isPositive && <TrendingUp className="w-3.5 h-3.5 shrink-0 text-emerald-600" />}
+            {isNegative && <TrendingDown className="w-3.5 h-3.5 shrink-0 text-red-500" />}
+            {!isPositive && !isNegative && <Minus className="w-3.5 h-3.5 shrink-0 text-slate-500" />}
+            <span>{prefix}{formattedTrend}%</span>
           </span>
-          <span className="text-slate-400 font-normal">{t('dashboard.comparedToLastMonth')}</span>
+          <span className="text-slate-400 font-normal">
+            {trendLabel || t('dashboard.comparedToLastMonth')}
+          </span>
         </p>
       ) : note ? (
         <p

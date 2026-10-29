@@ -9,12 +9,6 @@ import {
 } from "../schemas/productsaleSchemas.js";
 import { getProductSaleSummary } from "./productSaleSummary.js";
 
-/**
- * Resolves full logo URL from raw setting path or external link.
- *
- * @param {string} rawLogo - Raw logo path or URL from settings
- * @returns {string} Full URL or empty string
- */
 function getLogoUrl(rawLogo) {
   if (!rawLogo || typeof rawLogo !== "string") return "";
   if (

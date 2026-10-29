@@ -68,12 +68,21 @@ export default function AdminSaleForm() {
   useEffect(() => {
     if (isCartOpen) {
       document.body.style.overflow = "hidden";
+      window.dispatchEvent(
+        new CustomEvent("admin-hide-header-mobile", { detail: { hide: true } })
+      );
     } else {
       document.body.style.overflow = "unset";
+      window.dispatchEvent(
+        new CustomEvent("admin-hide-header-mobile", { detail: { hide: false } })
+      );
     }
 
     return () => {
       document.body.style.overflow = "unset";
+      window.dispatchEvent(
+        new CustomEvent("admin-hide-header-mobile", { detail: { hide: false } })
+      );
     };
   }, [isCartOpen]);
 
@@ -229,12 +238,12 @@ export default function AdminSaleForm() {
         <form
           onSubmit={handleSubmit(onCheckout)}
           className={`
-            fixed inset-0 z-50 bg-[#fcfafb] flex flex-col p-4 pb-6 overflow-y-auto transition-transform duration-300
-            ${isCartOpen ? "translate-y-0" : "translate-y-full"}
-            lg:static lg:translate-y-0 lg:z-auto lg:p-0 lg:pb-0 lg:bg-transparent lg:col-span-5 lg:flex lg:flex-col lg:gap-4 gap-2 lg:overflow-y-auto lg:will-change-scroll lg:overscroll-contain transform-gpu
+            fixed inset-0 z-50 bg-[#fcfafb] flex flex-col p-4 pb-8 overflow-y-auto transition-transform duration-300
+            ${isCartOpen ? "translate-y-0 pointer-events-auto" : "translate-y-full pointer-events-none"}
+            lg:static lg:inset-auto lg:translate-y-0 lg:pointer-events-auto lg:z-auto lg:p-0 lg:pb-0 lg:bg-transparent lg:col-span-5 lg:flex lg:flex-col lg:gap-4 gap-2 lg:overflow-y-auto lg:will-change-scroll lg:overscroll-contain transform-gpu
           `}
         >
-          <div className="lg:hidden flex items-center justify-between mb-4 bg-white p-3 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-10 flex-shrink-0">
+          <div className="lg:hidden flex items-center justify-between mb-4 bg-white p-3 rounded-xl border border-slate-200 shadow-sm top-0 z-10 flex-shrink-0">
             <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
               <ShoppingCart size={20} className="text-[#870d4c]" />
 

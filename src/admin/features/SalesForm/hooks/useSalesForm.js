@@ -65,6 +65,7 @@ export default function useSalesForm() {
     return [
       {
         key: "category",
+        label: t("products.category") || "Category",
         options: [
           t("common.all"),
           ...uniqueCategoryNames,

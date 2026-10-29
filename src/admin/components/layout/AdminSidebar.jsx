@@ -7,7 +7,7 @@ import {
   ShoppingBag,
   PlusCircle,
   ClipboardList,
-  BadgeDollarSign,
+  ChartNoAxesCombined,
   Users,
   Layers,
   Image,
@@ -24,7 +24,7 @@ import Swal from "../../../lib/alert";
 import { useSettingsQuery } from "../../../queries/settings/useSettingQueries";
 import { canAccessAdminRoute } from "../../../routes/adminRouteAccess";
 
-export default function AdminSidebar({ sidebarState, setSidebarState, requestedViewMode = "mobile" }) {
+export default function AdminSidebar({ sidebarState, setSidebarState, requestedViewMode = "mobile", hideOnMobile = false }) {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -167,7 +167,7 @@ export default function AdminSidebar({ sidebarState, setSidebarState, requestedV
           {
             label: t("navigation.productSales"),
             path: "/admin/product-sales",
-            icon: BadgeDollarSign,
+            icon: ChartNoAxesCombined,
             routeKey: "productSales",
           },
           {
@@ -242,7 +242,7 @@ export default function AdminSidebar({ sidebarState, setSidebarState, requestedV
   return (
     <>
       <div
-        className={`md:hidden fixed inset-0 bg-[#44092e]/10 z-40 backdrop-blur-sm transition-opacity duration-300 ${!isHidden
+        className={`${hideOnMobile ? "hidden" : "md:hidden"} fixed inset-0 bg-[#44092e]/10 z-40 backdrop-blur-sm transition-opacity duration-300 ${!isHidden
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
           }`}
@@ -251,7 +251,7 @@ export default function AdminSidebar({ sidebarState, setSidebarState, requestedV
 
       <aside
         className={`
-          fixed md:relative z-50 h-full text-white flex flex-col
+          ${hideOnMobile ? "hidden md:flex" : "flex"} fixed md:relative z-50 h-full text-white flex-col
           border-r border-[#870d4c]/30
           transition-[width,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
           select-none shadow-2xl md:shadow-none

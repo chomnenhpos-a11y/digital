@@ -14,7 +14,7 @@ function isMobileDeviceScreen() {
   return Math.min(window.screen.width, window.screen.height) < 768;
 }
 
-export default function AdminHeader({ requestedViewMode }) {
+export default function AdminHeader({ requestedViewMode, hideOnMobile = false }) {
   const [showViewportSwitch, setShowViewportSwitch] = useState(isMobileDeviceScreen);
 
   useEffect(() => {
@@ -38,7 +38,8 @@ export default function AdminHeader({ requestedViewMode }) {
   ) : null;
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 shadow-xl shrink-0">
+    <header className={`h-16 bg-white border-b border-slate-200 items-center justify-between px-4 shadow-xl shrink-0 ${hideOnMobile ? "hidden lg:flex" : "flex"}`}>
+
       {/* Left — hamburger (mobile) */}
         {/* Home */}
       <div className="flex items-center gap-2 text-slate-600 text-xl">

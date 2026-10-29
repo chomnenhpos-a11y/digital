@@ -43,8 +43,25 @@ export default function AdminDeliveryProviders() {
   const providerFilters = [
     {
       key: 'is_active',
-      options: [t('common.all'), 'Active', 'Inactive'],
-      defaultValue: t('common.all')
+      label: t('delivery.status') || t('common.status') || 'Status',
+      options: [
+        { label: t('common.all'), value: 'All' },
+        { label: t('common.statusActive'), value: 'Active' },
+        { label: t('common.statusInactive'), value: 'Inactive' },
+      ],
+      defaultValue: 'All'
+    },
+  ]
+
+  const sortFilters = [
+    {
+      key: 'sort',
+      label: t('common.sort') || 'Sort',
+      options: [
+        { label: t('common.sortNewest'), value: t('common.sortNewest') },
+        { label: t('common.sortAZ'), value: t('common.sortAZ') },
+        { label: t('common.sortZA'), value: t('common.sortZA') },
+      ],
     },
   ]
 
@@ -138,7 +155,7 @@ export default function AdminDeliveryProviders() {
         />
       </div>
 
-      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm space-y-4 relative z-5">
         <div className="flex items-center justify-between gap-4">
           <div className="hidden md:flex flex-wrap items-center gap-4">
             <FilterBar
@@ -147,7 +164,7 @@ export default function AdminDeliveryProviders() {
               onChange={handleFilterChange}
             />
             <FilterBar
-              filters={[{ key: 'sort', options: [t('common.sortNewest'), t('common.sortAZ'), t('common.sortZA')] }]}
+              filters={sortFilters}
               values={{ sort: sortOrder }}
               onChange={(key, value) => handleSortChange({ target: { value } })}
             />
@@ -186,32 +203,22 @@ export default function AdminDeliveryProviders() {
 
         <div
           className={`grid transition-all duration-300 ease-in-out md:hidden ${
-            isFilterOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 !mt-0'
+            isFilterOpen ? 'grid-rows-[1fr] opacity-100 overflow-visible' : 'grid-rows-[0fr] opacity-0 overflow-hidden !mt-0'
           }`}
         >
-          <div className="overflow-hidden">
-            <div className="flex flex-col gap-4 p-4 bg-[#fcfafb] border border-slate-200 rounded-xl">
-              <div className="flex-1 min-w-[200px]">
-                <div className="relative">
-                  <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder={t('delivery.searchPlaceholder')}
-                    value={filters.search || ''}
-                    onChange={(e) => updateFilter('search', e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#870d4c]/30"
-                  />
-                </div>
-              </div>
+          <div className={isFilterOpen ? "overflow-visible" : "overflow-hidden"}>
+            <div className="flex flex-wrap items-center gap-3 p-3 bg-[#fcfafb] border border-slate-200 rounded-xl">
               <FilterBar
                 filters={providerFilters}
                 values={filters}
                 onChange={handleFilterChange}
+                className="flex flex-wrap items-center gap-3 flex-1 min-w-[130px]"
               />
               <FilterBar
-                filters={[{ key: 'sort', options: [t('common.sortNewest'), t('common.sortAZ'), t('common.sortZA')] }]}
+                filters={sortFilters}
                 values={{ sort: sortOrder }}
                 onChange={(key, value) => handleSortChange({ target: { value } })}
+                className="flex flex-wrap items-center gap-3 flex-1 min-w-[130px]"
               />
             </div>
           </div>

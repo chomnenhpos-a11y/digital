@@ -35,6 +35,8 @@
     "failed": "Failed!",
     "saving": "Saving...",
     "all": "All",
+    "sort": "Sort",
+    "sortBy": "Sort By",
     "sortNewest": "Newest First",
     "sortOldest": "Oldest First",
     "sortAZ": "A → Z",
@@ -340,7 +342,12 @@
     "needsRestock": "Needs restock",
     "topSellingProducts": "Top Selling Products",
     "noSalesData": "No sales data yet",
-    "comparedToLastMonth": "Compared to last month"
+    "comparedToLastMonth": "Compared to last month",
+    "smallChange": "Small change",
+    "moderateChange": "Moderate change",
+    "largeChange": "Large change",
+    "veryLargeChange": "Very large change",
+    "noChange": "No change"
   },
   "order": {
     "courier1": "Virak Buntham",

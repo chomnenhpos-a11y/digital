@@ -126,6 +126,8 @@ export default function AdminDashboard() {
               value={stat.value}
               icon={stat.icon}
               trend={stat.trend}
+              invertTrendColor={stat.invertTrendColor}
+              trendLabel={stat.trendLabel}
               color={stat.color}
               warning={stat.warning}
               note={stat.note}

@@ -14,9 +14,12 @@ export function useOrders(viewMode) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [paymentFilter, setPaymentFilter] = useState('')
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
+
+  const defaultDateRange = getDefaultDateRange()
+  const [fromDate, setFromDate] = useState(defaultDateRange.fromDate)
+  const [toDate, setToDate] = useState(defaultDateRange.toDate)
   const [currentPage, setCurrentPage] = useState(1)
+  
 
   const ITEMS_PER_PAGE = viewMode === 'list' ? 5 : 8
 
@@ -178,6 +181,25 @@ export function useOrders(viewMode) {
     activePage * ITEMS_PER_PAGE
   )
 
+  function getDefaultDateRange() {
+    const today = new Date()
+    const yesterday = new Date(today)
+
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    const formatDate = (date) => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, "0")
+      const day = String(date.getDate()).padStart(2, "0")
+
+      return `${year}-${month}-${day}`
+    }
+
+    return {
+      fromDate: formatDate(yesterday),
+      toDate: formatDate(today),
+    }
+  }
   return {
     orders: filteredOrders,
     allOrders: orders,
@@ -186,6 +208,8 @@ export function useOrders(viewMode) {
     setSearch: handleSearchChange,
     statusFilter,
     setStatusFilter: handleStatusFilterChange,
+
+    getDefaultDateRange,
     fromDate,
     setFromDate: handleFromDateChange,
     toDate,

@@ -55,6 +55,7 @@ export default function AdminUsers() {
   const roleFilters = [
     {
       key: 'role',
+      label: t('users.role') || 'Role',
       options: [
         { label: t('common.all'), value: '' },
         { label: t('users.admin'), value: 'Admin' },
@@ -64,20 +65,29 @@ export default function AdminUsers() {
   ]
   const userFilters = [
     ...roleFilters,
-    { key: "status", options: [
-      { label: t("common.all"), value: "" },
-      { label: t("users.statusActive"), value: "0" },
-      { label: t("users.statusInactive"), value: "1" },
-    ] },
+    {
+      key: "status",
+      label: t('users.status') || t('common.status') || 'Status',
+      options: [
+        { label: t("common.all"), value: "" },
+        { label: t("users.statusActive"), value: "0" },
+        { label: t("users.statusInactive"), value: "1" },
+      ],
+    },
   ]
 
-
-  const sortFilters = [{ key: 'sort', options: [
-    { label: t('common.sortNewest'), value: 'newest' },
-    { label: t('common.sortOldest'), value: 'oldest' },
-    { label: t('common.sortAZ'), value: 'az' },
-    { label: t('common.sortZA'), value: 'za' },
-  ] }]
+  const sortFilters = [
+    {
+      key: 'sort',
+      label: t('common.sort') || 'Sort',
+      options: [
+        { label: t('common.sortNewest'), value: 'newest' },
+        { label: t('common.sortOldest'), value: 'oldest' },
+        { label: t('common.sortAZ'), value: 'az' },
+        { label: t('common.sortZA'), value: 'za' },
+      ],
+    },
+  ]
 
   const columns = [
     {
@@ -199,7 +209,7 @@ export default function AdminUsers() {
         />
       </div>
 
-      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm space-y-4 relative z-5">
         <div className="flex items-center justify-between gap-4">
           <div className="hidden md:flex flex-wrap items-center gap-4">
             <FilterBar
@@ -248,27 +258,28 @@ export default function AdminUsers() {
 
         <div
           className={`grid transition-all duration-300 ease-in-out md:hidden ${
-            showAdvancedFilters ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 !mt-0'
+            showAdvancedFilters ? 'grid-rows-[1fr] opacity-100 overflow-visible' : 'grid-rows-[0fr] opacity-0 overflow-hidden !mt-0'
           }`}
         >
-          <div className="overflow-hidden">
-            <div className="flex flex-nowrap overflow-x-auto justify-between items-center gap-4 p-4 bg-[#fcfafb] border border-slate-200 rounded-xl">
-
+          <div className={showAdvancedFilters ? "overflow-visible" : "overflow-hidden"}>
+            <div className="flex flex-wrap items-center gap-3 p-3 bg-[#fcfafb] border border-slate-200 rounded-xl">
               <FilterBar
                 filters={userFilters}
                 values={filters}
                 onChange={handleFilterChange}
+                className="flex flex-wrap items-center gap-3 flex-1 min-w-[130px]"
               />
               <FilterBar
                 filters={sortFilters}
                 values={{ sort: sortOrder }}
                 onChange={(key, value) => handleSortChange({ target: { value } })}
+                className="flex flex-wrap items-center gap-3 flex-1 min-w-[130px]"
               />
             </div>
           </div>
         </div>
       </div>
-
+      
       <div className="overflow-x-auto bg-white border border-slate-200 rounded-2xl">
         {isLoading ? (
           <DataTableSkeleton columns={columns.length} rows={5} />
