@@ -23,6 +23,14 @@
           const pathSegments = window.location.pathname.split('/').filter(Boolean);
           const firstSegment = (pathSegments[0] || '').toLowerCase();
           const head = document.head;
+          let queryShopCode = null;
+          let activeStaffReff = null;
+
+          try {
+            const searchParams = new URLSearchParams(window.location.search);
+            queryShopCode = searchParams.get('shop_code') || searchParams.get('shop') || null;
+            activeStaffReff = searchParams.get('staff_reff') || null;
+          } catch (e) {}
 
           let activeShopCode = overrideShopCode || null;
 
@@ -43,11 +51,8 @@
             if (firstSegment && !nonShopRoutes.includes(firstSegment)) {
               activeShopCode = pathSegments[0];
             } else {
-              // Try query params (?shop_code=... or ?shop=...)
-              try {
-                const searchParams = new URLSearchParams(window.location.search);
-                activeShopCode = searchParams.get('shop_code') || searchParams.get('shop') || null;
-              } catch (e) {}
+              // Try query params (?shop_code=... or legacy ?shop=...)
+              activeShopCode = queryShopCode;
 
               // Try localStorage user
               if (!activeShopCode) {
@@ -177,12 +182,20 @@
             if (settingsObj && (settingsObj.shop_name || settingsObj.shopName || settingsObj.logo)) {
               applyBranding(settingsObj);
             } else {
-              const apiUrl = `${baseUrl}/api/settings?shop_code=${encodeURIComponent(activeShopCode)}`;
+              const settingsParams = new URLSearchParams({ shop_code: activeShopCode });
+              if (activeStaffReff) {
+                settingsParams.set('staff_reff', activeStaffReff);
+              }
+              const apiUrl = `${baseUrl}/api/settings?${settingsParams.toString()}`;
               fetch(apiUrl)
                 .then(res => res.json())
                 .then(resData => {
                   if (resData && resData.data) {
-                    applyBranding(resData.data);
+                    const responseData = resData.data;
+                    const settingsData = responseData.shop && typeof responseData.shop === 'object'
+                      ? { ...responseData.shop, sharedBy: responseData.sharedBy || null }
+                      : responseData;
+                    applyBranding(settingsData);
                   }
                 })
                 .catch(e => console.error("Error fetching shop settings:", e));
