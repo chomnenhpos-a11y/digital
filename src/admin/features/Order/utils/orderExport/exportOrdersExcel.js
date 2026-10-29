@@ -33,15 +33,15 @@ export function formatOrderAmount(value) {
 }
 
 /**
- * Exports the monthly order report to an Excel workbook.
+ * Exports the filtered order report to an Excel workbook.
  * Matches the layout and executive styling of exportProductSalesToExcel.
  *
  * @param {Array} orders - Filtered order records
- * @param {string} selectedMonth - Selected month string (e.g. "2026-10")
+ * @param {string} reportPeriod - Date range or period description for the report
  * @param {object} [settings] - Shop settings from useSettingsQuery
  * @returns {{ workbook: object, worksheet: object, fileName: string } | undefined}
  */
-export function exportOrdersToExcel(orders, selectedMonth, settings = {}) {
+export function exportOrdersToExcel(orders, reportPeriod, settings = {}) {
   if (!orders || orders.length === 0) return;
 
   const sortedOrders = [...orders].sort((a, b) => {
@@ -59,16 +59,9 @@ export function exportOrdersToExcel(orders, selectedMonth, settings = {}) {
     settingData.name ||
     "";
 
-  // Build report title
-  let reportTitle = "MONTHLY ORDER REPORT";
-  if (selectedMonth && typeof selectedMonth === "string" && selectedMonth.includes("-")) {
-    const [year, month] = selectedMonth.split("-");
-    const monthDate = new Date(Number(year), Number(month) - 1, 1);
-    const monthName = !isNaN(monthDate.getTime())
-      ? monthDate.toLocaleString("en-US", { month: "long" }).toUpperCase()
-      : "";
-    reportTitle = `MONTHLY ORDER REPORT - ${monthName} ${year}`.trim();
-  }
+  const reportTitle = reportPeriod
+    ? `ORDER REPORT - ${reportPeriod.toUpperCase()}`
+    : "ORDER REPORT";
 
   const exportData = sortedOrders.map((order, index) => [
     `#${String(index + 1).padStart(2, "0")}`,
@@ -148,9 +141,10 @@ export function exportOrdersToExcel(orders, selectedMonth, settings = {}) {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
 
-  const fileName = selectedMonth
-    ? `Order_Report_${selectedMonth}.xlsx`
-    : `Order_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const safePeriod = (reportPeriod || new Date().toISOString().slice(0, 10))
+    .replace(/[^a-z0-9]+/gi, "_")
+    .replace(/^_|_$/g, "");
+  const fileName = `Order_Report_${safePeriod}.xlsx`;
 
   if (typeof XLSX.writeFile === "function") {
     try {

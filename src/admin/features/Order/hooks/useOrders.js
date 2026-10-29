@@ -161,11 +161,10 @@ export function useOrders(viewMode) {
     if (fromDate || toDate) {
       const orderDate = new Date(order.createdAt || order.createAt)
       if (fromDate) {
-        matchesDate = matchesDate && orderDate >= new Date(fromDate)
+        matchesDate = matchesDate && orderDate >= new Date(`${fromDate}T00:00:00`)
       }
       if (toDate) {
-        const to = new Date(toDate)
-        to.setHours(23, 59, 59, 999)
+        const to = new Date(`${toDate}T23:59:59.999`)
         matchesDate = matchesDate && orderDate <= to
       }
     }

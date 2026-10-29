@@ -17,10 +17,29 @@ export default function OrderStatsCards({
   isLoading = false,
   statusFilter = "",
   onStatusChange,
+  fromDate = "",
+  toDate = "",
 }) {
   const { t } = useTranslation();
 
-  const stats = useMemo(() => computeOrderStats(orders), [orders]);
+  const dateFilteredOrders = useMemo(() => {
+    const start = fromDate ? new Date(`${fromDate}T00:00:00`) : null;
+    const end = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
+
+    return orders.filter((order) => {
+      if (!start && !end) return true;
+
+      const rawDate = order?.createdAt || order?.createAt;
+      if (!rawDate) return false;
+
+      const orderDate = new Date(rawDate);
+      if (Number.isNaN(orderDate.getTime())) return false;
+
+      return (!start || orderDate >= start) && (!end || orderDate <= end);
+    });
+  }, [orders, fromDate, toDate]);
+
+  const stats = useMemo(() => computeOrderStats(dateFilteredOrders), [dateFilteredOrders]);
 
   if (isLoading) {
     return (

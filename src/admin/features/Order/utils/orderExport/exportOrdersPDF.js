@@ -93,7 +93,7 @@ async function loadImageData(url) {
 
 export async function exportOrdersToPDF(
   orders,
-  selectedMonth,
+  reportPeriod,
   settings = {}
 ) {
   if (!orders || orders.length === 0) return;
@@ -191,24 +191,11 @@ export async function exportOrdersToPDF(
     currentY += (splitAddress.length - 1) * 3.5;
   }
 
-  const [year, monthStr] = (selectedMonth || "").split("-");
-  const yearNumber = Number(year);
-  const monthNumber = Number(monthStr);
-
-  const monthDate =
-    yearNumber && monthNumber >= 1 && monthNumber <= 12
-      ? new Date(yearNumber, monthNumber - 1, 1)
-      : new Date();
-
-  const monthName = monthDate.toLocaleString("en-US", {
-    month: "long",
-  });
-
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(135, 13, 76);
 
-  doc.text("MONTHLY ORDER REPORT", rightX, 15, {
+  doc.text("ORDER REPORT", rightX, 15, {
     align: "right",
   });
 
@@ -217,7 +204,7 @@ export async function exportOrdersToPDF(
   doc.setTextColor(71, 85, 105);
 
   doc.text(
-    `Period: ${monthName} ${year || ""}`.trim(),
+    `Period: ${reportPeriod || "All dates"}`,
     rightX,
     21,
     { align: "right" }
@@ -395,8 +382,12 @@ const tableData = sortedOrders.map((order) => {
   doc.setFontSize(9.5);
   doc.setTextColor(100, 116, 139);
 
+  const summarySubtitle = [shopName, `Period: ${reportPeriod || "All dates"}`]
+    .filter(Boolean)
+    .join(" · ");
+
   doc.text(
-    `${shopName} · Period: ${monthName} ${year || ""}`.trim(),
+    summarySubtitle,
     centerX,
     32,
     { align: "center" }
@@ -487,9 +478,10 @@ const tableData = sortedOrders.map((order) => {
     );
   }
 
-  const fileName = selectedMonth
-    ? `Order_Report_${selectedMonth}.pdf`
-    : `Order_Report_${new Date().toISOString().slice(0, 10)}.pdf`;
+  const safePeriod = (reportPeriod || new Date().toISOString().slice(0, 10))
+    .replace(/[^a-z0-9]+/gi, "_")
+    .replace(/^_|_$/g, "");
+  const fileName = `Order_Report_${safePeriod}.pdf`;
 
   if (typeof doc.save === "function") {
     try {

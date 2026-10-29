@@ -1,57 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileSpreadsheet, FileText } from 'lucide-react';
 import Swal from '../../../../lib/alert';
-import { filterOrdersByMonth } from '../utils/orderExport/monthlyOrderFilter';
 import { exportOrdersToExcel } from '../utils/orderExport/exportOrdersExcel';
 import { exportOrdersToPDF } from '../utils/orderExport/exportOrdersPDF';
-import { useOrdersQuery } from '../../../../queries/orders/useOrderQueries';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useSettingsQuery } from '../../../../queries/settings/useSettingQueries';
 
-export default function OrderExportActions() {
-  const { data: rawOrders = [] } = useOrdersQuery();
-  const [selectedMonth, setSelectedMonth] = useState('');
+export default function OrderExportActions({ orders = [], fromDate = '', toDate = '' }) {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   const { user } = useAuth();
   const shopCode = user?.shop?.code || user?.shop_code || '';
   const { data: settings } = useSettingsQuery(shopCode);
 
-  useEffect(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    setSelectedMonth(`${year}-${month}`);
-  }, []);
+  const reportPeriod = fromDate && toDate
+    ? `${fromDate} to ${toDate}`
+    : fromDate
+      ? `From ${fromDate}`
+      : toDate
+        ? `Through ${toDate}`
+        : 'All dates';
 
   const handleExcelExport = () => {
-    if (!selectedMonth || !rawOrders) return;
-    const filtered = filterOrdersByMonth(rawOrders, selectedMonth);
-    if (filtered.length === 0) {
+    if (orders.length === 0) {
       Swal.fire({
         icon: 'info',
         title: 'No Data',
-        text: 'No orders found for the selected month.',
+        text: 'No orders found for the current filters.',
       });
       return;
     }
-    exportOrdersToExcel(filtered, selectedMonth, settings);
+    exportOrdersToExcel(orders, reportPeriod, settings);
   };
 
   const handlePDFExport = async () => {
-    if (!selectedMonth || !rawOrders) return;
-    const filtered = filterOrdersByMonth(rawOrders, selectedMonth);
-    if (filtered.length === 0) {
+    if (orders.length === 0) {
       Swal.fire({
         icon: 'info',
         title: 'No Data',
-        text: 'No orders found for the selected month.',
+        text: 'No orders found for the current filters.',
       });
       return;
     }
     setIsExportingPDF(true);
     try {
-      await exportOrdersToPDF(filtered, selectedMonth, settings);
+      await exportOrdersToPDF(orders, reportPeriod, settings);
     } catch (err) {
       console.error('PDF Export error:', err);
     } finally {
@@ -59,23 +52,9 @@ export default function OrderExportActions() {
     }
   };
 
-  const maxMonth = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  };
-
   return (
     <div className="flex flex-nowrap items-center gap-2 bg-white p-2 rounded-xl border border-slate-200">
-      <span className="text-sm font-medium text-slate-600 ml-1 hidden sm:inline">Monthly Export:</span>
-      <input
-        type="month"
-        value={selectedMonth}
-        onChange={(e) => setSelectedMonth(e.target.value)}
-        max={maxMonth()}
-        className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm text-slate-700 outline-none focus:border-[#870d4c] bg-[#fcfafb] cursor-pointer hover:bg-slate-100 transition-colors"
-      />
+      <span className="text-sm font-medium text-slate-600 ml-1 hidden sm:inline">Export filtered:</span>
       <button
         type="button"
         onClick={handleExcelExport}

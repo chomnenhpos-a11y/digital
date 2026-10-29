@@ -72,7 +72,7 @@ export default function AdminOrders() {
       
         <div className="flex flex-wrap items-center gap-3 justify-between md:justify-end">
           
-          <OrderExportActions />
+          <OrderExportActions orders={orders} fromDate={fromDate} toDate={toDate} />
           {/* View Toggle */}
           <div className="flex items-center bg-[#fcfafb] p-1 rounded-xl w-fit">
             <button
@@ -107,6 +107,8 @@ export default function AdminOrders() {
         isLoading={isLoading}
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
+        fromDate={fromDate}
+        toDate={toDate}
       />
 
       <OrderFilterBar
