@@ -15,7 +15,13 @@ export function getOrderExportSummary(orders) {
       const amount = parseFloat(order.totalAmount) || 0;
       totalSales += amount;
 
-      if (order.paymentStatus === 'Paid') {
+      const normPayment = String(order.paymentStatus || "").toLowerCase().trim();
+      const isPaid =
+        (normPayment === "paid" || normPayment.includes("បានទូទាត់")) &&
+        !normPayment.includes("unpaid") &&
+        !normPayment.includes("មិនទាន់");
+
+      if (isPaid) {
         paidAmount += amount;
         paidOrders++;
       } else {
@@ -23,11 +29,12 @@ export function getOrderExportSummary(orders) {
         unpaidOrders++;
       }
 
-      if (order.status === 'Completed') {
+      const normStatus = String(order.status || "").toLowerCase();
+      if (normStatus === "completed") {
         completedOrders++;
-      } else if (order.status === 'Pending') {
+      } else if (normStatus === "pending") {
         pendingOrders++;
-      } else if (order.status === 'Cancelled' || order.status === 'Canceled') {
+      } else if (normStatus === "cancelled" || normStatus === "canceled") {
         cancelledOrders++;
       }
     });

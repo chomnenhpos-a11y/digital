@@ -134,6 +134,7 @@ export default function useProductsSale() {
 
   return {
     t,
+    i18n,
     isLoading: isPending || !isRangeValid,
     isError,
     dateRange,

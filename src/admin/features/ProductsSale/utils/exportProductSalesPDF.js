@@ -1,13 +1,22 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
-const JsPDFDocument = typeof jsPDF === "function" ? jsPDF : jsPDF?.jsPDF || jsPDF;
-const applyAutoTable = typeof autoTable === "function" ? autoTable : autoTable?.default || autoTable;
+import { setupBattambangFont } from "../../../../utils/pdfFontLoader.js";
+import {
+  isKhmerText,
+  drawKhmerInAutoTableCell,
+  drawKhmerText,
+} from "../../../../utils/khmerPdfShaper.js";
+import { getProductSaleExportTranslations } from "./productSaleExportTranslations.js";
 import {
   formatSaleDate,
   formatSaleAmount,
 } from "../schemas/productsaleSchemas.js";
 import { getProductSaleSummary } from "./productSaleSummary.js";
+
+const JsPDFDocument =
+  typeof jsPDF === "function" ? jsPDF : jsPDF?.jsPDF || jsPDF;
+const applyAutoTable =
+  typeof autoTable === "function" ? autoTable : autoTable?.default || autoTable;
 
 function getLogoUrl(rawLogo) {
   if (!rawLogo || typeof rawLogo !== "string") return "";
@@ -23,11 +32,6 @@ function getLogoUrl(rawLogo) {
   return `${baseUrl}${rawLogo.startsWith("/") ? "" : "/"}${rawLogo}`;
 }
 
-/**
- *
- * @param {string} url - Image URL
- * @returns {Promise<{ dataUrl?: string, img?: any, width: number, height: number } | null>}
- */
 async function loadImageData(url) {
   if (!url || typeof window === "undefined" || typeof Image === "undefined") {
     return null;
@@ -55,7 +59,6 @@ async function loadImageData(url) {
           }
           resolve({ img, width, height });
         } catch {
-          // If canvas is tainted due to CORS, fall back to passing the loaded img directly
           resolve({
             img,
             width: img.naturalWidth || 100,
@@ -72,23 +75,22 @@ async function loadImageData(url) {
   });
 }
 
-/**
- * Exports the product sales report to a high-quality PDF document.
- * Displays shop branding (Logo, Shop Name, Phone, Address) retrieved from settings.
- *
- * @param {Array<object>} rows - Filtered product sales rows
- * @param {{ startDate: string, endDate: string }} dateRange - Active date range
- * @param {object} [settings] - Shop settings from useSettingsQuery
- */
-export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
-  if (
-    !rows?.length ||
-    !dateRange?.startDate ||
-    !dateRange?.endDate
-  ) {
+export async function exportProductSalesToPDF(
+  rows,
+  dateRange,
+  settings = {},
+  options = {},
+) {
+  if (!rows?.length || !dateRange?.startDate || !dateRange?.endDate) {
     return;
   }
 
+  const language =
+    options?.language ||
+    (typeof window !== "undefined" ? localStorage.getItem("language") : "en") ||
+    "en";
+  const isKhmer = language.toLowerCase().startsWith("km");
+  const t = getProductSaleExportTranslations(language);
   const summary = getProductSaleSummary(rows);
 
   const doc = new JsPDFDocument({
@@ -96,6 +98,10 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
     unit: "mm",
     format: "a4",
   });
+
+  // Register Battambang font
+  const fontReady = await setupBattambangFont(doc);
+  const fontName = fontReady ? "Battambang" : "helvetica";
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -114,21 +120,18 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
     settingData.telephone ||
     settingData.contact_phone ||
     "";
-  const address =
-    settingData.address ||
-    settingData.shop_address ||
-    "";
+  const address = settingData.address || settingData.shop_address || "";
 
   // Preload shop logo image safely
   const logoUrl = getLogoUrl(rawLogo);
   const imageInfo = await loadImageData(logoUrl);
 
-  // Top header layout
+  // Top header layout (same as original)
   let leftContentX = 14;
   let headerHeight = 24;
 
   if (imageInfo) {
-    const maxBoxSize = 18; // mm
+    const maxBoxSize = 18;
     const aspect = (imageInfo.width || 1) / (imageInfo.height || 1);
     let logoW = maxBoxSize;
     let logoH = maxBoxSize / aspect;
@@ -144,7 +147,7 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
         14,
         10,
         logoW,
-        logoH
+        logoH,
       );
       leftContentX = 14 + logoW + 5;
       headerHeight = Math.max(headerHeight, logoH + 6);
@@ -155,18 +158,28 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
 
   // Shop Details (Left)
   let currentY = 15;
-  doc.setFont("helvetica", "bold");
+  doc.setFont(fontName, "bold");
   doc.setFontSize(14);
-  doc.setTextColor(30, 41, 59); // slate-800
+  doc.setTextColor(30, 41, 59);
   doc.text(shopName, leftContentX, currentY);
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont(fontName, "normal");
   doc.setFontSize(8.5);
-  doc.setTextColor(100, 116, 139); // slate-500
+  doc.setTextColor(100, 116, 139);
 
   if (phone) {
     currentY += 5;
-    doc.text(`Tel: ${phone}`, leftContentX, currentY);
+    const phoneText = `${t.tel} ${phone}`;
+
+    if (isKhmer) {
+      drawKhmerText(doc, phoneText, leftContentX, currentY, {
+        fontSize: 8.5,
+        color: "#64748b",
+        align: "left",
+      });
+    } else {
+      doc.text(phoneText, leftContentX, currentY);
+    }
   }
 
   if (address) {
@@ -176,34 +189,51 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
     currentY += (splitAddress.length - 1) * 3.5;
   }
 
-  // Report Details (Right)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(135, 13, 76); // Brand primary #870d4c
-  doc.text("PRODUCT SALES REPORT", pageWidth - 14, 15, { align: "right" });
+  // Report Details (Right) — use canvas shaper for Khmer
+  if (isKhmer) {
+    drawKhmerText(doc, t.reportTitle, pageWidth - 14, 15, {
+      fontSize: 13,
+      bold: true,
+      color: "#870d4c",
+      align: "right",
+    });
+  } else {
+    doc.setFont(fontName, "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(135, 13, 76);
+    doc.text(t.reportTitle, pageWidth - 14, 15, { align: "right" });
+  }
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(71, 85, 105);
-  doc.text(
-    `Period: ${dateRange.startDate} to ${dateRange.endDate}`,
-    pageWidth - 14,
-    21,
-    { align: "right" }
-  );
+  const periodLabel = `${t.periodPrefix} ${dateRange.startDate} ${isKhmer ? "ដល់" : "to"} ${dateRange.endDate}`;
+  if (isKhmer) {
+    drawKhmerText(doc, periodLabel, pageWidth - 14, 21, {
+      fontSize: 9,
+      color: "#475569",
+      align: "right",
+    });
+  } else {
+    doc.setFont(fontName, "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(71, 85, 105);
+    doc.text(periodLabel, pageWidth - 14, 21, { align: "right" });
+  }
 
-  doc.setFontSize(8.5);
-  doc.setTextColor(148, 163, 184);
-  doc.text(
-    `Generated: ${new Date().toLocaleDateString("en-GB")}`,
-    pageWidth - 14,
-    26,
-    { align: "right" }
-  );
+  const genDate = `${t.generated} ${new Date().toLocaleDateString(isKhmer ? "km-KH" : "en-GB")}`;
+  if (isKhmer) {
+    drawKhmerText(doc, genDate, pageWidth - 14, 26, {
+      fontSize: 8.5,
+      color: "#94a3b8",
+      align: "right",
+    });
+  } else {
+    doc.setFontSize(8.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text(genDate, pageWidth - 14, 26, { align: "right" });
+  }
 
   // Separator line
   const dividerY = Math.max(currentY + 5, 33);
-  doc.setDrawColor(226, 232, 240); // slate-200
+  doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.4);
   doc.line(14, dividerY, pageWidth - 14, dividerY);
 
@@ -224,7 +254,7 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
   }, {});
 
   const topProduct = Object.entries(productTotals).sort(
-    (a, b) => b[1].quantity - a[1].quantity
+    (a, b) => b[1].quantity - a[1].quantity,
   )[0];
 
   const tableData = rows.map((row, index) => [
@@ -233,10 +263,21 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
     Number(row.quantity || 0),
     formatSaleAmount(row.price),
     formatSaleAmount(row.total_price),
-    formatSaleDate(row.sale_date),
+    formatSaleDate(row.sale_date, isKhmer ? "km" : "en-US"),
     row.order_no || "-",
     row.seller_name || "-",
   ]);
+
+  const tableHeaders = [
+    t.colNo,
+    t.colProductName,
+    t.colQuantity,
+    t.colPrice,
+    t.colTotalPrice,
+    t.colSaleDate,
+    t.colOrderNo,
+    t.colSeller,
+  ];
 
   // Track the total amount for each automatically generated page
   const pageTotals = {};
@@ -245,16 +286,7 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
   applyAutoTable(doc, {
     startY: tableStartY,
 
-    head: [[
-      "No",
-      "Product Name",
-      "Qty",
-      "Price",
-      "Total Price",
-      "Sale Date",
-      "Order No",
-      "Seller",
-    ]],
+    head: [tableHeaders],
 
     body: tableData,
 
@@ -270,7 +302,7 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
     showHead: "everyPage",
 
     styles: {
-      font: "helvetica",
+      font: fontName,
       fontSize: 9,
       cellPadding: 3,
       valign: "middle",
@@ -292,86 +324,107 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
       4: { halign: "right" },
     },
 
+    willDrawCell(data) {
+      if (isKhmer && isKhmerText(data.cell.raw)) {
+        data.cell._khmerLines =
+          Array.isArray(data.cell.text) && data.cell.text.length > 0
+            ? [...data.cell.text]
+            : [String(data.cell.raw || "")];
+        data.cell.text = [];
+      }
+    },
+
     didDrawCell(data) {
-      if (
-        data.section !== "body" ||
-        data.column.index !== 0
-      ) {
-        return;
+      // Accumulate page totals (same as original logic)
+      if (data.section === "body" && data.column.index === 0) {
+        const row = rows[data.row.index];
+        const pageNumber = data.pageNumber;
+
+        if (!pageTotals[pageNumber]) {
+          pageTotals[pageNumber] = 0;
+        }
+
+        pageTotals[pageNumber] += Number(row.total_price || 0);
       }
 
-      const row = rows[data.row.index];
-      const pageNumber = data.pageNumber;
-
-      if (!pageTotals[pageNumber]) {
-        pageTotals[pageNumber] = 0;
+      // Overlay shaped Khmer text
+      if (isKhmer && isKhmerText(data.cell.raw)) {
+        drawKhmerInAutoTableCell(doc, data);
       }
-
-      pageTotals[pageNumber] += Number(
-        row.total_price || 0
-      );
     },
 
     didDrawPage(data) {
       const pageNumber = data.pageNumber;
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9.5);
-      doc.setTextColor(135, 13, 76);
+      const pageTotalLabel = `${t.pageTotal} ${pageNumber}: ${formatSaleAmount(
+        pageTotals[pageNumber] || 0,
+      )}`;
 
-      doc.text(
-        `Total for Page ${pageNumber}: ${formatSaleAmount(
-          pageTotals[pageNumber] || 0
-        )}`,
-        pageWidth - 14,
-        pageHeight - 14,
-        { align: "right" }
-      );
+      if (isKhmer) {
+        drawKhmerText(doc, pageTotalLabel, pageWidth - 14, pageHeight - 14, {
+          fontSize: 9.5,
+          bold: true,
+          color: "#870d4c",
+          align: "right",
+        });
+      } else {
+        doc.setFont(fontName, "bold");
+        doc.setFontSize(9.5);
+        doc.setTextColor(135, 13, 76);
+        doc.text(pageTotalLabel, pageWidth - 14, pageHeight - 14, {
+          align: "right",
+        });
+      }
     },
   });
 
-  // Summary Page
+  // Summary Page (same layout as original)
   doc.addPage();
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(135, 13, 76);
-  doc.text("Sales Summary", centerX, 24, {
-    align: "center",
-  });
+  const summaryTitle = t.salesSummary;
+  if (isKhmer) {
+    drawKhmerText(doc, summaryTitle, centerX, 24, {
+      fontSize: 18,
+      bold: true,
+      color: "#870d4c",
+      align: "center",
+    });
+  } else {
+    doc.setFont(fontName, "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(135, 13, 76);
+    doc.text(summaryTitle, centerX, 24, { align: "center" });
+  }
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
-  doc.setTextColor(100, 116, 139);
-
-  doc.text(
-    `${shopName} · Period: ${dateRange.startDate} to ${dateRange.endDate}`,
-    centerX,
-    31,
-    { align: "center" }
-  );
+  const summarySubtitle = `${t.periodPrefix} ${dateRange.startDate} ${isKhmer ? "ដល់" : "to"} ${dateRange.endDate}`;
+  if (isKhmer) {
+    drawKhmerText(doc, summarySubtitle, centerX, 31, {
+      fontSize: 9.5,
+      color: "#64748b",
+      align: "center",
+    });
+  } else {
+    doc.setFont(fontName, "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(summarySubtitle, centerX, 31, { align: "center" });
+  }
 
   const summaryRows = [
+    [t.totalSales, formatSaleAmount(summary.totalSales)],
+    [t.productsSold, String(summary.totalQuantity)],
     [
-      "Total Sales",
-      formatSaleAmount(summary.totalSales),
-    ],
-    [
-      "Products Sold",
-      String(summary.totalQuantity),
-    ],
-    [
-      "Top Seller",
+      t.topSeller,
       summary.topSeller
         ? `${summary.topSeller.name} (${formatSaleAmount(
-            summary.topSeller.total
+            summary.topSeller.total,
           )})`
         : "-",
     ],
     [
-      "Top Product",
+      isKhmer ? "ទំនិញលក់ដាច់បំផុត" : "Top Product",
       topProduct
-        ? `${topProduct[0]} (${topProduct[1].quantity} sold)`
+        ? `${topProduct[0]} (${topProduct[1].quantity} ${isKhmer ? "បានលក់" : "sold"})`
         : "-",
     ],
   ];
@@ -379,7 +432,7 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
   applyAutoTable(doc, {
     startY: 40,
 
-    head: [["Metric", "Result"]],
+    head: [[t.metric, t.result]],
 
     body: summaryRows,
 
@@ -391,7 +444,7 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
     },
 
     styles: {
-      font: "helvetica",
+      font: fontName,
       fontSize: 11,
       cellPadding: 6,
       valign: "middle",
@@ -413,33 +466,58 @@ export async function exportProductSalesToPDF(rows, dateRange, settings = {}) {
         cellWidth: "auto",
       },
     },
+
+    willDrawCell(data) {
+      if (isKhmer && isKhmerText(data.cell.raw)) {
+        data.cell._khmerLines =
+          Array.isArray(data.cell.text) && data.cell.text.length > 0
+            ? [...data.cell.text]
+            : [String(data.cell.raw || "")];
+        data.cell.text = [];
+      }
+    },
+
+    didDrawCell(data) {
+      if (isKhmer && isKhmerText(data.cell.raw)) {
+        drawKhmerInAutoTableCell(doc, data);
+      }
+    },
   });
 
   // Footer on all pages (Shop name and Page Number)
   const totalPagesCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPagesCount; i++) {
     doc.setPage(i);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(148, 163, 184);
 
-    doc.text(
-      `${shopName} · Product Sales Report`,
-      14,
-      pageHeight - 8
-    );
-    doc.text(
-      `Page ${i} of ${totalPagesCount}`,
-      pageWidth - 14,
-      pageHeight - 8,
-      { align: "right" }
-    );
+    const footerLeft = `${shopName} · ${t.monthlyReport}`;
+    const footerRight = t.pageOf
+      .replace("{current}", String(i))
+      .replace("{total}", String(totalPagesCount));
+
+    if (isKhmer) {
+      drawKhmerText(doc, footerLeft, 14, pageHeight - 8, {
+        fontSize: 8,
+        color: "#94a3b8",
+        align: "left",
+      });
+      drawKhmerText(doc, footerRight, pageWidth - 14, pageHeight - 8, {
+        fontSize: 8,
+        color: "#94a3b8",
+        align: "right",
+      });
+    } else {
+      doc.setFont(fontName, "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text(footerLeft, 14, pageHeight - 8);
+      doc.text(footerRight, pageWidth - 14, pageHeight - 8, { align: "right" });
+    }
   }
 
   if (typeof doc.save === "function") {
     try {
       doc.save(
-        `Product_Sales_Report_${dateRange.startDate}_to_${dateRange.endDate}.pdf`
+        `Product_Sales_Report_${dateRange.startDate}_to_${dateRange.endDate}.pdf`,
       );
     } catch {
       // In non-browser / test environments

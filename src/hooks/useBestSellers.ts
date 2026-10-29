@@ -30,8 +30,6 @@ export function useBestSellers<Product extends { id: Identifier }>({
   source?: BestSellerSource;
 }) {
   const products = catalog.data ?? EMPTY_PRODUCTS;
-  // Preserve the response envelope: the older useOrdersQuery discards metadata.
-  // This prefix still participates in existing order mutation invalidation.
   const ordersQuery = useQuery({
     queryKey: [...orderKeys.list({ shop_code: shopCode }), "best-sellers-source"],
     queryFn: ({ signal }) => orderService.getOrders({ shop_code: shopCode }, { signal }),

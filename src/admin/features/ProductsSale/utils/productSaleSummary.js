@@ -1,20 +1,5 @@
 import { formatSaleAmount } from "../schemas/productsaleSchemas.js";
 
-/**
- * Computes the KPI summary of a product-sales report:
- * total revenue, total quantity sold, the top seller (by revenue)
- * and the top product (by units sold, tie-broken by revenue).
- * All values are computed from the rows passed in — i.e. always
- * reference the currently filtered data.
- *
- * @param {Array} rows - Normalized product-sale rows (already filtered)
- * @returns {{
- *   totalSales: number,
- *   totalQuantity: number,
- *   topSeller: { name: string, total: number } | null,
- *   topProduct: { id: number|string, name: string, total: number, quantity: number } | null,
- * }}
- */
 export function getProductSaleSummary(rows) {
   if (!Array.isArray(rows) || rows.length === 0) {
     return {

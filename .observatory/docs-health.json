@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-10-29T07:07:59.705Z",
+  "generated_at": "2026-10-29T16:13:07.289Z",
   "overall_score": 50,
   "checks": [
     {
@@ -8,7 +8,7 @@
       "description": "代码源文件中的 business_doc_id 标注覆盖率（多语言启发式）",
       "score": 0,
       "details": {
-        "total_modules": 244,
+        "total_modules": 250,
         "annotated_modules": 0,
         "missing": [
           "postcss.config.js",
@@ -19,8 +19,8 @@
           "src/App.jsx",
           "src/main.jsx",
           "api/telegram/send.js",
-          "src/config/bestSellers.ts",
-          "src/config/env.js"
+          "src/api/axiosClient.js",
+          "src/api/endpoints.js"
         ]
       }
     },

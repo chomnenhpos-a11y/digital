@@ -491,6 +491,9 @@
     "selectAllGroups": "All Groups"
   },
   "category": {
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
     "title": "Categories",
     "description": "Manage your product categories.",
     "nameLabel": "Category Name",

@@ -1,13 +1,10 @@
 import * as XLSX from "xlsx";
 import { getOrderExportSummary } from "./orderExportSummary.js";
+import {
+  getOrderExportTranslations,
+  translateOrderStatus,
+} from "./orderExportTranslations.js";
 
-/**
- * Formats an order date for report display (e.g. "10/28/2026, 04:30 PM").
- *
- * @param {string|Date} orderDate
- * @param {string} [locale="en-US"]
- * @returns {string}
- */
 export function formatOrderDate(orderDate, locale = "en-US") {
   if (!orderDate) return "-";
   const date = new Date(orderDate);
@@ -22,27 +19,24 @@ export function formatOrderDate(orderDate, locale = "en-US") {
   });
 }
 
-/**
- * Formats currency amount for display consistency.
- *
- * @param {number|string} value
- * @returns {string}
- */
 export function formatOrderAmount(value) {
   return `$${Number(value || 0).toFixed(2)}`;
 }
 
-/**
- * Exports the filtered order report to an Excel workbook.
- * Matches the layout and executive styling of exportProductSalesToExcel.
- *
- * @param {Array} orders - Filtered order records
- * @param {string} reportPeriod - Date range or period description for the report
- * @param {object} [settings] - Shop settings from useSettingsQuery
- * @returns {{ workbook: object, worksheet: object, fileName: string } | undefined}
- */
-export function exportOrdersToExcel(orders, reportPeriod, settings = {}) {
+export function exportOrdersToExcel(
+  orders,
+  reportPeriod,
+  settings = {},
+  options = {}
+) {
   if (!orders || orders.length === 0) return;
+
+  const language =
+    options?.language ||
+    (typeof window !== "undefined" ? localStorage.getItem("language") : "en") ||
+    "en";
+  const isKhmer = language.toLowerCase().startsWith("km");
+  const t = getOrderExportTranslations(language);
 
   const sortedOrders = [...orders].sort((a, b) => {
     const dateA = new Date(a.createdAt || a.createAt || 0);
@@ -59,18 +53,17 @@ export function exportOrdersToExcel(orders, reportPeriod, settings = {}) {
     settingData.name ||
     "";
 
-  const reportTitle = reportPeriod
-    ? `ORDER REPORT - ${reportPeriod.toUpperCase()}`
-    : "ORDER REPORT";
+  const periodDisplay = reportPeriod || t.allDates;
+  const reportTitle = `${t.reportTitle} - ${periodDisplay}`;
 
   const exportData = sortedOrders.map((order, index) => [
     `#${String(index + 1).padStart(2, "0")}`,
     order.orderNo || (order.orderNumber ? `ORD-${order.orderNumber}` : `#${order.id || ""}`),
     order.customerPhone || order.phone || "-",
     Number(order.totalAmount || order.total || 0),
-    order.paymentStatus || "-",
-    order.status || "-",
-    formatOrderDate(order.createdAt || order.createAt),
+    translateOrderStatus(order.paymentStatus, language),
+    translateOrderStatus(order.status, language),
+    formatOrderDate(order.createdAt || order.createAt, isKhmer ? "km" : "en-US"),
   ]);
 
   const worksheetData = [
@@ -79,22 +72,22 @@ export function exportOrdersToExcel(orders, reportPeriod, settings = {}) {
 
     [],
 
-    ["Total Orders", summary.totalOrders],
-    ["Total Sales", summary.totalSales],
-    ["Paid Amount", summary.paidAmount],
-    ["Unpaid Amount", summary.unpaidAmount],
-    ["Completed Orders", summary.completedOrders],
+    [t.totalOrders, summary.totalOrders],
+    [t.totalSales, summary.totalSales],
+    [t.paidAmount, summary.paidAmount],
+    [t.unpaidAmount, summary.unpaidAmount],
+    [t.completedOrders, summary.completedOrders],
 
     [],
 
     [
-      "No",
-      "Order No",
-      "Customer Phone",
-      "Total Amount",
-      "Payment Status",
-      "Delivery Status",
-      "Order Date",
+      t.colNo,
+      t.colOrderNo,
+      t.colCustomerPhone,
+      t.colTotalAmount,
+      t.colPaymentStatus,
+      t.colDeliveryStatus,
+      t.colOrderDate,
     ],
 
     ...exportData,
@@ -102,14 +95,14 @@ export function exportOrdersToExcel(orders, reportPeriod, settings = {}) {
 
   const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
-  // Column widths matching ProductsSale Excel style
+  // Column widths with extra padding for Khmer text
   worksheet["!cols"] = [
-    { wch: 6 },   // No
+    { wch: 8 },   // No
     { wch: 22 },  // Order No
-    { wch: 18 },  // Customer Phone
-    { wch: 14 },  // Total Amount
-    { wch: 16 },  // Payment Status
-    { wch: 16 },  // Delivery Status
+    { wch: 20 },  // Customer Phone
+    { wch: 18 },  // Total Amount
+    { wch: 20 },  // Payment Status
+    { wch: 20 },  // Delivery Status
     { wch: 24 },  // Order Date
   ];
 
@@ -117,6 +110,9 @@ export function exportOrdersToExcel(orders, reportPeriod, settings = {}) {
   for (let r = 0; r < worksheetData.length; r++) {
     const row = worksheetData[r];
     if (
+      row[0] === t.totalSales ||
+      row[0] === t.paidAmount ||
+      row[0] === t.unpaidAmount ||
       row[0] === "Total Sales" ||
       row[0] === "Paid Amount" ||
       row[0] === "Unpaid Amount"
@@ -128,7 +124,9 @@ export function exportOrdersToExcel(orders, reportPeriod, settings = {}) {
     }
   }
 
-  const headerRowIdx = worksheetData.findIndex((row) => row[0] === "No");
+  const headerRowIdx = worksheetData.findIndex(
+    (row) => row[0] === t.colNo || row[0] === "No"
+  );
   if (headerRowIdx !== -1) {
     for (let r = headerRowIdx + 1; r < worksheetData.length; r++) {
       const totalCellAddress = XLSX.utils.encode_cell({ r, c: 3 });
@@ -139,7 +137,7 @@ export function exportOrdersToExcel(orders, reportPeriod, settings = {}) {
   }
 
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+  XLSX.utils.book_append_sheet(workbook, worksheet, t.sheetName || "Orders");
 
   const safePeriod = (reportPeriod || new Date().toISOString().slice(0, 10))
     .replace(/[^a-z0-9]+/gi, "_")

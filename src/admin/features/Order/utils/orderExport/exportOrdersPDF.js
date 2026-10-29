@@ -1,7 +1,16 @@
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { setupBattambangFont } from "../../../../../utils/pdfFontLoader.js";
+import {
+  isKhmerText,
+  drawKhmerInAutoTableCell,
+  drawKhmerText,
+} from "../../../../../utils/khmerPdfShaper.js";
 import { getOrderExportSummary } from "./orderExportSummary.js";
+import {
+  getOrderExportTranslations,
+  translateOrderStatus,
+} from "./orderExportTranslations.js";
 
 const JsPDFDocument =
   typeof jsPDF === "function" ? jsPDF : jsPDF?.jsPDF || jsPDF;
@@ -94,10 +103,17 @@ async function loadImageData(url) {
 export async function exportOrdersToPDF(
   orders,
   reportPeriod,
-  settings = {}
+  settings = {},
+  options = {}
 ) {
   if (!orders || orders.length === 0) return;
 
+  const language =
+    options?.language ||
+    (typeof window !== "undefined" ? localStorage.getItem("language") : "en") ||
+    "en";
+  const isKhmer = language.toLowerCase().startsWith("km");
+  const t = getOrderExportTranslations(language);
   const summary = getOrderExportSummary(orders);
 
   const doc = new JsPDFDocument({
@@ -105,6 +121,10 @@ export async function exportOrdersToPDF(
     unit: "mm",
     format: "a4",
   });
+
+  // Register Battambang font in jsPDF VFS + browser FontFace
+  const fontReady = await setupBattambangFont(doc);
+  const fontName = fontReady ? "Battambang" : "helvetica";
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -167,18 +187,29 @@ export async function exportOrdersToPDF(
     }
   }
 
-  doc.setFont("helvetica", "bold");
+  // Shop name (left)
+  doc.setFont(fontName, "bold");
   doc.setFontSize(14);
   doc.setTextColor(30, 41, 59);
   doc.text(shopName, leftContentX, currentY);
 
-  doc.setFont("helvetica", "normal");
+  doc.setFont(fontName, "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(100, 116, 139);
 
   if (phone) {
     currentY += 5;
-    doc.text(`Tel: ${phone}`, leftContentX, currentY);
+    const phoneText = `${t.tel} ${phone}`;
+    
+    if (isKhmer) {
+      drawKhmerText(doc, phoneText, leftContentX, currentY, {
+        fontSize: 8.5,
+        color: "#64748b", // ពណ៌ត្រូវគ្នានឹង rgb(100, 116, 139)
+        align: "left",
+      });
+    } else {
+      doc.text(phoneText, leftContentX, currentY);
+    }
   }
 
   if (address) {
@@ -191,34 +222,49 @@ export async function exportOrdersToPDF(
     currentY += (splitAddress.length - 1) * 3.5;
   }
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(135, 13, 76);
+  // Report title (right) — use canvas shaper for Khmer
+  if (isKhmer) {
+    drawKhmerText(doc, t.reportTitle, rightX, 15, {
+      fontSize: 13,
+      bold: true,
+      color: "#870d4c",
+      align: "right",
+    });
+  } else {
+    doc.setFont(fontName, "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(135, 13, 76);
+    doc.text(t.reportTitle, rightX, 15, { align: "right" });
+  }
 
-  doc.text("ORDER REPORT", rightX, 15, {
-    align: "right",
-  });
-
-  doc.setFont("helvetica", "normal");
+  doc.setFont(fontName, "normal");
   doc.setFontSize(9);
   doc.setTextColor(71, 85, 105);
 
-  doc.text(
-    `Period: ${reportPeriod || "All dates"}`,
-    rightX,
-    21,
-    { align: "right" }
-  );
+  const periodLabel = `${t.periodPrefix} ${reportPeriod || t.allDates}`;
+  if (isKhmer) {
+    drawKhmerText(doc, periodLabel, rightX, 21, {
+      fontSize: 9,
+      color: "#475569",
+      align: "right",
+    });
+  } else {
+    doc.text(periodLabel, rightX, 21, { align: "right" });
+  }
 
   doc.setFontSize(8.5);
   doc.setTextColor(148, 163, 184);
 
-  doc.text(
-    `Generated: ${new Date().toLocaleDateString("en-GB")}`,
-    rightX,
-    26,
-    { align: "right" }
-  );
+  const genDate = `${t.generated} ${new Date().toLocaleDateString(isKhmer ? "km-KH" : "en-GB")}`;
+  if (isKhmer) {
+    drawKhmerText(doc, genDate, rightX, 26, {
+      fontSize: 8.5,
+      color: "#94a3b8",
+      align: "right",
+    });
+  } else {
+    doc.text(genDate, rightX, 26, { align: "right" });
+  }
 
   const dividerY = Math.max(currentY + 7, 34);
 
@@ -226,44 +272,50 @@ export async function exportOrdersToPDF(
   doc.setLineWidth(0.4);
   doc.line(margin, dividerY, rightX, dividerY);
 
+  // Table data
   const sortedOrders = [...orders].sort((a, b) => {
     const dateA = new Date(a.createdAt || a.createAt || 0);
     const dateB = new Date(b.createdAt || b.createAt || 0);
-
     return dateA - dateB;
   });
 
-const tableData = sortedOrders.map((order) => {
-  const totalAmount = Number(order.totalAmount || order.total || 0);
+  const tableData = sortedOrders.map((order) => {
+    const totalAmount = Number(order.totalAmount || order.total || 0);
+    const deliveryFee = Number(order.deliveryProvider?.shippingFee || 0);
+    const subTotal = totalAmount - deliveryFee;
 
-  const deliveryFee = Number(
-    order.deliveryProvider?.shippingFee || 0
-  );
+    return [
+      order.orderNo ||
+        (order.orderNumber
+          ? `ORD-${order.orderNumber}`
+          : `#${order.id || ""}`),
 
-  const subTotal = totalAmount - deliveryFee;
+      order.customerPhone || order.phone || "-",
 
-  return [
-    order.orderNo ||
-      (order.orderNumber
-        ? `ORD-${order.orderNumber}`
-        : `#${order.id || ""}`),
+      formatOrderAmount(totalAmount),
 
-    order.customerPhone || order.phone || "-",
+      formatOrderAmount(subTotal),
 
-    formatOrderAmount(totalAmount),
+      `${order.deliveryProvider?.name || "-"} (${formatOrderAmount(deliveryFee)})`,
 
-    formatOrderAmount(subTotal),
+      translateOrderStatus(order.paymentStatus, language),
+      translateOrderStatus(order.status, language),
+      order.seller?.name || "-",
+      formatOrderDate(order.createdAt || order.createAt, isKhmer ? "km" : "en-US"),
+    ];
+  });
 
-    `${order.deliveryProvider?.name || "-"} (${formatOrderAmount(
-      deliveryFee
-    )})`,
-
-    order.paymentStatus || "-",
-    order.status || "-",
-    order.seller?.name || "-",
-    formatOrderDate(order.createdAt || order.createAt),
+  const tableHeaders = [
+    t.colOrderNo,
+    t.colCustomerPhone,
+    t.colTotalAmount,
+    t.colSubTotal,
+    t.colDelivery,
+    t.colPaymentStatus,
+    t.colDeliveryStatus,
+    t.colSeller,
+    t.colOrderDate,
   ];
-});
 
   const pageTotals = {};
   const tableStartY = dividerY + 5;
@@ -271,17 +323,7 @@ const tableData = sortedOrders.map((order) => {
   applyAutoTable(doc, {
     startY: tableStartY,
 
-    head: [[
-      "Order No",
-      "Customer Phone",
-      "Total Amount",
-      "Sub Total",
-      "Delivery",
-      "Payment Status",
-      "Delivery Status",
-      "Seller",
-      "Order Date",
-    ]],
+    head: [tableHeaders],
 
     body: tableData,
 
@@ -297,7 +339,7 @@ const tableData = sortedOrders.map((order) => {
     showHead: "everyPage",
 
     styles: {
-      font: "helvetica",
+      font: fontName,
       fontSize: 8,
       cellPadding: { top: 2.5, right: 2, bottom: 2.5, left: 2 },
       valign: "middle",
@@ -333,86 +375,116 @@ const tableData = sortedOrders.map((order) => {
       8: { halign: "center", cellWidth: "auto" },
     },
 
+    // Prevent autoTable from drawing unshaped broken glyphs; save lines for shaped overlay
+    willDrawCell(data) {
+      if (isKhmer && isKhmerText(data.cell.raw)) {
+        data.cell._khmerLines =
+          Array.isArray(data.cell.text) && data.cell.text.length > 0
+            ? [...data.cell.text]
+            : [String(data.cell.raw || "")];
+        data.cell.text = [];
+      }
+    },
+
     didDrawCell(data) {
-      if (data.section !== "body" || data.column.index !== 0) {
-        return;
+      // Accumulate page totals (same as original logic)
+      if (data.section === "body" && data.column.index === 0) {
+        const order = sortedOrders[data.row.index];
+        const pageNumber = data.pageNumber;
+
+        if (!pageTotals[pageNumber]) {
+          pageTotals[pageNumber] = 0;
+        }
+
+        pageTotals[pageNumber] += Number(
+          order?.totalAmount || order?.total || 0
+        );
       }
 
-      const order = sortedOrders[data.row.index];
-      const pageNumber = data.pageNumber;
-
-      if (!pageTotals[pageNumber]) {
-        pageTotals[pageNumber] = 0;
+      // Overlay shaped Khmer text
+      if (isKhmer && isKhmerText(data.cell.raw)) {
+        drawKhmerInAutoTableCell(doc, data);
       }
-
-      pageTotals[pageNumber] += Number(
-        order?.totalAmount || order?.total || 0
-      );
     },
 
     didDrawPage(data) {
       const pageNumber = data.pageNumber;
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.setTextColor(135, 13, 76);
+      const pageTotalLabel = `${t.pageTotal} ${pageNumber}: ${formatOrderAmount(
+        pageTotals[pageNumber] || 0
+      )}`;
 
-      doc.text(
-        `Total for Page ${pageNumber}: ${formatOrderAmount(
-          pageTotals[pageNumber] || 0
-        )}`,
-        rightX,
-        pageHeight - 14,
-        { align: "right" }
-      );
+      if (isKhmer) {
+        drawKhmerText(doc, pageTotalLabel, rightX, pageHeight - 14, {
+          fontSize: 9,
+          bold: true,
+          color: "#870d4c",
+          align: "right",
+        });
+      } else {
+        doc.setFont(fontName, "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(135, 13, 76);
+        doc.text(pageTotalLabel, rightX, pageHeight - 14, { align: "right" });
+      }
     },
   });
 
+  // Summary Page (same layout as original)
   doc.addPage();
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(135, 13, 76);
+  const summaryTitle = t.orderSummary;
+  if (isKhmer) {
+    drawKhmerText(doc, summaryTitle, centerX, 25, {
+      fontSize: 18,
+      bold: true,
+      color: "#870d4c",
+      align: "center",
+    });
+  } else {
+    doc.setFont(fontName, "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(135, 13, 76);
+    doc.text(summaryTitle, centerX, 25, { align: "center" });
+  }
 
-  doc.text("Order Summary", centerX, 25, {
-    align: "center",
-  });
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
-  doc.setTextColor(100, 116, 139);
-
-  const summarySubtitle = [shopName, `Period: ${reportPeriod || "All dates"}`]
+  const summarySubtitle = [`${t.periodPrefix} ${reportPeriod || t.allDates}`]
     .filter(Boolean)
     .join(" · ");
 
-  doc.text(
-    summarySubtitle,
-    centerX,
-    32,
-    { align: "center" }
-  );
+  if (isKhmer) {
+    drawKhmerText(doc, summarySubtitle, centerX, 32, {
+      fontSize: 9.5,
+      color: "#64748b",
+      align: "center",
+    });
+  } else {
+    doc.setFont(fontName, "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(summarySubtitle, centerX, 32, { align: "center" });
+  }
 
   const summaryRows = [
-    ["Total Orders", String(summary.totalOrders || 0)],
-    ["Total Sales", formatOrderAmount(summary.totalSales)],
+    [t.totalOrders, String(summary.totalOrders || 0)],
+    [t.totalSales, formatOrderAmount(summary.totalSales)],
     [
-      "Paid Amount",
-      `${formatOrderAmount(summary.paidAmount)} (${summary.paidOrders || 0} orders)`,
+      t.paidAmount,
+      `${formatOrderAmount(summary.paidAmount)} (${summary.paidOrders || 0} ${t.ordersUnit})`,
     ],
     [
-      "Unpaid Amount",
-      `${formatOrderAmount(summary.unpaidAmount)} (${summary.unpaidOrders || 0} orders)`,
+      t.unpaidAmount,
+      `${formatOrderAmount(summary.unpaidAmount)} (${summary.unpaidOrders || 0} ${t.ordersUnit})`,
     ],
-    ["Completed Orders", String(summary.completedOrders || 0)],
-    ["Pending Orders", String(summary.pendingOrders || 0)],
-    ["Cancelled Orders", String(summary.cancelledOrders || 0)],
+    [t.completedOrders, String(summary.completedOrders || 0)],
+    [t.pendingOrders, String(summary.pendingOrders || 0)],
+    [t.cancelledOrders, String(summary.cancelledOrders || 0)],
   ];
 
   applyAutoTable(doc, {
     startY: 41,
 
-    head: [["Metric", "Result"]],
+    head: [[t.metric, t.result]],
 
     body: summaryRows,
 
@@ -424,7 +496,7 @@ const tableData = sortedOrders.map((order) => {
     },
 
     styles: {
-      font: "helvetica",
+      font: fontName,
       fontSize: 10,
       cellPadding: { top: 5, right: 6, bottom: 5, left: 6 },
       valign: "middle",
@@ -453,29 +525,53 @@ const tableData = sortedOrders.map((order) => {
         cellWidth: "auto",
       },
     },
+
+    willDrawCell(data) {
+      if (isKhmer && isKhmerText(data.cell.raw)) {
+        data.cell._khmerLines =
+          Array.isArray(data.cell.text) && data.cell.text.length > 0
+            ? [...data.cell.text]
+            : [String(data.cell.raw || "")];
+        data.cell.text = [];
+      }
+    },
+
+    didDrawCell(data) {
+      if (isKhmer && isKhmerText(data.cell.raw)) {
+        drawKhmerInAutoTableCell(doc, data);
+      }
+    },
   });
 
+  // Footer on all pages (Shop name and Page Number)
   const totalPagesCount = doc.internal.getNumberOfPages();
 
   for (let i = 1; i <= totalPagesCount; i++) {
     doc.setPage(i);
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(148, 163, 184);
+    const footerLeft = `${shopName} · ${t.monthlyReport}`;
+    const footerRight = t.pageOf
+      .replace("{current}", String(i))
+      .replace("{total}", String(totalPagesCount));
 
-    doc.text(
-      `${shopName} · Monthly Order Report`,
-      margin,
-      pageHeight - 7
-    );
-
-    doc.text(
-      `Page ${i} of ${totalPagesCount}`,
-      rightX,
-      pageHeight - 7,
-      { align: "right" }
-    );
+    if (isKhmer) {
+      drawKhmerText(doc, footerLeft, margin, pageHeight - 7, {
+        fontSize: 8,
+        color: "#94a3b8",
+        align: "left",
+      });
+      drawKhmerText(doc, footerRight, rightX, pageHeight - 7, {
+        fontSize: 8,
+        color: "#94a3b8",
+        align: "right",
+      });
+    } else {
+      doc.setFont(fontName, "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text(footerLeft, margin, pageHeight - 7);
+      doc.text(footerRight, rightX, pageHeight - 7, { align: "right" });
+    }
   }
 
   const safePeriod = (reportPeriod || new Date().toISOString().slice(0, 10))

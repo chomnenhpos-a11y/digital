@@ -250,10 +250,7 @@ function calculatePaidSalesBadges<Order, Item>({
   };
 }
 
-/**
- * Evaluate the entire store's verified order snapshot, independently of products,
- * search filters, quantities, customer identities, or UI pagination.
- */
+
 export function calculateBestSellers<Order, Item>({
   orders,
   coverage,

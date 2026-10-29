@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
 
-/**
- * Hook to verify all assets (data, fonts, images) are fully loaded and decoded
- * before enabling the print action.
- *
- * @param {React.RefObject} containerRef - Reference to the DOM node containing print elements
- * @param {boolean} isDataReady - Flag indicating primary data (order, product, settings) is ready
- * @returns {{ isReady: boolean, statusMessage: string, isFontsReady: boolean, isImagesReady: boolean }}
- */
 export function usePrintReadyAssets(containerRef, isDataReady = false) {
   const [isReady, setIsReady] = useState(false);
   const [isFontsReady, setIsFontsReady] = useState(false);

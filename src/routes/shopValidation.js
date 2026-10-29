@@ -65,16 +65,6 @@ export function isValidShopData(
   return actualCode.toLowerCase() === expectedCode.toLowerCase();
 }
 
-/**
- * Validates an optional staff referral token.
- *
- * Missing staff_reff is allowed for normal shop browsing.
- * If staff_reff is provided, it must be a valid Base64 staff ID token.
- *
- * @param {string|null|undefined} rawStaffReff
- * @param {object|null|undefined} settingData
- * @returns {boolean}
- */
 export function isValidStaffReferralParam(
   rawStaffReff,
   settingData = null,
@@ -112,21 +102,9 @@ export function isValidStaffReferralParam(
     );
   }
 
-  // The token is valid, but membership cannot be verified
-  // without staff records from the backend.
   return true;
 }
 
-/**
- * Resolves staff records or staff IDs exposed by the backend.
- *
- * Supported shapes:
- * - staff / users / sellers: arrays of staff records or IDs
- * - staff_ids / staffIds: arrays of staff IDs
- *
- * @param {object|null|undefined} settingData
- * @returns {{list: Array, named: boolean}|null}
- */
 export function getShopStaffData(settingData) {
   if (!settingData || typeof settingData !== 'object') {
     return null;

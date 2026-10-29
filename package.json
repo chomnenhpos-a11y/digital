@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "test:export": "node --test src/utils/khmerPdfExport.test.js",
     "test:orders": "node --experimental-test-module-mocks --test src/queries/orders/useOrderQueries.test.js",
     "test:referral": "node --test src/client/features/cart/utils/staffReferral.test.js",
     "test:shop-validation": "node --test src/routes/ShopRouteGuard.test.js",

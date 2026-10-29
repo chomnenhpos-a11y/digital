@@ -36,6 +36,7 @@ export default function AdminProductsSale() {
     sellerOptions,
     groupOptions,
     t,
+    i18n,
     setCurrentPage,
     handleDateRangeChange,
     handleSearchChange,
@@ -72,12 +73,17 @@ export default function AdminProductsSale() {
 
   const noRowIndex = (currentPage - 1) * PRODUCT_SALE_PAGE_SIZE;
 
+  const currentLang =
+    i18n?.language?.split("-")[0] ||
+    (typeof window !== "undefined" ? localStorage.getItem("language") : "en") ||
+    "en";
+
   const handleExcelExport = () => {
     if (!filteredRows || filteredRows.length === 0) {
       notifyNoData();
       return;
     }
-    exportProductSalesToExcel(filteredRows, dateRange, settings);
+    exportProductSalesToExcel(filteredRows, dateRange, settings, { language: currentLang });
   };
 
   const handlePDFExport = async () => {
@@ -87,7 +93,7 @@ export default function AdminProductsSale() {
     }
     setIsExportingPDF(true);
     try {
-      await exportProductSalesToPDF(filteredRows, dateRange, settings);
+      await exportProductSalesToPDF(filteredRows, dateRange, settings, { language: currentLang });
     } catch (err) {
       console.error("PDF Export error:", err);
     } finally {

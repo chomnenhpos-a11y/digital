@@ -16,8 +16,6 @@ function iframe(url) {
   return { type: "iframe", url };
 }
 
-// Each resolver receives the parsed URL, the normalized host and the original
-// URL string, and returns an embed object or null.
 const RESOLVERS = {
   youtube(parsed, host) {
     let videoId = null;
@@ -68,12 +66,6 @@ function detectPlatform(host) {
   );
 }
 
-/**
- * @param {string} url     
- * @param {string} [platform] "youtube" | "facebook" | "tiktok" | "instagram".
- *                            
- * @returns {{type: "iframe", url: string} | null}
- */
 export function getProductMediaEmbed(url, platform) {
   try {
     if (typeof url !== "string") return null;

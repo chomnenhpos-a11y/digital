@@ -9,21 +9,6 @@ import {
   isValidShopData,
   isValidStaffReferralParam,
 } from './shopValidation';
-
-/**
- * Protects shop routes:
- * - /:shop_code
- * - /:shop_code/products/:id
- *
- * A staff referral is optional.
- *
- * Rules:
- * 1. An invalid or nonexistent shop renders NotFoundPage.
- * 2. A missing staff_reff allows normal shop browsing.
- * 3. A provided empty or malformed staff_reff renders NotFoundPage.
- * 4. A provided referral must belong to the shop when membership
- *    can be verified from the backend settings.
- */
 export default function ShopRouteGuard() {
   const { shop_code } = useParams();
   const location = useLocation();
