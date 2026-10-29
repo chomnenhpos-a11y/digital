@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 import { getCategoryDisplayName } from "../../../../admin/features/Categories/utils/categoryUtils";
 
 // Mobile "All Products" section: show 2 rows (4 cards on a 2-col grid) by default
-const MOBILE_PAGE_SIZE = 4;
+const MOBILE_PAGE_SIZE = 8;
 const ALL_PRODUCTS_ID = "ALL_PRODUCTS";
 const ALL_CATEGORIES_ID = "ALL_CATEGORIES";
 

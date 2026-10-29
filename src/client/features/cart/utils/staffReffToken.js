@@ -1,27 +1,6 @@
-/**
- * staff_reff token helpers (see `setting.md`).
- *
- * A staff referral is shared as a Base64 token that encodes `staff_{staff_id}`:
- *
- *   staff id 93 -> "staff_93" -> "c3RhZmZfOTM"
- *
- * QR codes and storefront links always carry this token in the URL:
- *
- *   /{shop_code}?staff_reff=c3RhZmZfOTM
- *
- * The backend decodes the token and answers through the settings response
- * (`data.sharedBy`) with the shared staff record, which the client uses to
- * fill the order's sell-by (saleBy) field. The client only forwards the raw
- * token to the API — it never derives attribution from the token itself.
- */
-
 const STAFF_TOKEN_PREFIX = "staff_";
 const STAFF_TOKEN_PATTERN = /^staff_(\d+)$/;
 
-/**
- * Base64-decodes a value with padding/url-safe tolerance.
- * Returns null for anything that is not decodable.
- */
 function decodeBase64(value) {
   if (typeof value !== "string" || !value) {
     return null;
@@ -44,16 +23,6 @@ function decodeBase64(value) {
   }
 }
 
-/**
- * Builds the Base64 staff_reff token for a staff ID.
- *
- * Examples:
- * - 93 -> "c3RhZmZfOTM"
- * - 0 / null / "abc" -> ""
- *
- * @param {number|string} staffId
- * @returns {string} Token or empty string when the staff ID is invalid
- */
 export function encodeStaffReff(staffId) {
   const id = Number(staffId);
 
@@ -74,17 +43,7 @@ export function encodeStaffReff(staffId) {
   return "";
 }
 
-/**
- * Decodes a staff_reff token into its positive integer staff ID.
- *
- * Examples:
- * - "c3RhZmZfOTM" -> 93
- * - "93KimSan" (legacy format) -> null
- * - "" / null / non-string -> null
- *
- * @param {string|null|undefined} staffReff
- * @returns {number|null}
- */
+
 export function decodeStaffReff(staffReff) {
   if (typeof staffReff !== "string") {
     return null;
@@ -104,12 +63,6 @@ export function decodeStaffReff(staffReff) {
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
-/**
- * Checks whether a value is a well-formed staff_reff token.
- *
- * @param {string|null|undefined} staffReff
- * @returns {boolean}
- */
 export function isStaffReffToken(staffReff) {
   return decodeStaffReff(staffReff) !== null;
 }

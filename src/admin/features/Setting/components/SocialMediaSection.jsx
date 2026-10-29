@@ -105,7 +105,7 @@ const SocialMediaSection = ({ fields, append, remove }) => {
                             options={socialIconOptions}
                             isSearchable={false}
                             isClearable
-                            placeholder="—"
+                            placeholder="Icon"
                             menuPlacement="top"
                             className="text-sm"
                             styles={{
