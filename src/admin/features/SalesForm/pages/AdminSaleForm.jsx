@@ -238,7 +238,7 @@ export default function AdminSaleForm() {
         <form
           onSubmit={handleSubmit(onCheckout)}
           className={`
-            fixed inset-0 z-50 bg-[#fcfafb] flex flex-col p-4 pb-8 overflow-y-auto transition-transform duration-300
+            fixed inset-0 z-10 bg-[#fcfafb] flex flex-col p-4 pb-8 overflow-y-auto transition-transform duration-300
             ${isCartOpen ? "translate-y-0 pointer-events-auto" : "translate-y-full pointer-events-none"}
             lg:static lg:inset-auto lg:translate-y-0 lg:pointer-events-auto lg:z-auto lg:p-0 lg:pb-0 lg:bg-transparent lg:col-span-5 lg:flex lg:flex-col lg:gap-4 gap-2 lg:overflow-y-auto lg:will-change-scroll lg:overscroll-contain transform-gpu
           `}
@@ -283,7 +283,7 @@ export default function AdminSaleForm() {
         </form>
       </div>
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 z-40">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 z-5">
         <button
           type="button"
           onClick={() => setIsCartOpen(true)}
