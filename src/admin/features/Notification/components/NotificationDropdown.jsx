@@ -128,7 +128,7 @@ export default function NotificationDropdown() {
               <button
                 key={filter.id}
                 onClick={() => setTypeFilter(filter.id)}
-                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                className={`px-3 py-1 text-xs rounded-full transition-colors shrink-0 ${
                   typeFilter === filter.id 
                     ? 'bg-slate-800 text-white' 
                     : 'bg-[#fcfafb] text-slate-600 hover:bg-slate-200'

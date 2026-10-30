@@ -4,31 +4,94 @@ import {
   useUpdateOrderViewedMutation,
 } from "../../../../queries/orders/useOrderQueries";
 import { useProductsQuery } from "../../../../queries/products/useProductQueries";
+import { useAdminAuth } from "../../../../context/AdminAuthContext";
 import { useNavigate } from "react-router-dom";
 
-const STOCK_NOTIFICATIONS_KEY = "admin_stock_notifications";
-const STOCK_STATES_KEY = "admin_stock_states";
+// ── Per-shop isolated storage keys ─────────────────────────────────────────
+// Stock alerts must never leak between shops on the same browser, so every
+// shop gets its own key. (The old global keys are migrated/removed below.)
+const stockNotificationsStorageKey = (shopCode) =>
+  `admin_stock_notifications:${shopCode || "default"}`;
+
+const stockStatesStorageKey = (shopCode) =>
+  `admin_stock_states:${shopCode || "default"}`;
+
+// ── Notification retention windows ─────────────────────────────────────────
+// Orders stay visible for 1 day, stock alerts for 3 days (calendar days,
+// including today).
+const DAY_MS = 24 * 60 * 60 * 1000;
+const ORDER_RETENTION_DAYS = 1;
+const STOCK_RETENTION_DAYS = 3;
+
+const startOfTodayMs = () => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  return start.getTime();
+};
+
+const orderRetentionStartMs = () =>
+  startOfTodayMs() - (ORDER_RETENTION_DAYS - 1) * DAY_MS;
+
+const stockRetentionStartMs = () =>
+  startOfTodayMs() - (STOCK_RETENTION_DAYS - 1) * DAY_MS;
+
+const isVisibleByAge = (notification) => {
+  const createdAt = new Date(notification.createdAt).getTime();
+  if (Number.isNaN(createdAt)) return false;
+
+  return notification.type === "order"
+    ? createdAt >= orderRetentionStartMs()
+    : createdAt >= stockRetentionStartMs();
+};
+
+const readStoredStockNotifications = (shopCode) => {
+  try {
+    const raw = localStorage.getItem(stockNotificationsStorageKey(shopCode));
+    const parsed = raw ? JSON.parse(raw) : [];
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 
 export function useNotifications() {
+  const { user } = useAdminAuth();
+  const shopCode = user?.shop?.code || "";
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  const [stockNotifications, setStockNotifications] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STOCK_NOTIFICATIONS_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [stockNotifications, setStockNotifications] = useState(() =>
+    readStoredStockNotifications(shopCode)
+  );
 
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const { data: orders = [] } = useOrdersQuery();
-  const { data: products = [] } = useProductsQuery();
+  // Queries are explicitly scoped to the current shop so the stock diff is
+  // never computed over another shop's data.
+  const { data: orders = [] } = useOrdersQuery(
+    shopCode ? { shop_code: shopCode } : {}
+  );
+  const { data: products = [] } = useProductsQuery(
+    shopCode ? { shop_code: shopCode } : {}
+  );
   const updateOrderViewedMutation = useUpdateOrderViewedMutation();
+
+  // One-time cleanup of the legacy global keys that caused stock alerts to
+  // "migrate" between shops on the same browser.
+  useEffect(() => {
+    localStorage.removeItem("admin_stock_notifications");
+    localStorage.removeItem("admin_stock_states");
+  }, []);
+
+  // Reload the persisted list whenever the logged-in shop changes. This keeps
+  // read/unread state per shop (and isolates shops on account switches).
+  useEffect(() => {
+    setStockNotifications(readStoredStockNotifications(shopCode));
+  }, [shopCode]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -52,10 +115,13 @@ export function useNotifications() {
   useEffect(() => {
     if (!Array.isArray(products) || products.length === 0) return;
 
+    const stockStatesStorage = stockStatesStorageKey(shopCode);
+    const notificationsStorage = stockNotificationsStorageKey(shopCode);
+
     let stockStates = {};
 
     try {
-      const raw = localStorage.getItem(STOCK_STATES_KEY);
+      const raw = localStorage.getItem(stockStatesStorage);
       const parsed = raw ? JSON.parse(raw) : {};
 
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
@@ -71,7 +137,8 @@ export function useNotifications() {
     products.forEach((product) => {
       if (!product?.id) return;
 
-      const productId = product.id;
+      // Namespace by shop so IDs from other shops can never be matched.
+      const storageId = `${shopCode || "default"}:${product.id}`;
       const stock = Number(product.stockQuantity ?? 0);
 
       const currentState =
@@ -81,20 +148,20 @@ export function useNotifications() {
           ? "low_stock"
           : "normal";
 
-      const previousState = stockStates[productId];
+      const previousState = stockStates[storageId];
 
       if (previousState === currentState) return;
 
-      stockStates[productId] = currentState;
+      stockStates[storageId] = currentState;
       stockStatesChanged = true;
 
       if (currentState === "low_stock" || currentState === "out_of_stock") {
         const timestamp = Date.now();
 
         newStockNotifications.push({
-          id: `product-${currentState}-${productId}-${timestamp}`,
+          id: `product-${currentState}-${storageId}-${timestamp}`,
           type: currentState,
-          productId,
+          productId: product.id,
           name: product.name || "",
           stockQuantity: stock,
           createdAt: new Date(timestamp).toISOString(),
@@ -105,7 +172,7 @@ export function useNotifications() {
 
     if (stockStatesChanged) {
       localStorage.setItem(
-        STOCK_STATES_KEY,
+        stockStatesStorage,
         JSON.stringify(stockStates)
       );
     }
@@ -121,16 +188,17 @@ export function useNotifications() {
 
       if (newNotifications.length === 0) return prev;
 
-      const updated = [...prev, ...newNotifications];
+      // Drop expired alerts before persisting so the stored list stays small.
+      const updated = [...prev, ...newNotifications].filter(isVisibleByAge);
 
       localStorage.setItem(
-        STOCK_NOTIFICATIONS_KEY,
+        notificationsStorage,
         JSON.stringify(updated)
       );
 
       return updated;
     });
-  }, [products]);
+  }, [products, shopCode]);
 
   const orderNotifications = useMemo(() => {
     if (!Array.isArray(orders)) return [];
@@ -150,11 +218,13 @@ export function useNotifications() {
 
   const notifications = useMemo(
     () =>
-      [...orderNotifications, ...stockNotifications].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() -
-          new Date(a.createdAt).getTime()
-      ),
+      [...orderNotifications, ...stockNotifications]
+        .filter(isVisibleByAge)
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() -
+            new Date(a.createdAt).getTime()
+        ),
     [orderNotifications, stockNotifications]
   );
 
@@ -199,14 +269,14 @@ export function useNotifications() {
         );
 
         localStorage.setItem(
-          STOCK_NOTIFICATIONS_KEY,
+          stockNotificationsStorageKey(shopCode),
           JSON.stringify(updated)
         );
 
         return updated;
       });
     },
-    [notifications, updateOrderViewedMutation]
+    [notifications, updateOrderViewedMutation, shopCode]
   );
 
   const markAllAsRead = useCallback(() => {
@@ -228,13 +298,13 @@ export function useNotifications() {
       }));
 
       localStorage.setItem(
-        STOCK_NOTIFICATIONS_KEY,
+        stockNotificationsStorageKey(shopCode),
         JSON.stringify(updated)
       );
 
       return updated;
     });
-  }, [notifications, updateOrderViewedMutation]);
+  }, [notifications, updateOrderViewedMutation, shopCode]);
 
   const toggleDropdown = useCallback(() => {
     setIsOpen((prev) => !prev);
@@ -247,6 +317,12 @@ export function useNotifications() {
 
       if (notification.type === "order") {
         window.open(`/print/receipt/${notification.orderNo}`, "_blank", "noopener,noreferrer");
+      } else if (notification.type === "low_stock" || notification.type === "out_of_stock") {
+        // Open the products page pre-filtered (via URL search param) so the
+        // exact product that triggered the stock alert can be found.
+        navigate(
+          `/admin/products?search=${encodeURIComponent(notification.name || "")}`
+        );
       } else {
         navigate("/admin/products");
       }

@@ -56,10 +56,10 @@ export default function AdminProducts() {
           <img
             src={row.image}
             alt={row.name}
-            className="h-16 w-16 min-w-[4rem] object-cover rounded-lg"
+            className="h-10 w-10 object-cover rounded-lg"
           />
         ) : (
-          <div className="h-16 w-16 min-w-[4rem] bg-[#fcfafb] rounded-lg flex items-center justify-center text-xs text-gray-400">
+          <div className="h-10 w-10 bg-[#fcfafb] rounded-lg flex items-center justify-center text-xs text-gray-400">
             <ImageOff size={20} className="text-gray-400"/>
           </div>
         ),
@@ -71,7 +71,7 @@ export default function AdminProducts() {
       render: (row) => (
         <div className="min-w-[160px] space-y-2">
           <span className="font-semibold text-slate-900">{row.name}</span>
-          <ProductMediaIcons media={row.media} />
+          <ProductMediaIcons media={row.media}/>
         </div>
       ),
     },

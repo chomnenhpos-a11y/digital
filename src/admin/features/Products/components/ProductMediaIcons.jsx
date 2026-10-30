@@ -29,7 +29,7 @@ export default function ProductMediaIcons({ media }) {
 
   return (
     <Tooltip.Provider delay={200}>
-      <div className="flex items-center gap-2" role="group" aria-label={t("products.mediaLinks")}>
+      <div className="flex items-center gap-1.5" role="group" aria-label={t("products.mediaLinks")}>
         {links.slice(0, 2).map((link, index) => {
           const Icon = link.platform.displayIcon || link.platform.icon;
           return (
@@ -37,10 +37,10 @@ export default function ProductMediaIcons({ media }) {
               <Tooltip.Trigger
                 render={<a href={link.url} target="_blank" rel="noopener noreferrer" />}
                 aria-label={link.label}
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-white shadow-sm ring-1 ring-inset ring-black/5 transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9d1159]"
+                className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md text-white shadow-sm ring-1 ring-inset ring-black/5 transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9d1159]"
                 style={{ backgroundColor: link.platform.color }}
               >
-                <Icon size={18} aria-hidden="true" />
+                <Icon size={13} aria-hidden="true" />
               </Tooltip.Trigger>
               <Tooltip.Portal>
                 <Tooltip.Positioner side="top" sideOffset={8} collisionPadding={8} className="z-[60]">
@@ -58,7 +58,7 @@ export default function ProductMediaIcons({ media }) {
           <Popover.Root>
             <Popover.Trigger
               aria-label={t("products.showMoreMedia", { count: remaining.length })}
-              className="inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white px-1.5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:border-[#9d1159]/30 hover:bg-[#9d1159]/5 hover:text-[#9d1159] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9d1159]"
+              className="inline-flex h-[22px] min-w-[22px] shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white px-1 text-[10px] font-semibold text-slate-600 shadow-sm transition-colors hover:border-[#9d1159]/30 hover:bg-[#9d1159]/5 hover:text-[#9d1159] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9d1159]"
             >
               +{remaining.length}
             </Popover.Trigger>

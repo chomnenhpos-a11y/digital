@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useProductsQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation } from '../../../../queries/products/useProductQueries'
 import Swal from '../../../../lib/alert'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +15,7 @@ export function getStockStatus(stock) {
 
 export function useProducts({ shopCode } = {}) {
   const { t, i18n } = useTranslation()
+  const [searchParams] = useSearchParams()
   const { data: products = [], isPending: isLoading } = useProductsQuery(
     { shop_code: shopCode }
   )
@@ -21,7 +23,15 @@ export function useProducts({ shopCode } = {}) {
   const updateMutation = useUpdateProductMutation()
   const deleteMutation = useDeleteProductMutation()
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => searchParams.get('search') || '')
+
+  // Keep the search filter in sync when arriving via a navigated link
+  // (e.g. a stock notification pointing at a specific product), including
+  // when the page is already open (no remount happens).
+  useEffect(() => {
+    setSearch(searchParams.get('search') || '')
+    setCurrentPage(1)
+  }, [searchParams])
   const [filters, setFilters] = useState({ category: '', status: '' })
   const [sortOrder, setSortOrder] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
