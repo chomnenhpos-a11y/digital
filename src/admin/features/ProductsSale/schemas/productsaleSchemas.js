@@ -39,7 +39,7 @@ export function getTodayISODate() {
 /** Local "yesterday" as YYYY-MM-DD (no UTC shifting). */
 export function getYesterdayISODate() {
   const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setDate(yesterday.getDate());
   return [
     yesterday.getFullYear(),
     String(yesterday.getMonth() + 1).padStart(2, "0"),

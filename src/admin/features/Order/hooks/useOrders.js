@@ -184,7 +184,7 @@ export function useOrders(viewMode) {
     const today = new Date()
     const yesterday = new Date(today)
 
-    yesterday.setDate(yesterday.getDate() - 1)
+    yesterday.setDate(yesterday.getDate())
 
     const formatDate = (date) => {
       const year = date.getFullYear()
