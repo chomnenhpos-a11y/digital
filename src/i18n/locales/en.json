@@ -975,8 +975,8 @@
   "productsSale": {
     "title": "Product Sales Report",
     "subtitle": "Analyze and track your product sales performance.",
-    "excel": "Excel",
-    "pdf": "PDF",
+    "excel": "Excel (En)",
+    "pdf": "PDF (En)",
     "viewTable": "Table",
     "viewCard": "Card",
     "switchToCard": "Switch to card view",

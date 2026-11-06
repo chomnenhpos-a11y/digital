@@ -5,7 +5,7 @@ export const PRODUCT_SALE_EXPORT_TRANSLATIONS = {
     generated: "Generated:",
     tel: "Tel:",
     sheetName: "Product Sales",
-    monthlyReport: "Monthly Sales Report",
+    monthlyReport: "Sales Report",
     pageOf: "Page {current} of {total}",
 
     // Metrics
@@ -38,7 +38,7 @@ export const PRODUCT_SALE_EXPORT_TRANSLATIONS = {
     generated: "កាលបរិច្ឆេទបង្កើត:",
     tel: "ទូរស័ព្ទ:",
     sheetName: "ការលក់ទំនិញ",
-    monthlyReport: "របាយការណ៍ការលក់ប្រចាំខែ",
+    monthlyReport: "របាយការលក់",
     pageOf: "ទំព័រទី {current} នៃ {total}",
 
     // Metrics

@@ -188,10 +188,19 @@ export async function exportOrdersToPDF(
   }
 
   // Shop name (left)
-  doc.setFont(fontName, "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(30, 41, 59);
-  doc.text(shopName, leftContentX, currentY);
+  if (isKhmerText(shopName)) {
+    drawKhmerText(doc, shopName, leftContentX, currentY, {
+      fontSize: 14,
+      bold: true,
+      color: "#1e293b",
+      align: "left",
+    });
+  } else {
+    doc.setFont(fontName, "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(30, 41, 59);
+    doc.text(shopName, leftContentX, currentY);
+  }
 
   doc.setFont(fontName, "normal");
   doc.setFontSize(8.5);
@@ -200,11 +209,11 @@ export async function exportOrdersToPDF(
   if (phone) {
     currentY += 5;
     const phoneText = `${t.tel} ${phone}`;
-    
-    if (isKhmer) {
+
+    if (isKhmer || isKhmerText(phoneText)) {
       drawKhmerText(doc, phoneText, leftContentX, currentY, {
         fontSize: 8.5,
-        color: "#64748b", // ពណ៌ត្រូវគ្នានឹង rgb(100, 116, 139)
+        color: "#64748b",
         align: "left",
       });
     } else {
@@ -217,7 +226,17 @@ export async function exportOrdersToPDF(
 
     const splitAddress = doc.splitTextToSize(address, 105);
 
-    doc.text(splitAddress, leftContentX, currentY);
+    if (isKhmer || isKhmerText(address)) {
+      splitAddress.forEach((line, idx) => {
+        drawKhmerText(doc, line, leftContentX, currentY + idx * 3.5, {
+          fontSize: 8.5,
+          color: "#64748b",
+          align: "left",
+        });
+      });
+    } else {
+      doc.text(splitAddress, leftContentX, currentY);
+    }
 
     currentY += (splitAddress.length - 1) * 3.5;
   }
@@ -377,7 +396,7 @@ export async function exportOrdersToPDF(
 
     // Prevent autoTable from drawing unshaped broken glyphs; save lines for shaped overlay
     willDrawCell(data) {
-      if (isKhmer && isKhmerText(data.cell.raw)) {
+      if (isKhmerText(data.cell.raw)) {
         data.cell._khmerLines =
           Array.isArray(data.cell.text) && data.cell.text.length > 0
             ? [...data.cell.text]
@@ -402,7 +421,7 @@ export async function exportOrdersToPDF(
       }
 
       // Overlay shaped Khmer text
-      if (isKhmer && isKhmerText(data.cell.raw)) {
+      if (isKhmerText(data.cell.raw)) {
         drawKhmerInAutoTableCell(doc, data);
       }
     },
@@ -527,7 +546,7 @@ export async function exportOrdersToPDF(
     },
 
     willDrawCell(data) {
-      if (isKhmer && isKhmerText(data.cell.raw)) {
+      if (isKhmerText(data.cell.raw)) {
         data.cell._khmerLines =
           Array.isArray(data.cell.text) && data.cell.text.length > 0
             ? [...data.cell.text]
@@ -537,7 +556,7 @@ export async function exportOrdersToPDF(
     },
 
     didDrawCell(data) {
-      if (isKhmer && isKhmerText(data.cell.raw)) {
+      if (isKhmerText(data.cell.raw)) {
         drawKhmerInAutoTableCell(doc, data);
       }
     },
@@ -554,7 +573,7 @@ export async function exportOrdersToPDF(
       .replace("{current}", String(i))
       .replace("{total}", String(totalPagesCount));
 
-    if (isKhmer) {
+    if (isKhmer || isKhmerText(footerLeft)) {
       drawKhmerText(doc, footerLeft, margin, pageHeight - 7, {
         fontSize: 8,
         color: "#94a3b8",

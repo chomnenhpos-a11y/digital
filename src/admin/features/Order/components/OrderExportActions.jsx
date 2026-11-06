@@ -68,7 +68,7 @@ export default function OrderExportActions({ orders = [], fromDate = '', toDate 
         className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-sm font-medium transition-colors cursor-pointer"
       >
         <FileSpreadsheet size={14} />
-        {isKhmer ? 'Excel (ខ្មែរ)' : 'Excel'}
+        {isKhmer ? 'Excel (ខ្មែរ)' : 'Excel (En)'}
       </button>
       <button
         type="button"
@@ -77,7 +77,7 @@ export default function OrderExportActions({ orders = [], fromDate = '', toDate 
         className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-50 border border-red-200 rounded-lg text-sm font-medium transition-colors cursor-pointer"
       >
         <FileText size={14} className={isExportingPDF ? 'animate-pulse' : ''} />
-        {isExportingPDF ? '...' : (isKhmer ? 'PDF (ខ្មែរ)' : 'PDF')}
+        {isExportingPDF ? '...' : (isKhmer ? 'PDF (ខ្មែរ)' : 'PDF (En)')}
       </button>
     </div>
   );

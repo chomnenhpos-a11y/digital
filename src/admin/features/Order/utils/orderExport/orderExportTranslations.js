@@ -7,7 +7,7 @@ export const ORDER_EXPORT_TRANSLATIONS = {
     generated: "Generated:",
     tel: "Tel:",
     ordersUnit: "orders",
-    monthlyReport: "Monthly Order Report",
+    monthlyReport: "Order Report",
     pageOf: "Page {current} of {total}",
 
     // Summary Page & Metric Labels
@@ -61,7 +61,7 @@ export const ORDER_EXPORT_TRANSLATIONS = {
     generated: "កាលបរិច្ឆេទបង្កើត:",
     tel: "ទូរស័ព្ទ:",
     ordersUnit: "ការបញ្ជាទិញ",
-    monthlyReport: "របាយការណ៍ការបញ្ជាទិញប្រចាំខែ",
+    monthlyReport: "របាយការបញ្ជាទិញ",
     pageOf: "ទំព័រទី {current} នៃ {total}",
 
     // Summary Page & Metric Labels
