@@ -124,7 +124,7 @@ export async function exportOrdersToPDF(
 
   // Register Battambang font in jsPDF VFS + browser FontFace
   const fontReady = await setupBattambangFont(doc);
-  const fontName = fontReady ? "Battambang" : "helvetica";
+  const fontName = isKhmer ? (fontReady ? "Battambang" : "helvetica") : "helvetica";
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();

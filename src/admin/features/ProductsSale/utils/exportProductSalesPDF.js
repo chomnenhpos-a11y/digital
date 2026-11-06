@@ -101,7 +101,7 @@ export async function exportProductSalesToPDF(
 
   // Register Battambang font
   const fontReady = await setupBattambangFont(doc);
-  const fontName = fontReady ? "Battambang" : "helvetica";
+  const fontName = isKhmer ? (fontReady ? "Battambang" : "helvetica") : "helvetica";
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
